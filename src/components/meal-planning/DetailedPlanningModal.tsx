@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronRight, ChevronLeft, MessageCircle, Sparkles } from 'lucide-react';
+import FoodPreferenceSlider from './FoodPreferenceSlider';
 
 interface DetailedPlanningModalProps {
   open: boolean;
@@ -22,8 +22,9 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
   // Form state
   const [dietaryPreference, setDietaryPreference] = useState('');
   const [fitnessGoal, setFitnessGoal] = useState('');
+  const [likedFoods, setLikedFoods] = useState<string[]>([]);
   
-  const totalSteps = 4;
+  const totalSteps = 5;
   
   const handleNext = () => {
     if (step < totalSteps) {
@@ -52,6 +53,12 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
       });
       onClose();
     }, 2000);
+  };
+
+  const handleFoodPreference = (dishId: string, liked: boolean) => {
+    if (liked && !likedFoods.includes(dishId)) {
+      setLikedFoods([...likedFoods, dishId]);
+    }
   };
   
   const renderStep = () => {
@@ -161,6 +168,17 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
                 />
               </div>
             </div>
+          </div>
+        );
+        
+      case 5:
+        return (
+          <div className="space-y-4">
+            <h2 className="text-lg font-medium">Food Preferences</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Swipe right for dishes you like, left for those you don't. This helps us customize your meal plan to your taste preferences.
+            </p>
+            <FoodPreferenceSlider onPreferenceChange={handleFoodPreference} />
           </div>
         );
         

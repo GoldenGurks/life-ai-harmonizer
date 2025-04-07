@@ -15,3 +15,20 @@ export interface MealPlan {
   day: string;
   meals: MealItem[];
 }
+
+export interface Dish {
+  id: string;
+  name: string;
+  ingredients: string[];
+  image: string;
+}
+
+export interface UserPreferences {
+  dietaryPreference?: string;
+  fitnessGoal?: string;
+  allergies?: string[];
+  cookingExperience?: string;
+  cookingTime?: number;
+  likedFoods?: string[];
+  dislikedFoods?: string[];
+}
