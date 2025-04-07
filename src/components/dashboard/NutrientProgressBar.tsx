@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface NutrientProgressBarProps {
   label: string;
@@ -27,7 +28,14 @@ const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
           {value} / {max} {unit}
         </span>
       </div>
-      <Progress value={percentage} className="h-2" indicatorClassName={color} />
+      <Progress 
+        value={percentage} 
+        className={cn("h-2", {
+          "[&>div]:bg-primary": color === "bg-primary",
+          "[&>div]:bg-secondary": color === "bg-secondary",
+          "[&>div]:bg-accent": color === "bg-accent",
+        })}
+      />
     </div>
   );
 };
