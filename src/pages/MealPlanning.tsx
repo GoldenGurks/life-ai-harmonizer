@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, ChefHat, Utensils, Apple, Plus, Info, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import WelcomeModal from '@/components/meal-planning/WelcomeModal';
+import QuickSetupModal from '@/components/meal-planning/QuickSetupModal';
+import DetailedPlanningModal from '@/components/meal-planning/DetailedPlanningModal';
 
 interface MealItem {
   id: string;
@@ -30,6 +33,12 @@ const MealPlanning = () => {
   const [activeTab, setActiveTab] = useState('weekly');
   const [currentDay, setCurrentDay] = useState('Monday');
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  
+  // Setup flow state
+  const [isNewUser, setIsNewUser] = useState(true);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
+  const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
 
   // Sample meal plans data
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([
@@ -78,6 +87,18 @@ const MealPlanning = () => {
     }
   ]);
 
+  useEffect(() => {
+    // Check if user is new (in real app, this would check user data from backend)
+    if (isNewUser) {
+      // Show welcome modal after a short delay to let the page render first
+      const timer = setTimeout(() => {
+        setShowWelcomeModal(true);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isNewUser]);
+
   const generateAIMealPlan = () => {
     toast({
       title: "AI-Generated Plan",
@@ -98,6 +119,15 @@ const MealPlanning = () => {
       title: "Meal Options",
       description: "Showing alternative meals based on your preferences and nutritional goals.",
     });
+  };
+  
+  const handleSetupChoice = (choice: 'quick' | 'detailed') => {
+    if (choice === 'quick') {
+      setShowQuickSetupModal(true);
+    } else {
+      setShowDetailedPlanningModal(true);
+    }
+    setIsNewUser(false);
   };
 
   return (
@@ -387,6 +417,23 @@ const MealPlanning = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Welcome and Setup Flow Modals */}
+      <WelcomeModal 
+        open={showWelcomeModal} 
+        onClose={() => setShowWelcomeModal(false)} 
+        onSetupChoice={handleSetupChoice} 
+      />
+      
+      <QuickSetupModal 
+        open={showQuickSetupModal} 
+        onClose={() => setShowQuickSetupModal(false)} 
+      />
+      
+      <DetailedPlanningModal 
+        open={showDetailedPlanningModal} 
+        onClose={() => setShowDetailedPlanningModal(false)} 
+      />
     </Layout>
   );
 };
