@@ -5,6 +5,10 @@ export interface MealItem {
   description: string;
   calories: number;
   protein: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  sugar?: number;
   type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   tags: string[];
 }
@@ -31,4 +35,25 @@ export interface UserPreferences {
   cookingTime?: number;
   likedFoods?: string[];
   dislikedFoods?: string[];
+  dailyCalorieTarget?: number;
+  macroTargets?: {
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+}
+
+export interface NutrientData {
+  day: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface NutrientGoal {
+  name: string;
+  current: number;
+  target: number;
+  unit: string;
 }

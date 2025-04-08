@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Recipes from "./pages/Recipes";
 import Flashcards from "./pages/Flashcards";
 import MealPlanning from "./pages/MealPlanning";
+import Nutrition from "./pages/Nutrition";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/recipes" element={<Recipes />} />
           <Route path="/flashcards" element={<Flashcards />} />
           <Route path="/meal-planning" element={<MealPlanning />} />
+          <Route path="/nutrition" element={<Nutrition />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,4 @@
 
-// A simple wrapper around the HTML div element for animations
-// In a real app, you might use Framer Motion or React Spring
 import React from 'react';
 
 interface MotionProps extends React.HTMLAttributes<HTMLDivElement> {
