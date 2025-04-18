@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import { PantryItem, ShoppingList } from '@/types/meal-planning';
+import { ShoppingList } from '@/types/meal-planning';
 import ShoppingListSection from '@/components/shopping/ShoppingListSection';
 import AddItemSection from '@/components/shopping/AddItemSection';
 import PantrySection from '@/components/shopping/PantrySection';
+import { usePantry } from '@/hooks/usePantry';
 
 const sampleShoppingList: ShoppingList = {
   id: '1',
@@ -27,18 +27,10 @@ const sampleShoppingList: ShoppingList = {
   ]
 };
 
-const samplePantryItems: PantryItem[] = [
-  { id: '1', name: 'Pasta', category: 'Grains', amount: 500, unit: 'g', expirationDate: '2026-01-15' },
-  { id: '2', name: 'Canned tomatoes', category: 'Vegetables', amount: 400, unit: 'g', expirationDate: '2026-06-20' },
-  { id: '3', name: 'Rice', category: 'Grains', amount: 1000, unit: 'g', expirationDate: '2027-03-10' },
-  { id: '4', name: 'Greek yogurt', category: 'Dairy', amount: 500, unit: 'g', expirationDate: '2025-04-25' },
-  { id: '5', name: 'Quinoa', category: 'Grains', amount: 250, unit: 'g', expirationDate: '2026-12-05' },
-];
-
 const Shopping = () => {
   const [shoppingItems, setShoppingItems] = useState(sampleShoppingList.items);
-  const [pantryItems] = useState(samplePantryItems);
   const [searchQuery, setSearchQuery] = useState('');
+  const pantry = usePantry();
   
   const generateFromMealPlan = () => {
     toast.success('Shopping list updated from your meal plan');
@@ -101,7 +93,7 @@ const Shopping = () => {
         </TabsContent>
         
         <TabsContent value="pantry">
-          <PantrySection pantryItems={pantryItems} />
+          <PantrySection pantry={pantry} />
         </TabsContent>
       </Tabs>
     </Layout>
