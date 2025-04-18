@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,8 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } f
 import { useToast } from '@/hooks/use-toast';
 import { ChevronRight, ChevronLeft, MessageCircle, Sparkles } from 'lucide-react';
 import FoodPreferenceSlider from './FoodPreferenceSlider';
+import { UserPreferences } from '@/types/meal-planning';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
 
 interface DetailedPlanningModalProps {
   open: boolean;
@@ -18,11 +21,19 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
+  const { preferences, completeSetup } = useMealPreferences();
   
   // Form state
-  const [dietaryPreference, setDietaryPreference] = useState('');
-  const [fitnessGoal, setFitnessGoal] = useState('');
-  const [likedFoods, setLikedFoods] = useState<string[]>([]);
+  const [formData, setFormData] = useState<Partial<UserPreferences>>({
+    dietaryPreference: preferences.dietaryPreference || '',
+    fitnessGoal: preferences.fitnessGoal || '',
+    allergies: preferences.allergies || [],
+    intolerances: preferences.intolerances || [],
+    cookingExperience: preferences.cookingExperience || 'intermediate',
+    cookingTime: preferences.cookingTime || 30,
+    likedFoods: preferences.likedFoods || [],
+    dislikedFoods: preferences.dislikedFoods || [],
+  });
   
   const totalSteps = 5;
   
@@ -46,6 +57,9 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
       description: "Our AI is analyzing your preferences to create a personalized meal plan.",
     });
     
+    // Save the collected preferences
+    completeSetup(formData);
+    
     setTimeout(() => {
       toast({
         title: "Meal Plan Ready",
@@ -55,10 +69,40 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
     }, 2000);
   };
 
+  const handleFormChange = (field: keyof UserPreferences, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleFoodPreference = (dishId: string, liked: boolean) => {
-    if (liked && !likedFoods.includes(dishId)) {
-      setLikedFoods([...likedFoods, dishId]);
+    if (liked) {
+      const updatedLiked = formData.likedFoods?.includes(dishId) ? 
+        formData.likedFoods : 
+        [...(formData.likedFoods || []), dishId];
+        
+      setFormData(prev => ({ 
+        ...prev, 
+        likedFoods: updatedLiked,
+        dislikedFoods: prev.dislikedFoods?.filter(id => id !== dishId) || []
+      }));
+    } else {
+      const updatedDisliked = formData.dislikedFoods?.includes(dishId) ?
+        formData.dislikedFoods :
+        [...(formData.dislikedFoods || []), dishId];
+        
+      setFormData(prev => ({ 
+        ...prev, 
+        dislikedFoods: updatedDisliked,
+        likedFoods: prev.likedFoods?.filter(id => id !== dishId) || []
+      }));
     }
+  };
+
+  const handleAllergiesChange = (allergy: string, checked: boolean) => {
+    const updatedAllergies = checked
+      ? [...(formData.allergies || []), allergy]
+      : (formData.allergies || []).filter(item => item !== allergy);
+    
+    setFormData(prev => ({ ...prev, allergies: updatedAllergies }));
   };
   
   const renderStep = () => {
@@ -67,7 +111,11 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
         return (
           <div className="space-y-4">
             <h2 className="text-lg font-medium">Dietary Preferences</h2>
-            <RadioGroup value={dietaryPreference} onValueChange={setDietaryPreference} className="space-y-2">
+            <RadioGroup 
+              value={formData.dietaryPreference} 
+              onValueChange={(value) => handleFormChange('dietaryPreference', value)} 
+              className="space-y-2"
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="omnivore" id="omnivore" />
                 <Label htmlFor="omnivore">Omnivore (Meat & Plants)</Label>
@@ -96,7 +144,11 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
         return (
           <div className="space-y-4">
             <h2 className="text-lg font-medium">Fitness Goals</h2>
-            <RadioGroup value={fitnessGoal} onValueChange={setFitnessGoal} className="space-y-2">
+            <RadioGroup 
+              value={formData.fitnessGoal} 
+              onValueChange={(value) => handleFormChange('fitnessGoal', value)}
+              className="space-y-2"
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="weight-loss" id="weight-loss" />
                 <Label htmlFor="weight-loss">Weight Loss</Label>
@@ -131,7 +183,9 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
                 <div key={allergy} className="flex items-center">
                   <input 
                     type="checkbox" 
-                    id={allergy.toLowerCase()} 
+                    id={allergy.toLowerCase()}
+                    checked={(formData.allergies || []).includes(allergy)}
+                    onChange={(e) => handleAllergiesChange(allergy, e.target.checked)}
                     className="w-4 h-4 mr-2 rounded border-gray-300 text-primary focus:ring-primary" 
                   />
                   <Label htmlFor={allergy.toLowerCase()}>{allergy}</Label>
@@ -150,6 +204,8 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
                 <Label htmlFor="experience">Cooking Experience</Label>
                 <select 
                   id="experience"
+                  value={formData.cookingExperience}
+                  onChange={(e) => handleFormChange('cookingExperience', e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                 >
                   <option value="beginner">Beginner</option>
@@ -164,6 +220,8 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
                   id="time" 
                   type="number" 
                   placeholder="30" 
+                  value={formData.cookingTime || ''}
+                  onChange={(e) => handleFormChange('cookingTime', parseInt(e.target.value))}
                   className="mt-1" 
                 />
               </div>
@@ -286,3 +344,4 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
 };
 
 export default DetailedPlanningModal;
+
