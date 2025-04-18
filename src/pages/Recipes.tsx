@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Input } from '@/components/ui/input';
@@ -11,116 +10,8 @@ import { toast } from 'sonner';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
 import { Slider } from '@/components/ui/slider';
 import { motion } from '@/lib/motion';
-
-interface Recipe {
-  id: string;
-  title: string;
-  image: string;
-  time: string;
-  category: string;
-  tags: string[];
-  saved: boolean;
-  calories?: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-  fiber?: number;
-  ingredients?: string[];
-  difficulty?: 'Easy' | 'Medium' | 'Hard';
-  alternativeIds?: string[];
-}
-
-const recipeData: Recipe[] = [
-  {
-    id: '1',
-    title: 'Mediterranean Quinoa Bowl',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
-    time: '25 mins',
-    category: 'Lunch',
-    tags: ['Vegan', 'High Protein', 'Mediterranean'],
-    saved: true,
-    calories: 420,
-    protein: 18,
-    carbs: 62,
-    fat: 12,
-    fiber: 8,
-    ingredients: ['Quinoa', 'Chickpeas', 'Cucumber', 'Red onion', 'Cherry tomatoes', 'Feta', 'Olive oil', 'Lemon juice'],
-    difficulty: 'Easy',
-    alternativeIds: ['5', '3']
-  },
-  {
-    id: '2',
-    title: 'Avocado & Kale Smoothie',
-    image: 'https://images.unsplash.com/photo-1504310578167-435ac09e69f3',
-    time: '5 mins',
-    category: 'Breakfast',
-    tags: ['Vegan', 'Quick', 'Superfood'],
-    saved: false,
-    calories: 310,
-    protein: 8,
-    carbs: 34,
-    fat: 16,
-    fiber: 6,
-    ingredients: ['Kale', 'Avocado', 'Banana', 'Almond milk', 'Chia seeds', 'Honey'],
-    difficulty: 'Easy',
-    alternativeIds: ['8', '10']
-  },
-  {
-    id: '3',
-    title: 'Grilled Chicken Salad',
-    image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2',
-    time: '20 mins',
-    category: 'Lunch',
-    tags: ['High Protein', 'Low Carb'],
-    saved: true,
-    calories: 380,
-    protein: 32,
-    carbs: 12,
-    fat: 18,
-    fiber: 4,
-    ingredients: ['Chicken breast', 'Mixed greens', 'Cucumber', 'Cherry tomatoes', 'Red onion', 'Feta cheese', 'Olive oil', 'Balsamic vinegar'],
-    difficulty: 'Medium',
-    alternativeIds: ['1', '9']
-  },
-  {
-    id: '4',
-    title: 'Baked Salmon with Asparagus',
-    image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd',
-    time: '30 mins',
-    category: 'Dinner',
-    tags: ['Omega-3', 'High Protein'],
-    saved: false,
-    calories: 450,
-    protein: 36,
-    carbs: 8,
-    fat: 28,
-    fiber: 4,
-    ingredients: ['Salmon fillet', 'Asparagus', 'Lemon', 'Olive oil', 'Garlic', 'Dill', 'Salt', 'Pepper'],
-    difficulty: 'Medium',
-    alternativeIds: ['7', '11']
-  },
-  {
-    id: '5',
-    title: 'Buddha Bowl with Sweet Potato',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
-    time: '35 mins',
-    category: 'Lunch',
-    tags: ['Vegetarian', 'Meal Prep', 'Fiber Rich'],
-    saved: false,
-    calories: 510,
-    protein: 15,
-    carbs: 78,
-    fat: 16,
-    fiber: 12,
-    ingredients: ['Sweet potato', 'Quinoa', 'Chickpeas', 'Avocado', 'Spinach', 'Tahini', 'Lemon juice', 'Pumpkin seeds'],
-    difficulty: 'Medium',
-    alternativeIds: ['1', '10']
-  },
-];
-
-const dietaryFilters = ['All', 'Vegan', 'Vegetarian', 'Low Carb', 'High Protein', 'Gluten Free', 'Dairy Free'];
-const mealTypeFilters = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack'];
-const timeFilters = ['All', 'Under 15 mins', 'Under 30 mins', 'Under 45 mins', 'Under 60 mins'];
+import { Recipe } from '@/types/recipes';
+import { recipeData, findRecipeById, getAlternativeRecipes } from '@/data/recipeDatabase';
 
 const Recipes = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -129,7 +20,6 @@ const Recipes = () => {
   const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Filter states
   const [activeFilters, setActiveFilters] = useState({
     dietary: 'All',
     mealType: 'All',
@@ -142,34 +32,38 @@ const Recipes = () => {
       event.stopPropagation();
     }
     
-    // Find recipe and toggle saved state
-    const updatedRecipes = recipeData.map(recipe => {
-      if (recipe.id === id) {
-        const newSavedState = !recipe.saved;
-        toast.success(newSavedState 
-          ? "Recipe saved to your collection" 
-          : "Recipe removed from your collection");
-        return { ...recipe, saved: newSavedState };
-      }
-      return recipe;
-    });
+    const recipe = findRecipeById(id);
+    if (!recipe) return;
     
-    // In a real app, we would update the state here
-    // setRecipeData(updatedRecipes);
+    recipe.saved = !recipe.saved;
+    toast.success(recipe.saved 
+      ? "Recipe saved to your collection" 
+      : "Recipe removed from your collection"
+    );
   };
 
-  const openRecipeDetail = (recipe: Recipe) => {
-    setSelectedRecipe(recipe);
+  const showAlternatives = (recipeId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const alternatives = getAlternativeRecipes(recipeId);
+    if (alternatives.length === 0) {
+      toast.info("No alternative recipes available");
+      return;
+    }
+    
+    setSelectedRecipe(findRecipeById(recipeId));
     setIsRecipeDetailOpen(true);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     toast.info(`Searching for "${searchQuery}"...`);
-    // In a real app, we would filter recipes here
   };
 
   const handleUploadRecipe = () => {
+    if (!isUploadDrawerOpen) return;
     toast.success("Recipe uploaded successfully!");
     setIsUploadDrawerOpen(false);
   };
@@ -180,21 +74,38 @@ const Recipes = () => {
       [type]: value
     }));
     
-    // In a real app, we would apply filters here
+    toast.info(`Filter updated: ${type}`);
   };
 
-  const showAlternatives = (recipeId: string, event?: React.MouseEvent) => {
-    if (event) {
-      event.stopPropagation();
+  const getFilteredRecipes = () => {
+    let filtered = [...recipeData];
+    
+    if (activeFilters.dietary !== 'All') {
+      filtered = filtered.filter(recipe => 
+        recipe.tags.includes(activeFilters.dietary)
+      );
     }
     
-    toast.info("Showing alternative recipe suggestions");
-    // In a real app, we would show alternatives here
-  };
-  
-  const getFilteredRecipes = () => {
-    // In a real app, this would filter based on activeFilters state
-    return recipeData;
+    if (activeFilters.mealType !== 'All') {
+      filtered = filtered.filter(recipe => 
+        recipe.category === activeFilters.mealType
+      );
+    }
+    
+    if (activeFilters.time !== 'All') {
+      const timeLimit = parseInt(activeFilters.time.match(/\d+/)?.[0] || '60');
+      filtered = filtered.filter(recipe => {
+        const recipeTime = parseInt(recipe.time.match(/\d+/)?.[0] || '0');
+        return recipeTime <= timeLimit;
+      });
+    }
+    
+    filtered = filtered.filter(recipe => 
+      recipe.calories >= activeFilters.calorieRange[0] &&
+      recipe.calories <= activeFilters.calorieRange[1]
+    );
+    
+    return filtered;
   };
 
   return (
@@ -429,7 +340,6 @@ const Recipes = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Filter Drawer */}
       <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-md">
@@ -522,7 +432,6 @@ const Recipes = () => {
         </DrawerContent>
       </Drawer>
       
-      {/* Recipe Upload Drawer */}
       <Drawer open={isUploadDrawerOpen} onOpenChange={setIsUploadDrawerOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-md">
@@ -562,7 +471,6 @@ const Recipes = () => {
         </DrawerContent>
       </Drawer>
       
-      {/* Recipe Detail Drawer */}
       <Drawer open={isRecipeDetailOpen} onOpenChange={setIsRecipeDetailOpen}>
         <DrawerContent className="max-h-[90vh]">
           <div className="mx-auto w-full max-w-4xl">
@@ -692,7 +600,6 @@ const Recipes = () => {
                             className="min-w-[220px] rounded-lg overflow-hidden border cursor-pointer"
                             onClick={() => {
                               setSelectedRecipe(altRecipe);
-                              // We don't need to set isRecipeDetailOpen as it's already open
                             }}
                             animate={{ opacity: 1, y: 0 }}
                           >
