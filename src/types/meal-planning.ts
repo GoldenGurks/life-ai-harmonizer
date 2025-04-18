@@ -9,7 +9,7 @@ export interface MealItem {
   fat?: number;
   fiber?: number;
   sugar?: number;
-  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert';
   tags: string[];
   servings?: number;
   preparationTime?: number;

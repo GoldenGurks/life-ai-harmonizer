@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, ChefHat, Utensils, Apple, Info } from 'lucide-react';
+import { Calendar, ChefHat, Utensils, Apple, Info, Coffee } from 'lucide-react';
 import MealCard from './MealCard';
 import DaySelector from './DaySelector';
 import { MealItem } from '@/types/meal-planning';
@@ -40,6 +40,8 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
         return <Utensils className="h-5 w-5 text-accent mr-2" />;
       case 'snack':
         return <Apple className="h-5 w-5 text-primary mr-2" />;
+      case 'dessert':
+        return <Coffee className="h-5 w-5 text-secondary mr-2" />;
       default:
         return null;
     }

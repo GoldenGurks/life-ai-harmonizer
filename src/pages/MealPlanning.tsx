@@ -44,7 +44,7 @@ const MealPlanning = () => {
         description: 'Protein-rich Greek yogurt topped with fresh berries and honey',
         calories: 320,
         protein: 18,
-        type: 'breakfast',
+        type: 'breakfast' as const,
         tags: ['high-protein', 'quick']
       },
       {
@@ -53,7 +53,7 @@ const MealPlanning = () => {
         description: 'Fresh greens with feta cheese, olives, tomatoes, and olive oil dressing',
         calories: 450,
         protein: 12,
-        type: 'lunch',
+        type: 'lunch' as const,
         tags: ['vegetarian', 'fresh']
       },
       {
@@ -62,7 +62,7 @@ const MealPlanning = () => {
         description: 'Wild-caught salmon with steamed broccoli and sweet potatoes',
         calories: 580,
         protein: 32,
-        type: 'dinner',
+        type: 'dinner' as const,
         tags: ['high-protein', 'omega-3']
       },
       {
@@ -71,7 +71,7 @@ const MealPlanning = () => {
         description: 'Sliced apple with 2 tbsp natural almond butter',
         calories: 210,
         protein: 5,
-        type: 'snack',
+        type: 'snack' as const,
         tags: ['quick', 'fiber']
       }
     ]
