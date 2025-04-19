@@ -13,6 +13,10 @@ import { motion } from '@/lib/motion';
 import { Recipe } from '@/types/recipes';
 import { recipeData, findRecipeById, getAlternativeRecipes } from '@/data/recipeDatabase';
 
+const dietaryFilters = ['All', 'Vegan', 'Vegetarian', 'High Protein', 'Low Carb', 'Gluten Free'];
+const mealTypeFilters = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
+const timeFilters = ['All', 'Under 15 mins', 'Under 30 mins', 'Under 45 mins', 'Under 60 mins'];
+
 const Recipes = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -26,6 +30,11 @@ const Recipes = () => {
     time: 'All',
     calorieRange: [0, 800],
   });
+
+  const openRecipeDetail = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+    setIsRecipeDetailOpen(true);
+  };
 
   const saveRecipe = (id: string, event?: React.MouseEvent) => {
     if (event) {
