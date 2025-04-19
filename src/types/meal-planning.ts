@@ -78,6 +78,11 @@ export interface UserPreferences {
   mealFrequency?: number;
 }
 
+export interface WeeklySetupSettings {
+  dishCount: number;
+  includeBreakfast: boolean;
+}
+
 export interface IngredientItem {
   name: string;
   amount: string;

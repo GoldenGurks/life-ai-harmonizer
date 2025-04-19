@@ -2,14 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Settings } from 'lucide-react';
+import { RefreshCw, Settings, Edit, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 import WelcomeModal from '@/components/meal-planning/WelcomeModal';
 import QuickSetupModal from '@/components/meal-planning/QuickSetupModal';
 import DetailedPlanningModal from '@/components/meal-planning/DetailedPlanningModal';
+import WeeklySetupModal, { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
 import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
+import UnplacedMealsList from '@/components/meal-planning/UnplacedMealsList';
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
 import TemplatesTab from '@/components/meal-planning/TemplatesTab';
 import { MealPlan, MealItem } from '@/types/meal-planning';
@@ -31,6 +33,18 @@ const MealPlanning = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
+  
+  // Weekly setup state
+  const [showWeeklySetupModal, setShowWeeklySetupModal] = useState(false);
+  const [weeklySettings, setWeeklySettings] = useState<WeeklySetupSettings>(() => {
+    const savedSettings = localStorage.getItem('weeklyMealSettings');
+    return savedSettings 
+      ? JSON.parse(savedSettings) 
+      : { dishCount: 7, includeBreakfast: true };
+  });
+  
+  // Unplaced meals for selection
+  const [unplacedMeals, setUnplacedMeals] = useState<MealItem[]>([]);
 
   // Initial meal plans data with full MealItem properties
   const initialMealPlan: MealPlan = {
@@ -135,6 +149,11 @@ const MealPlanning = () => {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([initialMealPlan]);
 
   useEffect(() => {
+    // Save weekly settings to localStorage
+    localStorage.setItem('weeklyMealSettings', JSON.stringify(weeklySettings));
+  }, [weeklySettings]);
+
+  useEffect(() => {
     // Check if user is new (based on completed setup)
     if (isNewUser) {
       // Show welcome modal after a short delay to let the page render first
@@ -144,35 +163,83 @@ const MealPlanning = () => {
       
       return () => clearTimeout(timer);
     } else if (isSetupComplete) {
-      // Generate meal suggestions based on saved preferences
-      generateMealSuggestions();
+      // Check if we need to show the weekly setup initially
+      const hasGeneratedBefore = localStorage.getItem('hasGeneratedMealPlan');
+      if (!hasGeneratedBefore) {
+        setShowWeeklySetupModal(true);
+      } else {
+        // Generate meal suggestions based on saved preferences
+        generateMealSuggestions();
+      }
     }
   }, [isNewUser, isSetupComplete]);
 
   const generateMealSuggestions = () => {
     // Only generate if we have preferences
     if (!preferences) return;
-
+    
+    localStorage.setItem('hasGeneratedMealPlan', 'true');
+    
     const newPlans: MealPlan[] = [];
+    let allUnplacedMeals: MealItem[] = [];
+    
+    // Generate additional meal suggestions if breakfast is not included
+    if (!weeklySettings.includeBreakfast) {
+      // Generate extra lunch and dinner suggestions
+      const extraLunchMeals = mealSuggestionService.generateSuggestions(
+        preferences, 
+        Math.ceil(weeklySettings.dishCount * 0.6), 
+        'lunch'
+      );
+      
+      const extraDinnerMeals = mealSuggestionService.generateSuggestions(
+        preferences, 
+        Math.ceil(weeklySettings.dishCount * 0.6), 
+        'dinner'
+      );
+      
+      allUnplacedMeals = [...extraLunchMeals, ...extraDinnerMeals];
+      setUnplacedMeals(allUnplacedMeals);
+    } else {
+      // Clear any unplaced meals
+      setUnplacedMeals([]);
+    }
     
     // Generate meal plans for each day
     days.forEach((day) => {
-      const breakfastMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'breakfast');
+      let dayMeals: MealItem[] = [];
+      
+      // Add breakfast if requested
+      if (weeklySettings.includeBreakfast) {
+        const breakfastMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'breakfast');
+        dayMeals = [...dayMeals, ...breakfastMeals];
+      }
+      
+      // Always add lunch and dinner
       const lunchMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'lunch');
       const dinnerMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'dinner');
-      const snackMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'snack');
       
+      dayMeals = [...dayMeals, ...lunchMeals, ...dinnerMeals];
+      
+      // Calculate nutrition totals
+      const totalCalories = dayMeals.reduce((sum, meal) => sum + meal.calories, 0);
+      const totalProtein = dayMeals.reduce((sum, meal) => sum + meal.protein, 0);
+      const totalCarbs = dayMeals.reduce((sum, meal) => sum + (meal.carbs || 0), 0);
+      const totalFat = dayMeals.reduce((sum, meal) => sum + (meal.fat || 0), 0);
+      const totalFiber = dayMeals.reduce((sum, meal) => sum + (meal.fiber || 0), 0);
+      
+      // Create the day plan
       const dayPlan: MealPlan = {
         id: day.toLowerCase(),
         name: `${day}'s Plan`,
         day: day,
-        meals: [...breakfastMeals, ...lunchMeals, ...dinnerMeals, ...snackMeals],
+        meals: dayMeals,
         totalNutrition: {
-          calories: [...breakfastMeals, ...lunchMeals, ...dinnerMeals, ...snackMeals].reduce((sum, meal) => sum + meal.calories, 0),
-          protein: [...breakfastMeals, ...lunchMeals, ...dinnerMeals, ...snackMeals].reduce((sum, meal) => sum + meal.protein, 0),
-          carbs: [...breakfastMeals, ...lunchMeals, ...dinnerMeals, ...snackMeals].reduce((sum, meal) => sum + (meal.carbs || 0), 0),
-          fat: [...breakfastMeals, ...lunchMeals, ...dinnerMeals, ...snackMeals].reduce((sum, meal) => sum + (meal.fat || 0), 0),
-          fiber: [...breakfastMeals, ...lunchMeals, ...dinnerMeals, ...snackMeals].reduce((sum, meal) => sum + (meal.fiber || 0), 0),
+          calories: totalCalories,
+          protein: totalProtein,
+          carbs: totalCarbs,
+          fat: totalFat,
+          fiber: totalFiber
         }
       };
       
@@ -189,20 +256,27 @@ const MealPlanning = () => {
       return;
     }
 
+    // Show weekly setup modal
+    setShowWeeklySetupModal(true);
+  };
+  
+  const handleWeeklySetup = (settings: WeeklySetupSettings) => {
+    setWeeklySettings(settings);
+    
     toastNotification({
       title: "AI-Generated Plan",
       description: "Your personalized meal plan is being created based on your preferences.",
     });
     
-    // Generate new meal suggestions
-    generateMealSuggestions();
-    
+    // Generate new meal suggestions with the updated settings
     setTimeout(() => {
+      generateMealSuggestions();
+      
       toastNotification({
         title: "Meal Plan Ready!",
         description: "Your new meal plan has been created and is ready to review.",
       });
-    }, 2000);
+    }, 1000);
   };
 
   const handleMealChange = (mealId: string) => {
@@ -256,6 +330,49 @@ const MealPlanning = () => {
     toast.success(`Meal updated successfully!`);
   };
   
+  const handleAddMealToDay = (meal: MealItem, day: string) => {
+    // Find the plan for the selected day
+    const dayPlan = mealPlans.find(plan => plan.day === day);
+    if (!dayPlan) return;
+    
+    // Check if we already have this type of meal for this day
+    const hasMealType = dayPlan.meals.some(existingMeal => existingMeal.type === meal.type);
+    
+    // Update meal plans
+    const updatedPlans = mealPlans.map(plan => {
+      if (plan.day === day) {
+        const updatedMeals = hasMealType
+          ? plan.meals.map(existingMeal => 
+              existingMeal.type === meal.type ? meal : existingMeal
+            )
+          : [...plan.meals, meal];
+        
+        // Recalculate nutrition totals
+        const totalNutrition = {
+          calories: updatedMeals.reduce((sum, m) => sum + m.calories, 0),
+          protein: updatedMeals.reduce((sum, m) => sum + m.protein, 0),
+          carbs: updatedMeals.reduce((sum, m) => sum + (m.carbs || 0), 0),
+          fat: updatedMeals.reduce((sum, m) => sum + (m.fat || 0), 0),
+          fiber: updatedMeals.reduce((sum, m) => sum + (m.fiber || 0), 0)
+        };
+        
+        return {
+          ...plan,
+          meals: updatedMeals,
+          totalNutrition
+        };
+      }
+      return plan;
+    });
+    
+    setMealPlans(updatedPlans);
+    
+    // Remove from unplaced meals
+    setUnplacedMeals(current => current.filter(m => m.id !== meal.id));
+    
+    toast.success(`Added ${meal.name} to ${day}`);
+  };
+  
   const handleSetupChoice = (choice: 'quick' | 'detailed') => {
     if (choice === 'quick') {
       setShowQuickSetupModal(true);
@@ -298,13 +415,49 @@ const MealPlanning = () => {
         </div>
 
         <TabsContent value="weekly" className="space-y-4">
-          <WeeklyPlanTab 
-            currentDay={currentDay}
-            days={days}
-            onDayChange={setCurrentDay}
-            handleMealChange={handleMealChange}
-            mealPlans={mealPlans}
-          />
+          {unplacedMeals.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="md:col-span-3 lg:col-span-3">
+                <UnplacedMealsList 
+                  meals={unplacedMeals} 
+                  onAddToDay={handleAddMealToDay} 
+                />
+              </div>
+              <div className="md:col-span-9 lg:col-span-9">
+                <WeeklyPlanTab 
+                  currentDay={currentDay}
+                  days={days}
+                  onDayChange={setCurrentDay}
+                  handleMealChange={handleMealChange}
+                  mealPlans={mealPlans}
+                />
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" onClick={() => setShowWeeklySetupModal(true)} className="gap-2">
+                    <Edit className="h-4 w-4" />
+                    Edit Plan Settings
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {unplacedMeals.length === 0 && (
+            <>
+              <WeeklyPlanTab 
+                currentDay={currentDay}
+                days={days}
+                onDayChange={setCurrentDay}
+                handleMealChange={handleMealChange}
+                mealPlans={mealPlans}
+              />
+              <div className="flex justify-end mt-4">
+                <Button variant="outline" onClick={() => setShowWeeklySetupModal(true)} className="gap-2">
+                  <Edit className="h-4 w-4" />
+                  Edit Plan Settings
+                </Button>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="saved" className="space-y-4">
@@ -331,6 +484,14 @@ const MealPlanning = () => {
       <DetailedPlanningModal 
         open={showDetailedPlanningModal} 
         onClose={() => setShowDetailedPlanningModal(false)} 
+      />
+      
+      {/* Weekly Setup Modal */}
+      <WeeklySetupModal
+        open={showWeeklySetupModal}
+        onClose={() => setShowWeeklySetupModal(false)}
+        onSetup={handleWeeklySetup}
+        initialSettings={weeklySettings}
       />
     </Layout>
   );

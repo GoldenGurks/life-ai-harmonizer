@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, ChefHat, Utensils, Apple, Info, Coffee } from 'lucide-react';
+import { Calendar, ChefHat, Utensils, Info, Coffee } from 'lucide-react';
 import MealCard from './MealCard';
 import DaySelector from './DaySelector';
 import { MealItem } from '@/types/meal-planning';
@@ -17,6 +17,13 @@ interface WeeklyPlanTabProps {
     name: string;
     day: string;
     meals: MealItem[];
+    totalNutrition?: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    };
   }[];
 }
 
@@ -29,6 +36,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
 }) => {
   // Find meals for the current day
   const currentDayMeals = mealPlans.find(plan => plan.day === currentDay)?.meals || [];
+  const currentTotalNutrition = mealPlans.find(plan => plan.day === currentDay)?.totalNutrition;
   
   const getIconForMealType = (type: string) => {
     switch (type) {
@@ -39,7 +47,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       case 'dinner':
         return <Utensils className="h-5 w-5 text-accent mr-2" />;
       case 'snack':
-        return <Apple className="h-5 w-5 text-primary mr-2" />;
+        return <Coffee className="h-5 w-5 text-primary mr-2" />;
       case 'dessert':
         return <Coffee className="h-5 w-5 text-secondary mr-2" />;
       default:
@@ -50,6 +58,12 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   const getMealTitle = (type: string) => {
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
+
+  // Get meals by type
+  const getBreakfastMeals = () => currentDayMeals.filter(meal => meal.type === 'breakfast');
+  const getLunchMeals = () => currentDayMeals.filter(meal => meal.type === 'lunch');
+  const getDinnerMeals = () => currentDayMeals.filter(meal => meal.type === 'dinner');
+  const getSnackMeals = () => currentDayMeals.filter(meal => meal.type === 'snack' || meal.type === 'dessert');
 
   return (
     <Card>
@@ -74,8 +88,63 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           onDayChange={onDayChange} 
         />
 
-        <div className="space-y-6">
-          {currentDayMeals.map((meal) => (
+        {/* Daily Summary */}
+        {currentTotalNutrition && (
+          <div className="grid grid-cols-4 gap-2 mt-4 mb-6 p-3 bg-muted/20 rounded-md">
+            <div className="text-center">
+              <div className="text-sm font-medium">{currentTotalNutrition.calories}</div>
+              <div className="text-xs text-muted-foreground">Calories</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium">{currentTotalNutrition.protein}g</div>
+              <div className="text-xs text-muted-foreground">Protein</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium">{currentTotalNutrition.carbs}g</div>
+              <div className="text-xs text-muted-foreground">Carbs</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium">{currentTotalNutrition.fat}g</div>
+              <div className="text-xs text-muted-foreground">Fat</div>
+            </div>
+          </div>
+        )}
+
+        {/* Breakfast Section */}
+        {getBreakfastMeals().length > 0 && (
+          <div className="space-y-6 mb-8">
+            <h3 className="font-medium flex items-center">
+              <ChefHat className="h-5 w-5 text-primary mr-2" />
+              Breakfast
+            </h3>
+            {getBreakfastMeals().map((meal) => (
+              <MealCard
+                key={meal.id}
+                title={getMealTitle(meal.type)}
+                icon={getIconForMealType(meal.type)}
+                name={meal.name}
+                description={meal.description}
+                calories={meal.calories}
+                protein={meal.protein}
+                carbs={meal.carbs}
+                fat={meal.fat}
+                fiber={meal.fiber}
+                sugar={meal.sugar}
+                tags={meal.tags}
+                ingredients={meal.ingredients}
+                onMealChange={() => handleMealChange(meal.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Lunch Section */}
+        <div className="space-y-6 mb-8">
+          <h3 className="font-medium flex items-center">
+            <Utensils className="h-5 w-5 text-secondary mr-2" />
+            Lunch
+          </h3>
+          {getLunchMeals().map((meal) => (
             <MealCard
               key={meal.id}
               title={getMealTitle(meal.type)}
@@ -84,11 +153,70 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
               description={meal.description}
               calories={meal.calories}
               protein={meal.protein}
+              carbs={meal.carbs}
+              fat={meal.fat}
+              fiber={meal.fiber}
+              sugar={meal.sugar}
               tags={meal.tags}
-              onMealChange={handleMealChange}
+              ingredients={meal.ingredients}
+              onMealChange={() => handleMealChange(meal.id)}
             />
           ))}
         </div>
+
+        {/* Dinner Section */}
+        <div className="space-y-6 mb-8">
+          <h3 className="font-medium flex items-center">
+            <Utensils className="h-5 w-5 text-accent mr-2" />
+            Dinner
+          </h3>
+          {getDinnerMeals().map((meal) => (
+            <MealCard
+              key={meal.id}
+              title={getMealTitle(meal.type)}
+              icon={getIconForMealType(meal.type)}
+              name={meal.name}
+              description={meal.description}
+              calories={meal.calories}
+              protein={meal.protein}
+              carbs={meal.carbs}
+              fat={meal.fat}
+              fiber={meal.fiber}
+              sugar={meal.sugar}
+              tags={meal.tags}
+              ingredients={meal.ingredients}
+              onMealChange={() => handleMealChange(meal.id)}
+            />
+          ))}
+        </div>
+
+        {/* Snacks/Dessert Section */}
+        {getSnackMeals().length > 0 && (
+          <div className="space-y-6">
+            <h3 className="font-medium flex items-center">
+              <Coffee className="h-5 w-5 text-primary mr-2" />
+              Snacks & Desserts
+            </h3>
+            {getSnackMeals().map((meal) => (
+              <MealCard
+                key={meal.id}
+                title={getMealTitle(meal.type)}
+                icon={getIconForMealType(meal.type)}
+                name={meal.name}
+                description={meal.description}
+                calories={meal.calories}
+                protein={meal.protein}
+                carbs={meal.carbs}
+                fat={meal.fat}
+                fiber={meal.fiber}
+                sugar={meal.sugar}
+                tags={meal.tags}
+                ingredients={meal.ingredients}
+                onMealChange={() => handleMealChange(meal.id)}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="mt-6 flex justify-end">
           <Button variant="outline" className="mr-2">Save Plan</Button>
