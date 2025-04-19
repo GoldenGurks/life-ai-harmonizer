@@ -1,4 +1,7 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,16 +17,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 174 58% 39%;
+    --primary: 95 53% 51%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 14 73% 61%;
+    --secondary: 37 91% 55%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 24 89% 67%;
+    --accent: 37 91% 55%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -31,7 +34,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 173 58% 39%;
+    --ring: 95 53% 51%;
 
     --radius: 0.75rem;
 
@@ -52,19 +55,19 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 174 58% 39%;
+    --primary: 95 53% 51%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 14 73% 61%;
+    --secondary: 37 91% 55%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 24 89% 67%;
+    --accent: 37 91% 55%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 174 58% 39%;
+    --ring: 95 53% 51%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -82,8 +85,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold uppercase;
   }
 }
 
@@ -102,5 +108,19 @@
   
   .nav-item.active {
     @apply bg-primary/10 text-primary font-medium;
+  }
+
+  .meal-card {
+    @apply border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .meal-card-header {
+    @apply bg-primary/10 p-3 flex items-center justify-between;
+  }
+
+  .tinder-dish-card {
+    @apply border rounded-lg overflow-hidden shadow-md bg-white relative;
+    transform-origin: center;
+    transition: transform 0.3s ease, opacity 0.3s ease;
   }
 }

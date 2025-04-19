@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Settings, Edit, Calendar } from 'lucide-react';
+import { RefreshCw, Settings, Edit, Calendar, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,6 +14,7 @@ import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
 import UnplacedMealsList from '@/components/meal-planning/UnplacedMealsList';
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
 import TemplatesTab from '@/components/meal-planning/TemplatesTab';
+import TinderDishTab from '@/components/meal-planning/TinderDishTab';
 import { MealPlan, MealItem } from '@/types/meal-planning';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
 import { mealSuggestionService } from '@/services/mealSuggestionService';
@@ -45,6 +46,9 @@ const MealPlanning = () => {
   
   // Unplaced meals for selection
   const [unplacedMeals, setUnplacedMeals] = useState<MealItem[]>([]);
+  
+  // Tinder dish suggestions
+  const [mealSuggestions, setMealSuggestions] = useState<MealItem[]>([]);
 
   // Initial meal plans data with full MealItem properties
   const initialMealPlan: MealPlan = {
@@ -182,6 +186,7 @@ const MealPlanning = () => {
     
     const newPlans: MealPlan[] = [];
     let allUnplacedMeals: MealItem[] = [];
+    let allSuggestions: MealItem[] = [];
     
     // Generate additional meal suggestions if breakfast is not included
     if (!weeklySettings.includeBreakfast) {
@@ -213,6 +218,7 @@ const MealPlanning = () => {
       if (weeklySettings.includeBreakfast) {
         const breakfastMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'breakfast');
         dayMeals = [...dayMeals, ...breakfastMeals];
+        allSuggestions = [...allSuggestions, ...breakfastMeals];
       }
       
       // Always add lunch and dinner
@@ -220,6 +226,7 @@ const MealPlanning = () => {
       const dinnerMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'dinner');
       
       dayMeals = [...dayMeals, ...lunchMeals, ...dinnerMeals];
+      allSuggestions = [...allSuggestions, ...lunchMeals, ...dinnerMeals];
       
       // Calculate nutrition totals
       const totalCalories = dayMeals.reduce((sum, meal) => sum + meal.calories, 0);
@@ -247,6 +254,15 @@ const MealPlanning = () => {
     });
     
     setMealPlans(newPlans);
+    
+    // Additional suggestions for TinderDish tab
+    const additionalSuggestions = mealSuggestionService.generateSuggestions(
+      preferences,
+      10, // Generate 10 additional meals for the Tinder Dish feature
+      'any'
+    );
+    
+    setMealSuggestions([...allSuggestions, ...additionalSuggestions]);
   };
 
   const generateAIMealPlan = () => {
@@ -386,10 +402,21 @@ const MealPlanning = () => {
     setShowDetailedPlanningModal(true);
   };
 
+  const handleAcceptMeal = (meal: MealItem) => {
+    // Add to current day
+    handleAddMealToDay(meal, currentDay);
+  };
+
+  const handleRejectMeal = (meal: MealItem) => {
+    // Remove from suggestions
+    setMealSuggestions(current => current.filter(m => m.id !== meal.id));
+    toast.info(`Removed ${meal.name} from suggestions`);
+  };
+
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Meal Planning</h1>
+        <h1 className="text-3xl font-bold mb-2 uppercase">Meal Planning</h1>
         <p className="text-muted-foreground">
           Create and manage your personalized meal plans with AI assistance.
         </p>
@@ -398,16 +425,23 @@ const MealPlanning = () => {
       <Tabs defaultValue="weekly" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-between items-center mb-4">
           <TabsList>
-            <TabsTrigger value="weekly">Weekly Plan</TabsTrigger>
-            <TabsTrigger value="saved">Saved Plans</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="weekly" className="uppercase">
+              <Calendar className="h-4 w-4 mr-2" />
+              Weekly Plan
+            </TabsTrigger>
+            <TabsTrigger value="tinder-dish" className="uppercase">
+              <List className="h-4 w-4 mr-2" />
+              Tinder Dish
+            </TabsTrigger>
+            <TabsTrigger value="saved" className="uppercase">Saved Plans</TabsTrigger>
+            <TabsTrigger value="templates" className="uppercase">Templates</TabsTrigger>
           </TabsList>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleOpenPreferences} className="gap-2">
               <Settings className="h-4 w-4" />
               Preferences
             </Button>
-            <Button onClick={generateAIMealPlan} className="gap-2">
+            <Button onClick={generateAIMealPlan} className="gap-2 bg-primary hover:bg-primary/90">
               <RefreshCw className="h-4 w-4" />
               Generate AI Plan
             </Button>
@@ -458,6 +492,14 @@ const MealPlanning = () => {
               </div>
             </>
           )}
+        </TabsContent>
+
+        <TabsContent value="tinder-dish" className="space-y-4">
+          <TinderDishTab 
+            suggestions={mealSuggestions}
+            onAccept={handleAcceptMeal}
+            onReject={handleRejectMeal}
+          />
         </TabsContent>
 
         <TabsContent value="saved" className="space-y-4">
