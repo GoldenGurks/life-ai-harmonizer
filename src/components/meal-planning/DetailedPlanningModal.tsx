@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -25,8 +24,8 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
   
   // Form state
   const [formData, setFormData] = useState<Partial<UserPreferences>>({
-    dietaryPreference: preferences.dietaryPreference || '',
-    fitnessGoal: preferences.fitnessGoal || '',
+    dietaryPreference: preferences.dietaryPreference || 'omnivore',
+    fitnessGoal: preferences.fitnessGoal || 'maintenance',
     allergies: preferences.allergies || [],
     intolerances: preferences.intolerances || [],
     cookingExperience: preferences.cookingExperience || 'intermediate',
@@ -344,4 +343,3 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
 };
 
 export default DetailedPlanningModal;
-

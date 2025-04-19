@@ -1,5 +1,6 @@
 
-import { MealItem, UserPreferences, Recipe } from '@/types/meal-planning';
+import { MealItem, UserPreferences } from '@/types/meal-planning';
+import { Recipe } from '@/types/recipes';
 import { recipeData } from '@/data/recipeDatabase';
 
 export const mealSuggestionService = {
@@ -28,7 +29,7 @@ export const mealSuggestionService = {
       
       if (preferences.dietaryPreference !== 'omnivore' && dietMap[preferences.dietaryPreference]) {
         availableRecipes = availableRecipes.filter(recipe => 
-          dietMap[preferences.dietaryPreference].some(diet => 
+          dietMap[preferences.dietaryPreference!].some(diet => 
             recipe.tags.some(tag => tag.toLowerCase() === diet.toLowerCase())
           )
         );
@@ -139,8 +140,8 @@ export const mealSuggestionService = {
     suggestions = availableRecipes.slice(0, count).map(recipe => {
       const mealType = recipe.category.toLowerCase();
       // Ensure the meal type is one of the valid types
-      const validType = ['breakfast', 'lunch', 'dinner', 'snack'].includes(mealType) 
-        ? mealType as "breakfast" | "lunch" | "dinner" | "snack" 
+      const validType = ['breakfast', 'lunch', 'dinner', 'snack', 'dessert'].includes(mealType) 
+        ? mealType as "breakfast" | "lunch" | "dinner" | "snack" | "dessert" 
         : "snack";
         
       return {
@@ -151,6 +152,8 @@ export const mealSuggestionService = {
         protein: recipe.protein,
         carbs: recipe.carbs,
         fat: recipe.fat,
+        fiber: recipe.fiber,
+        sugar: recipe.sugar,
         type: validType,
         tags: recipe.tags,
         preparationTime: parseInt(recipe.time.match(/\d+/)?.[0] || '0'),
@@ -160,12 +163,14 @@ export const mealSuggestionService = {
           amount: '1',
           unit: 'serving'
         })),
-        instructions: recipe.ingredients,
+        instructions: recipe.instructions || recipe.ingredients,
         image: recipe.image,
-        nutritionScore: 0,
-        difficulty: recipe.difficulty
+        nutritionScore: recipe.score || 0,
+        difficulty: recipe.difficulty,
+        useLeftovers: recipe.useLeftovers,
+        isQuick: recipe.isQuick
       };
-    }) as MealItem[];
+    });
     
     return suggestions;
   }

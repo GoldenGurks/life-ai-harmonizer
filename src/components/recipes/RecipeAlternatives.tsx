@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Recipe } from '@/types/recipes';
 import { findRecipeById } from '@/data/recipeDatabase';
-import { motion } from '@/lib/motion';
 
 interface RecipeAlternativesProps {
   recipeId: string;
@@ -50,12 +49,9 @@ const RecipeAlternatives: React.FC<RecipeAlternativesProps> = ({ recipeId, onSel
         </Button>
         
         <div className="overflow-hidden px-8">
-          <motion.div
+          <div
             key={currentAlternative.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="border rounded-lg overflow-hidden"
+            className="border rounded-lg overflow-hidden transition-all duration-300 transform"
           >
             <div 
               className="w-full h-48 bg-cover bg-center"
@@ -78,7 +74,7 @@ const RecipeAlternatives: React.FC<RecipeAlternativesProps> = ({ recipeId, onSel
                 </Button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
         
         <Button 

@@ -12,7 +12,7 @@ import DetailedPlanningModal from '@/components/meal-planning/DetailedPlanningMo
 import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
 import TemplatesTab from '@/components/meal-planning/TemplatesTab';
-import { MealPlan } from '@/types/meal-planning';
+import { MealPlan, MealItem } from '@/types/meal-planning';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
 import { mealSuggestionService } from '@/services/mealSuggestionService';
 import { toast } from 'sonner';
@@ -32,8 +32,8 @@ const MealPlanning = () => {
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
 
-  // Initial meal plans data
-  const initialMealPlan = {
+  // Initial meal plans data with full MealItem properties
+  const initialMealPlan: MealPlan = {
     id: '1',
     name: 'Balanced Week',
     day: 'Monday',
@@ -44,8 +44,20 @@ const MealPlanning = () => {
         description: 'Protein-rich Greek yogurt topped with fresh berries and honey',
         calories: 320,
         protein: 18,
-        type: 'breakfast' as const,
-        tags: ['high-protein', 'quick']
+        carbs: 35,
+        fat: 10,
+        type: 'breakfast',
+        tags: ['high-protein', 'quick'],
+        preparationTime: 5,
+        cookingTime: 0,
+        ingredients: [
+          { name: 'Greek yogurt', amount: '200', unit: 'g' },
+          { name: 'Mixed berries', amount: '100', unit: 'g' },
+          { name: 'Honey', amount: '1', unit: 'tbsp' }
+        ],
+        instructions: ['Mix all ingredients in a bowl and enjoy.'],
+        image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929',
+        nutritionScore: 8
       },
       {
         id: '2',
@@ -53,8 +65,22 @@ const MealPlanning = () => {
         description: 'Fresh greens with feta cheese, olives, tomatoes, and olive oil dressing',
         calories: 450,
         protein: 12,
-        type: 'lunch' as const,
-        tags: ['vegetarian', 'fresh']
+        carbs: 22,
+        fat: 32,
+        type: 'lunch',
+        tags: ['vegetarian', 'fresh'],
+        preparationTime: 15,
+        cookingTime: 0,
+        ingredients: [
+          { name: 'Mixed greens', amount: '100', unit: 'g' },
+          { name: 'Feta cheese', amount: '50', unit: 'g' },
+          { name: 'Olives', amount: '30', unit: 'g' },
+          { name: 'Cherry tomatoes', amount: '100', unit: 'g' },
+          { name: 'Olive oil', amount: '1', unit: 'tbsp' }
+        ],
+        instructions: ['Combine all ingredients in a bowl', 'Drizzle with olive oil and toss'],
+        image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
+        nutritionScore: 7
       },
       {
         id: '3',
@@ -62,8 +88,26 @@ const MealPlanning = () => {
         description: 'Wild-caught salmon with steamed broccoli and sweet potatoes',
         calories: 580,
         protein: 32,
-        type: 'dinner' as const,
-        tags: ['high-protein', 'omega-3']
+        carbs: 30,
+        fat: 28,
+        type: 'dinner',
+        tags: ['high-protein', 'omega-3'],
+        preparationTime: 10,
+        cookingTime: 25,
+        ingredients: [
+          { name: 'Salmon fillet', amount: '150', unit: 'g' },
+          { name: 'Broccoli', amount: '100', unit: 'g' },
+          { name: 'Sweet potato', amount: '150', unit: 'g' },
+          { name: 'Olive oil', amount: '1', unit: 'tbsp' },
+          { name: 'Lemon', amount: '1', unit: 'slice' }
+        ],
+        instructions: [
+          'Season salmon with salt and pepper',
+          'Grill for about 4 minutes on each side',
+          'Steam broccoli and sweet potatoes'
+        ],
+        image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288',
+        nutritionScore: 9
       },
       {
         id: '4',
@@ -71,8 +115,19 @@ const MealPlanning = () => {
         description: 'Sliced apple with 2 tbsp natural almond butter',
         calories: 210,
         protein: 5,
-        type: 'snack' as const,
-        tags: ['quick', 'fiber']
+        carbs: 25,
+        fat: 12,
+        type: 'snack',
+        tags: ['quick', 'fiber'],
+        preparationTime: 2,
+        cookingTime: 0,
+        ingredients: [
+          { name: 'Apple', amount: '1', unit: 'medium' },
+          { name: 'Almond butter', amount: '2', unit: 'tbsp' }
+        ],
+        instructions: ['Slice apple and serve with almond butter'],
+        image: 'https://images.unsplash.com/photo-1502741384106-56538287cff6',
+        nutritionScore: 6
       }
     ]
   };
