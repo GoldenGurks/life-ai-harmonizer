@@ -7,6 +7,8 @@ const defaultPreferences: UserPreferences = {
   dietaryPreference: 'omnivore',
   fitnessGoal: 'maintenance',
   allergies: [],
+  intolerances: [],
+  cookingExperience: 'intermediate',
   cookingTime: 30,
   likedFoods: [],
   dislikedFoods: [],

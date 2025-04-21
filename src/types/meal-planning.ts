@@ -71,6 +71,8 @@ export interface PreferenceHistory {
 export interface UserPreferences {
   dietaryPreference?: "vegan" | "vegetarian" | "pescatarian" | "keto" | "omnivore";
   allergies?: string[];
+  intolerances?: string[];
+  cookingExperience?: "beginner" | "intermediate" | "advanced";
   cookingTime?: number;
   likedFoods?: string[];
   dislikedFoods?: string[];
