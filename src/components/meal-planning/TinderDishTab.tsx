@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X, Check, Utensils, ChefHat } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { MealItem } from '@/types/meal-planning';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
 
 interface TinderDishTabProps {
   suggestions: MealItem[];
@@ -24,17 +25,24 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
   const [animation, setAnimation] = useState<'right' | 'left' | null>(null);
   const [showingAlternatives, setShowingAlternatives] = useState(false);
   const [alternativeIndex, setAlternativeIndex] = useState(0);
+  const { addLikedFood, addDislikedFood } = useMealPreferences();
 
   const currentMeal = showingAlternatives 
     ? alternatives[alternativeIndex]
     : suggestions[currentIndex];
 
   const handleSwipeRight = () => {
+    if (!currentMeal) return;
+    
     if (showingAlternatives) {
       // Accept alternative
       setAnimation('right');
       setTimeout(() => {
-        onAccept(alternatives[alternativeIndex]);
+        const alternative = alternatives[alternativeIndex];
+        onAccept(alternative);
+        // Store preference in permanent storage
+        addLikedFood(alternative.id);
+        
         setShowingAlternatives(false);
         setAlternatives([]);
         setAnimation(null);
@@ -43,7 +51,11 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
     } else {
       setAnimation('right');
       setTimeout(() => {
-        onAccept(suggestions[currentIndex]);
+        const meal = suggestions[currentIndex];
+        onAccept(meal);
+        // Store preference in permanent storage
+        addLikedFood(meal.id);
+        
         setAnimation(null);
         nextMeal();
       }, 500);
@@ -52,7 +64,12 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
   };
 
   const handleSwipeLeft = () => {
+    if (!currentMeal) return;
+    
     if (showingAlternatives) {
+      // Also track dislike for the alternative
+      addDislikedFood(alternatives[alternativeIndex].id);
+      
       // Move to next alternative or back to suggestions
       if (alternativeIndex < alternatives.length - 1) {
         setAlternativeIndex(alternativeIndex + 1);
@@ -64,6 +81,10 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
     } else {
       // Show alternatives for this meal
       setAnimation('left');
+      
+      // Track dislike for original suggestion
+      addDislikedFood(suggestions[currentIndex].id);
+      
       setTimeout(() => {
         // Generate alternatives (normally would come from API)
         const newAlternatives = generateAlternatives(suggestions[currentIndex]);

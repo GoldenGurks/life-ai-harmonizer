@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MealItem } from '@/types/meal-planning';
 import { ChefHat, Utensils, Coffee, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
 
 interface UnplacedMealsListProps {
   meals: MealItem[];
@@ -12,6 +13,8 @@ interface UnplacedMealsListProps {
 }
 
 const UnplacedMealsList: React.FC<UnplacedMealsListProps> = ({ meals, onAddToDay }) => {
+  const { addLikedFood } = useMealPreferences();
+  
   const getIconForMealType = (type: string) => {
     switch (type) {
       case 'breakfast':
@@ -23,6 +26,14 @@ const UnplacedMealsList: React.FC<UnplacedMealsListProps> = ({ meals, onAddToDay
       default:
         return <Coffee className="h-4 w-4 text-primary mr-2" />;
     }
+  };
+
+  const handleAddToDay = (meal: MealItem, day: string) => {
+    // Track that the user liked this meal
+    addLikedFood(meal.id);
+    
+    // Add to the day
+    onAddToDay(meal, day);
   };
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -58,7 +69,7 @@ const UnplacedMealsList: React.FC<UnplacedMealsListProps> = ({ meals, onAddToDay
                       variant="outline" 
                       size="sm" 
                       className="text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary"
-                      onClick={() => onAddToDay(meal, day)}
+                      onClick={() => handleAddToDay(meal, day)}
                     >
                       <PlusCircle className="h-3 w-3 mr-1" />
                       {day.substring(0, 3)}

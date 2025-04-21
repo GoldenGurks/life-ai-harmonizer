@@ -57,11 +57,20 @@ export interface SavedPlan {
   weeklyPlan?: WeeklyPlan;
 }
 
+export interface PreferenceHistory {
+  quickSetupProfile?: string;
+  lastUpdated: string;
+  previousSelections?: Array<{
+    date: string;
+    action: string;
+    itemId?: string;
+    itemName?: string;
+  }>;
+}
+
 export interface UserPreferences {
   dietaryPreference?: "vegan" | "vegetarian" | "pescatarian" | "keto" | "omnivore";
   allergies?: string[];
-  intolerances?: string[];
-  cookingExperience?: "beginner" | "intermediate" | "advanced";
   cookingTime?: number;
   likedFoods?: string[];
   dislikedFoods?: string[];
@@ -70,12 +79,11 @@ export interface UserPreferences {
   proteinTarget?: number;
   carbTarget?: number;
   fatTarget?: number;
-  mealSize?: "small" | "medium" | "large";
-  mealCount?: number;
-  preferLeftovers?: boolean;
-  cuisinePreferences?: string[];
   mealSizePreference?: string;
   mealFrequency?: number;
+  preferLeftovers?: boolean;
+  cuisinePreferences?: string[];
+  preferenceHistory?: PreferenceHistory;
 }
 
 export interface WeeklySetupSettings {

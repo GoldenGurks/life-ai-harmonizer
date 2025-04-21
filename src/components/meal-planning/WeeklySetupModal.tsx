@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
 
 interface WeeklySetupModalProps {
   open: boolean;
@@ -24,14 +25,20 @@ const WeeklySetupModal: React.FC<WeeklySetupModalProps> = ({
   onSetup,
   initialSettings
 }) => {
+  const { updateWeeklyMealCount } = useMealPreferences();
   const [dishCount, setDishCount] = useState(initialSettings?.dishCount || 7);
   const [includeBreakfast, setIncludeBreakfast] = useState(initialSettings?.includeBreakfast ?? true);
 
   const handleSave = () => {
+    // Update the weekly meal count in our preferences hook
+    updateWeeklyMealCount(dishCount);
+    
+    // Call the original setup handler
     onSetup({
       dishCount,
       includeBreakfast
     });
+    
     onClose();
   };
 

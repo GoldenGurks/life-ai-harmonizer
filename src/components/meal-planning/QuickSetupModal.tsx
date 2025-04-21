@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Heart, Coffee, Dumbbell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
 
 interface QuickSetupModalProps {
   open: boolean;
@@ -13,8 +14,51 @@ interface QuickSetupModalProps {
 
 const QuickSetupModal: React.FC<QuickSetupModalProps> = ({ open, onClose }) => {
   const { toast } = useToast();
+  const { completeSetup, setQuickSetupProfile } = useMealPreferences();
   
   const handleProfileSelect = (profile: string) => {
+    // Store the quick setup profile selection
+    setQuickSetupProfile(profile);
+    
+    // Set appropriate preferences based on profile
+    let profilePreferences = {};
+    
+    switch (profile) {
+      case 'Healthy Balance':
+        profilePreferences = {
+          dietaryPreference: 'omnivore',
+          fitnessGoal: 'general',
+          mealSizePreference: 'medium',
+          mealFrequency: 3,
+          preferLeftovers: false
+        };
+        break;
+        
+      case 'Comfort Food':
+        profilePreferences = {
+          dietaryPreference: 'omnivore',
+          fitnessGoal: 'maintenance',
+          mealSizePreference: 'large',
+          mealFrequency: 3,
+          preferLeftovers: true
+        };
+        break;
+        
+      case 'Muscle Building':
+        profilePreferences = {
+          dietaryPreference: 'omnivore',
+          fitnessGoal: 'muscle-gain',
+          mealSizePreference: 'large',
+          mealFrequency: 5,
+          preferLeftovers: false,
+          proteinTarget: 180
+        };
+        break;
+    }
+    
+    // Complete the setup with these preferences
+    completeSetup(profilePreferences);
+    
     toast({
       title: "Profile Selected",
       description: `You've selected the ${profile} profile. Your meal plan is being created.`,
