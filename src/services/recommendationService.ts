@@ -1,4 +1,3 @@
-
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { UserPreferences } from '@/types/meal-planning';
 
@@ -185,7 +184,11 @@ export const recommendationService = {
    * @param count - Number of alternatives to return
    * @returns List of similar recipes
    */
-  findSimilarRecipes: (recipe: Recipe, allRecipes: Recipe[], count: number = 3): Recipe[] => {
+  findSimilarRecipes: (
+    recipe: Recipe, 
+    allRecipes: Recipe[],
+    count: number = 3
+  ): Recipe[] => {
     // Create a map of recipes with similarity scores
     const similarityMap = allRecipes
       .filter(r => r.id !== recipe.id) // Filter out the source recipe
@@ -258,8 +261,11 @@ export const recommendationService = {
     // Add existing selections to recently viewed to avoid duplicates
     const preferencesWithExisting: ScoringPreferences = {
       ...userPreferences,
-      // Fixed: Handle the case where recentlyViewed might be undefined
-      recentlyViewed: [...(userPreferences.recentlyViewed || []), ...existingSelections]
+      // Safely merge recentlyViewed (if exists) with existingSelections
+      recentlyViewed: [
+        ...(userPreferences.recentlyViewed || []), 
+        ...(existingSelections || [])
+      ]
     };
     
     const scoredRecipes = this.scoreRecipes(candidates, preferencesWithExisting, weights);
