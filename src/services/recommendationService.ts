@@ -1,4 +1,3 @@
-
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { UserPreferences } from '@/types/meal-planning';
 
@@ -220,7 +219,7 @@ export const recommendationService = {
   },
   
   /**
-   * Gets diversified recommendations for a meal plan
+   * Gets diversified recommendations for meal planning
    * Ensures variety across the meal plan
    * 
    * @param userPreferences - User preferences

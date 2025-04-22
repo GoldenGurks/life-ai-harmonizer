@@ -78,7 +78,7 @@ export const useRecipeRecommendations = (initialRecipes: Recipe[] = recipeData) 
       fitnessGoal: preferences.fitnessGoal,
       likedFoods: preferences.likedFoods || [],
       dislikedFoods: preferences.dislikedFoods || [],
-      recentlyViewedRecipes: recentlyViewedRecipes,
+      recentlyViewed: recentlyViewedRecipes, // Fixed: Changed from recentlyViewedRecipes to recentlyViewed
       calorieTarget: preferences.calorieTarget,
       proteinTarget: preferences.proteinTarget,
       carbTarget: preferences.carbTarget,
