@@ -7,9 +7,15 @@ import { ChefHat, PieChart, Calendar, Bookmark, ShoppingCart } from 'lucide-reac
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import NutrientProgressBar from '@/components/dashboard/NutrientProgressBar';
 
+/**
+ * Home/Dashboard page component
+ * Serves as the main landing page and overview of the application
+ * Displays AI suggestions, nutrition summary, and quick navigation to features
+ */
 const Index = () => {
   return (
     <Layout>
+      {/* Page header with welcome message */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Welcome to MealMate</h1>
         <p className="text-muted-foreground">
@@ -17,6 +23,7 @@ const Index = () => {
         </p>
       </div>
 
+      {/* AI Suggestions section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">AI Suggestions</h2>
         <div className="grid gap-4">
@@ -31,7 +38,9 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Main content grid - Features and Nutrition */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Left column - Feature navigation cards */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Meal Planning</h2>
           <div className="grid gap-4">
@@ -59,6 +68,7 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Right column - Nutrition summary */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -68,6 +78,7 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Nutrition progress bars */}
               <NutrientProgressBar label="Calories" value={1250} max={2000} unit="kcal" />
               <NutrientProgressBar label="Protein" value={45} max={80} unit="g" color="bg-secondary" />
               <NutrientProgressBar label="Carbs" value={120} max={200} unit="g" color="bg-accent" />
@@ -78,7 +89,9 @@ const Index = () => {
         </Card>
       </div>
 
+      {/* Bottom section - Cards with additional information */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Suggested meals card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -96,6 +109,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
+        {/* Weekly progress card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -113,6 +127,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
+        {/* Shopping list summary card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
