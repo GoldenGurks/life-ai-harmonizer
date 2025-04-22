@@ -1,73 +1,147 @@
-# Welcome to your Lovable project
 
-## Project info
+# Meal Planning Application
 
-**URL**: https://lovable.dev/projects/b854c1a0-1a2f-4224-8fcc-8cdf7012d5ba
+A React-based meal planning application that helps users organize their meals, track nutrition, and manage shopping lists.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
+```
+src/
+├── components/         # Reusable UI components
+│   ├── ui/            # Base UI components from shadcn
+│   ├── profile/       # User profile related components
+│   └── meal-planning/ # Meal planning specific components
+├── context/           # React context providers
+├── hooks/             # Custom React hooks
+├── pages/             # Route-based page components
+├── services/          # Business logic and API services
+└── types/             # TypeScript type definitions
+```
 
-**Use Lovable**
+## Core Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b854c1a0-1a2f-4224-8fcc-8cdf7012d5ba) and start prompting.
+### User Profile Management (`/context/UserProfileContext.tsx`)
+- Handles user preferences storage and retrieval
+- Manages dietary restrictions, goals, and meal preferences
+- Provides functions for updating and resetting profiles
+- Persists data in localStorage (backend-ready)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Meal Planning (`/pages/MealPlanning.tsx`)
+- Weekly meal planning interface
+- AI-assisted meal suggestions
+- Meal preference tracking (liked/disliked)
+- Drag-and-drop meal organization
 
-**Use your preferred IDE**
+### Nutrition Tracking (`/pages/Nutrition.tsx`)
+- Macronutrient tracking
+- Nutritional goals management
+- Visual progress indicators
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Shopping Management (`/pages/Shopping.tsx`)
+- Shopping list creation
+- Pantry inventory tracking
+- Smart ingredient suggestions
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Key Hooks
 
-Follow these steps:
+- `useUserProfile`: Access and modify user profile data
+- `useMealPreferences`: Handle meal-specific preferences
+- `usePantry`: Manage pantry inventory
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Getting Started
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Install dependencies:
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+2. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+3. Access the application:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Development Guidelines
 
-**Use GitHub Codespaces**
+### Code Quality
+- TypeScript for type safety
+- ESLint + Prettier for consistent formatting
+- Component-based architecture with clear separation of concerns
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Testing
+- Unit tests for business logic
+- Component tests with React Testing Library
+- E2E tests with Playwright
 
-## What technologies are used for this project?
+### State Management
+- React Context for global state
+- Local state for component-specific data
+- Persisted state in localStorage
 
-This project is built with:
+## Contributing
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. Follow the established project structure
+2. Keep components small and focused
+3. Document complex logic with inline comments
+4. Write tests for new features
+5. Use TypeScript strictly - no `any` types
 
-## How can I deploy this project?
+## Key Interfaces
 
-Simply open [Lovable](https://lovable.dev/projects/b854c1a0-1a2f-4224-8fcc-8cdf7012d5ba) and click on Share -> Publish.
+```typescript
+// User Profile Types
+interface UserPreferences {
+  dietaryRestrictions: string[];
+  goals: string[];
+  likedMeals: string[];
+  dislikedMeals: string[];
+  pantry: string[];
+  profileComplete: boolean;
+}
 
-## Can I connect a custom domain to my Lovable project?
+// Meal Planning Types
+interface MealPlan {
+  id: string;
+  name: string;
+  day: string;
+  meals: MealItem[];
+  totalNutrition?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
+}
+```
 
-Yes it is!
+## Code Style
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Consistent naming conventions:
+  - Components: PascalCase
+  - Functions: camelCase
+  - Files: component files match component names
+- Clear component hierarchy
+- Single responsibility principle
+- Proper TypeScript usage
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Performance Considerations
+
+- Lazy loading for routes
+- Memoization where beneficial
+- Efficient state management
+- Optimized re-renders
+
+## Next Steps
+
+1. Implement backend integration
+2. Add user authentication
+3. Enable social sharing
+4. Add meal history tracking
+5. Implement advanced nutrition analytics
+
+## License
+
+This project is MIT licensed.
