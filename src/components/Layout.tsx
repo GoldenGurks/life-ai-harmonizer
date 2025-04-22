@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
+import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 
 /**
  * Layout component that wraps all pages with common UI elements
  * Provides consistent structure with header, sidebar, and main content area
+ * Also initializes the recipe recommendation engine
  * 
  * @param {React.ReactNode} children - The page content to be rendered in the main area
  */
@@ -15,6 +17,14 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  // Initialize recipe recommendations to ensure it's loaded globally
+  const { recipes } = useRecipeRecommendations();
+  
+  // Log recommendation engine status on mount
+  useEffect(() => {
+    console.log(`Recipe recommendation engine initialized with ${recipes.length} recipes`);
+  }, [recipes.length]);
+  
   return (
     <div className="flex flex-col min-h-screen">
       {/* Global header/navigation */}
