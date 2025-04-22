@@ -1,3 +1,4 @@
+
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { UserPreferences } from '@/types/meal-planning';
 
@@ -257,6 +258,7 @@ export const recommendationService = {
     // Add existing selections to recently viewed to avoid duplicates
     const preferencesWithExisting: ScoringPreferences = {
       ...userPreferences,
+      // Fixed: Handle the case where recentlyViewed might be undefined
       recentlyViewed: [...(userPreferences.recentlyViewed || []), ...existingSelections]
     };
     
