@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { User, Search, Bell, Menu } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 /**
  * Application header component that appears on all pages
@@ -11,6 +12,15 @@ import { useNavigate } from 'react-router-dom';
 const Header: React.FC = () => {
   // Hook to programmatically navigate between routes
   const navigate = useNavigate();
+  // Access user profile information
+  const { profile } = useUserProfile();
+  
+  /**
+   * Handles navigation to user profile/settings
+   */
+  const handleUserProfileClick = () => {
+    navigate('/meal-planning');
+  };
   
   return (
     <header className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur">
@@ -43,7 +53,7 @@ const Header: React.FC = () => {
           <Button size="icon" variant="ghost">
             <Bell className="h-5 w-5" />
           </Button>
-          <Button size="icon" variant="ghost">
+          <Button size="icon" variant="ghost" onClick={handleUserProfileClick}>
             <User className="h-5 w-5" />
           </Button>
         </div>

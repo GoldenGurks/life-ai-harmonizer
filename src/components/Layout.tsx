@@ -22,12 +22,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="flex flex-1">
         {/* Desktop sidebar (hidden on mobile) */}
         <Sidebar />
-        {/* Main content area */}
-        <main className="flex-1">
+        {/* Main content area with proper scrolling */}
+        <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto py-6 px-4 md:px-6">
             {children}
           </div>
         </main>
+      </div>
+      {/* Mobile navigation bar - only shown on mobile devices */}
+      <div className="md:hidden">
+        <MobileNav />
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Zap, Clipboard, ChevronRight } from 'lucide-react';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { toast } from 'sonner';
 
 interface WelcomeModalProps {
   open: boolean;
@@ -12,10 +14,27 @@ interface WelcomeModalProps {
   onSetupChoice: (choice: 'quick' | 'detailed') => void;
 }
 
+/**
+ * Welcome modal for meal planning that allows users to choose between 
+ * quick setup or detailed planning
+ */
 const WelcomeModal: React.FC<WelcomeModalProps> = ({ open, onClose, onSetupChoice }) => {
   const [selectedOption, setSelectedOption] = React.useState<'quick' | 'detailed'>('quick');
+  const { isProfileComplete } = useUserProfile();
+
+  React.useEffect(() => {
+    // If user has completed their profile, close the modal
+    if (isProfileComplete()) {
+      onClose();
+    }
+  }, [isProfileComplete, onClose]);
 
   const handleContinue = () => {
+    if (!selectedOption) {
+      toast.error("Please select a setup method to continue");
+      return;
+    }
+    
     onSetupChoice(selectedOption);
     onClose();
   };

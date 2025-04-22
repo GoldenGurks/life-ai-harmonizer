@@ -15,7 +15,10 @@ import { UserProfileProvider } from "@/context/UserProfileContext";
 import OnboardingModal from "@/components/profile/OnboardingModal";
 import React, { useState } from "react";
 
-// Create a QueryClient instance for React Query
+/**
+ * Create a QueryClient instance for React Query
+ * This enables efficient data fetching and caching
+ */
 const queryClient = new QueryClient();
 
 /**
@@ -45,27 +48,29 @@ const App = () => {
   if (!ready) return null;
 
   return (
-    <UserProfileProvider>
-      <TooltipProvider>
-        {/* Toast notifications for user feedback */}
-        <Toaster />
-        <Sonner />
-        {/* Onboarding modal for first-time users */}
-        <OnboardingModal open={showOnboard} />
-        <BrowserRouter>
-          <Routes>
-            {/* Main application routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/recipes" element={<Recipes />} />
-            <Route path="/meal-planning" element={<MealPlanning />} />
-            <Route path="/nutrition" element={<Nutrition />} />
-            <Route path="/shopping" element={<Shopping />} />
-            {/* Fallback for non-existent routes */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </UserProfileProvider>
+    <QueryClientProvider client={queryClient}>
+      <UserProfileProvider>
+        <TooltipProvider>
+          {/* Toast notifications for user feedback */}
+          <Toaster />
+          <Sonner />
+          {/* Onboarding modal for first-time users */}
+          <OnboardingModal open={showOnboard} />
+          <BrowserRouter>
+            <Routes>
+              {/* Main application routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/recipes" element={<Recipes />} />
+              <Route path="/meal-planning" element={<MealPlanning />} />
+              <Route path="/nutrition" element={<Nutrition />} />
+              <Route path="/shopping" element={<Shopping />} />
+              {/* Fallback for non-existent routes */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </UserProfileProvider>
+    </QueryClientProvider>
   );
 };
 
