@@ -581,7 +581,7 @@ export const recipeData: Recipe[] = [
   },
   {
     id: '33',
-2 title: 'Tofu Stir-Fry',
+    title: 'Tofu Stir-Fry',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
     time: '20 mins',
     category: 'Dinner',
