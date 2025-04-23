@@ -1,5 +1,8 @@
-import { Recipe } from '@/types/recipes';
+import { Recipe, FoodItem } from '@/types/recipes';
+import { ensureNutrientScore } from '@/lib/recipeEnrichment';
+import { loadVegLibrary, convertFoodItemToRecipe } from '@/services/nutritionService';
 
+// Add nutrientScore to all recipes (was missing and causing type errors)
 export const recipeData: Recipe[] = [
   {
     id: '1',
@@ -16,7 +19,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Quinoa', 'Chickpeas', 'Cucumber', 'Red onion', 'Cherry tomatoes', 'Feta', 'Olive oil', 'Lemon juice'],
     difficulty: 'Easy',
-    alternativeIds: ['5', '3']
+    alternativeIds: ['5', '3'],
+    nutrientScore: 0.55
   },
   {
     id: '2',
@@ -33,7 +37,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Kale', 'Avocado', 'Banana', 'Almond milk', 'Chia seeds', 'Honey'],
     difficulty: 'Easy',
-    alternativeIds: ['8', '10']
+    alternativeIds: ['8', '10'],
+    nutrientScore: 0.48
   },
   {
     id: '3',
@@ -50,7 +55,8 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: ['Chicken breast', 'Mixed greens', 'Cucumber', 'Cherry tomatoes', 'Red onion', 'Feta cheese', 'Olive oil', 'Balsamic vinegar'],
     difficulty: 'Medium',
-    alternativeIds: ['1', '9']
+    alternativeIds: ['1', '9'],
+    nutrientScore: 0.52
   },
   {
     id: '4',
@@ -67,7 +73,8 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: ['Salmon fillet', 'Asparagus', 'Lemon', 'Olive oil', 'Garlic', 'Dill', 'Salt', 'Pepper'],
     difficulty: 'Medium',
-    alternativeIds: ['7', '11']
+    alternativeIds: ['7', '11'],
+    nutrientScore: 0.50
   },
   {
     id: '5',
@@ -84,7 +91,8 @@ export const recipeData: Recipe[] = [
     fiber: 12,
     ingredients: ['Sweet potato', 'Quinoa', 'Chickpeas', 'Avocado', 'Spinach', 'Tahini', 'Lemon juice', 'Pumpkin seeds'],
     difficulty: 'Medium',
-    alternativeIds: ['1', '10']
+    alternativeIds: ['1', '10'],
+    nutrientScore: 0.54
   },
   {
     id: '6',
@@ -101,7 +109,8 @@ export const recipeData: Recipe[] = [
     fiber: 12,
     ingredients: ['Black beans', 'Brown rice', 'Corn', 'Red onion', 'Avocado', 'Lime', 'Cilantro', 'Hot sauce'],
     difficulty: 'Easy',
-    alternativeIds: ['1', '5']
+    alternativeIds: ['1', '5'],
+    nutrientScore: 0.49
   },
   {
     id: '7',
@@ -118,7 +127,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Whey protein', 'Mixed berries', 'Banana', 'Greek yogurt', 'Almond milk', 'Honey'],
     difficulty: 'Easy',
-    alternativeIds: ['2', '12']
+    alternativeIds: ['2', '12'],
+    nutrientScore: 0.47
   },
   {
     id: '8',
@@ -135,7 +145,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Chicken breast', 'Broccoli', 'Carrots', 'Bell peppers', 'Teriyaki sauce', 'Brown rice'],
     difficulty: 'Medium',
-    alternativeIds: ['4', '15']
+    alternativeIds: ['4', '15'],
+    nutrientScore: 0.51
   },
   {
     id: '9',
@@ -152,7 +163,8 @@ export const recipeData: Recipe[] = [
     fiber: 10,
     ingredients: ['Hummus', 'Pita bread', 'Cherry tomatoes', 'Cucumber', 'Olives', 'Feta cheese'],
     difficulty: 'Easy',
-    alternativeIds: ['3', '6']
+    alternativeIds: ['3', '6'],
+    nutrientScore: 0.46
   },
   {
     id: '10',
@@ -169,7 +181,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Ribeye steak', 'Sweet potato', 'Asparagus', 'Olive oil', 'Garlic', 'Herbs'],
     difficulty: 'Medium',
-    alternativeIds: ['4', '8']
+    alternativeIds: ['4', '8'],
+    nutrientScore: 0.53
   },
   {
     id: '11',
@@ -185,7 +198,8 @@ export const recipeData: Recipe[] = [
     fat: 10,
     fiber: 4,
     ingredients: ['Oats', 'Peanut butter', 'Honey', 'Chia seeds', 'Dark chocolate chips'],
-    difficulty: 'Easy'
+    difficulty: 'Easy',
+    nutrientScore: 0.45
   },
   {
     id: '12',
@@ -202,7 +216,8 @@ export const recipeData: Recipe[] = [
     fiber: 2,
     ingredients: ['Eggs', 'Spinach', 'Feta cheese', 'Red onion', 'Olive oil', 'Salt', 'Pepper'],
     difficulty: 'Easy',
-    alternativeIds: ['7', '2']
+    alternativeIds: ['7', '2'],
+    nutrientScore: 0.44
   },
   {
     id: '13',
@@ -219,7 +234,8 @@ export const recipeData: Recipe[] = [
     fiber: 14,
     ingredients: ['Lentils', 'Carrots', 'Celery', 'Onion', 'Garlic', 'Vegetable broth', 'Tomatoes', 'Cumin'],
     difficulty: 'Easy',
-    alternativeIds: ['6', '1']
+    alternativeIds: ['6', '1'],
+    nutrientScore: 0.43
   },
   {
     id: '14',
@@ -236,7 +252,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Chicken thighs', 'Coconut milk', 'Curry paste', 'Bell peppers', 'Onion', 'Garlic', 'Ginger', 'Rice'],
     difficulty: 'Medium',
-    alternativeIds: ['8', '4']
+    alternativeIds: ['8', '4'],
+    nutrientScore: 0.42
   },
   {
     id: '15',
@@ -253,7 +270,8 @@ export const recipeData: Recipe[] = [
     fiber: 5,
     ingredients: ['Beef sirloin', 'Broccoli', 'Garlic', 'Ginger', 'Soy sauce', 'Sesame oil', 'Brown rice'],
     difficulty: 'Medium',
-    alternativeIds: ['8', '10']
+    alternativeIds: ['8', '10'],
+    nutrientScore: 0.41
   },
   {
     id: '16',
@@ -270,7 +288,8 @@ export const recipeData: Recipe[] = [
     fiber: 5,
     ingredients: ['Greek yogurt', 'Granola', 'Mixed berries', 'Honey', 'Chia seeds'],
     difficulty: 'Easy',
-    alternativeIds: ['2', '7']
+    alternativeIds: ['2', '7'],
+    nutrientScore: 0.40
   },
   {
     id: '17',
@@ -287,7 +306,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Bell peppers', 'Ground turkey', 'Brown rice', 'Onion', 'Garlic', 'Tomato sauce', 'Cheese'],
     difficulty: 'Medium',
-    alternativeIds: ['14', '15']
+    alternativeIds: ['14', '15'],
+    nutrientScore: 0.39
   },
   {
     id: '18',
@@ -304,7 +324,8 @@ export const recipeData: Recipe[] = [
     fiber: 10,
     ingredients: ['Chickpeas', 'Celery', 'Red onion', 'Mayo', 'Mustard', 'Whole grain bread', 'Lettuce'],
     difficulty: 'Easy',
-    alternativeIds: ['3', '9']
+    alternativeIds: ['3', '9'],
+    nutrientScore: 0.38
   },
   {
     id: '19',
@@ -321,7 +342,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Oats', 'Banana', 'Eggs', 'Milk', 'Cinnamon', 'Vanilla extract', 'Maple syrup'],
     difficulty: 'Easy',
-    alternativeIds: ['16', '2']
+    alternativeIds: ['16', '2'],
+    nutrientScore: 0.37
   },
   {
     id: '20',
@@ -338,7 +360,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Shrimp', 'Avocado', 'Mixed greens', 'Cherry tomatoes', 'Cucumber', 'Lime juice', 'Olive oil'],
     difficulty: 'Easy',
-    alternativeIds: ['3', '9']
+    alternativeIds: ['3', '9'],
+    nutrientScore: 0.36
   },
   {
     id: '21',
@@ -355,7 +378,8 @@ export const recipeData: Recipe[] = [
     fiber: 3,
     ingredients: ['Eggs', 'Bell peppers', 'Spinach', 'Onion', 'Feta cheese', 'Olive oil', 'Herbs'],
     difficulty: 'Medium',
-    alternativeIds: ['12', '16']
+    alternativeIds: ['12', '16'],
+    nutrientScore: 0.35
   },
   {
     id: '22',
@@ -372,7 +396,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Turkey breast', 'Avocado', 'Whole wheat wrap', 'Lettuce', 'Tomato', 'Greek yogurt', 'Mustard'],
     difficulty: 'Easy',
-    alternativeIds: ['18', '3']
+    alternativeIds: ['18', '3'],
+    nutrientScore: 0.34
   },
   {
     id: '23',
@@ -389,7 +414,8 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: ['Arborio rice', 'Mushrooms', 'Onion', 'Garlic', 'White wine', 'Vegetable broth', 'Parmesan cheese'],
     difficulty: 'Hard',
-    alternativeIds: ['14', '17']
+    alternativeIds: ['14', '17'],
+    nutrientScore: 0.33
   },
   {
     id: '24',
@@ -406,7 +432,8 @@ export const recipeData: Recipe[] = [
     fiber: 5,
     ingredients: ['Protein powder', 'Cocoa powder', 'Almond flour', 'Almond milk', 'Egg', 'Baking powder'],
     difficulty: 'Easy',
-    alternativeIds: ['11', '7']
+    alternativeIds: ['11', '7'],
+    nutrientScore: 0.32
   },
   {
     id: '25',
@@ -423,7 +450,8 @@ export const recipeData: Recipe[] = [
     fiber: 2,
     ingredients: ['Tomatoes', 'Fresh mozzarella', 'Basil', 'Balsamic glaze', 'Olive oil', 'Salt', 'Pepper'],
     difficulty: 'Easy',
-    alternativeIds: ['9', '20']
+    alternativeIds: ['9', '20'],
+    nutrientScore: 0.31
   },
   {
     id: '26',
@@ -440,7 +468,8 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: ['Zucchini', 'Basil pesto', 'Cherry tomatoes', 'Pine nuts', 'Parmesan cheese', 'Garlic'],
     difficulty: 'Easy',
-    alternativeIds: ['23', '17']
+    alternativeIds: ['23', '17'],
+    nutrientScore: 0.30
   },
   {
     id: '27',
@@ -457,7 +486,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Tuna', 'Avocado', 'Greek yogurt', 'Celery', 'Red onion', 'Lemon juice', 'Dill'],
     difficulty: 'Easy',
-    alternativeIds: ['20', '3']
+    alternativeIds: ['20', '3'],
+    nutrientScore: 0.29
   },
   {
     id: '28',
@@ -474,7 +504,8 @@ export const recipeData: Recipe[] = [
     fiber: 16,
     ingredients: ['Sweet potato', 'Black beans', 'Tomatoes', 'Onion', 'Bell pepper', 'Chili powder', 'Cumin'],
     difficulty: 'Medium',
-    alternativeIds: ['13', '6']
+    alternativeIds: ['13', '6'],
+    nutrientScore: 0.28
   },
   {
     id: '29',
@@ -491,7 +522,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Whole grain bread', 'Almond butter', 'Banana', 'Cinnamon', 'Honey'],
     difficulty: 'Easy',
-    alternativeIds: ['19', '16']
+    alternativeIds: ['19', '16'],
+    nutrientScore: 0.27
   },
   {
     id: '30',
@@ -508,7 +540,8 @@ export const recipeData: Recipe[] = [
     fiber: 12,
     ingredients: ['Quinoa', 'Sweet potato', 'Broccoli', 'Chickpeas', 'Red onion', 'Tahini', 'Lemon juice'],
     difficulty: 'Medium',
-    alternativeIds: ['1', '5']
+    alternativeIds: ['1', '5'],
+    nutrientScore: 0.26
   },
   {
     id: '31',
@@ -525,7 +558,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Chicken breast', 'Carrots', 'Celery', 'Onion', 'Garlic', 'Chicken broth', 'Herbs'],
     difficulty: 'Medium',
-    alternativeIds: ['13', '14']
+    alternativeIds: ['13', '14'],
+    nutrientScore: 0.25
   },
   {
     id: '32',
@@ -542,11 +576,12 @@ export const recipeData: Recipe[] = [
     fiber: 3,
     ingredients: ['Cottage cheese', 'Mixed berries', 'Honey', 'Cinnamon', 'Almonds'],
     difficulty: 'Easy',
-    alternativeIds: ['16', '11']
+    alternativeIds: ['16', '11'],
+    nutrientScore: 0.24
   },
   {
     id: '33',
-    title: 'Tofu Stir-Fry',
+2 title: 'Tofu Stir-Fry',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
     time: '20 mins',
     category: 'Dinner',
@@ -559,7 +594,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Tofu', 'Broccoli', 'Bell peppers', 'Carrots', 'Soy sauce', 'Ginger', 'Garlic'],
     difficulty: 'Medium',
-    alternativeIds: ['8', '15']
+    alternativeIds: ['8', '15'],
+    nutrientScore: 0.23
   },
   {
     id: '34',
@@ -576,7 +612,8 @@ export const recipeData: Recipe[] = [
     fiber: 10,
     ingredients: ['Rolled oats', 'Milk', 'Greek yogurt', 'Chia seeds', 'Honey', 'Berries', 'Nuts'],
     difficulty: 'Easy',
-    alternativeIds: ['19', '29']
+    alternativeIds: ['19', '29'],
+    nutrientScore: 0.22
   },
   {
     id: '35',
@@ -593,7 +630,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Cauliflower', 'Eggs', 'Carrots', 'Peas', 'Garlic', 'Ginger', 'Soy sauce', 'Sesame oil'],
     difficulty: 'Medium',
-    alternativeIds: ['33', '8']
+    alternativeIds: ['33', '8'],
+    nutrientScore: 0.21
   },
   {
     id: '36',
@@ -610,7 +648,8 @@ export const recipeData: Recipe[] = [
     fiber: 10,
     ingredients: ['Ground turkey', 'Sweet potato', 'Kidney beans', 'Tomatoes', 'Onion', 'Bell pepper', 'Chili powder'],
     difficulty: 'Medium',
-    alternativeIds: ['28', '31']
+    alternativeIds: ['28', '31'],
+    nutrientScore: 0.20
   },
   {
     id: '37',
@@ -627,7 +666,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Mango', 'Spinach', 'Banana', 'Almond milk', 'Chia seeds', 'Lime juice'],
     difficulty: 'Easy',
-    alternativeIds: ['2', '7']
+    alternativeIds: ['2', '7'],
+    nutrientScore: 0.19
   },
   {
     id: '38',
@@ -644,7 +684,8 @@ export const recipeData: Recipe[] = [
     fiber: 14,
     ingredients: ['Chickpeas', 'Parsley', 'Cilantro', 'Garlic', 'Cumin', 'Tahini', 'Cucumber', 'Tomato'],
     difficulty: 'Medium',
-    alternativeIds: ['1', '9']
+    alternativeIds: ['1', '9'],
+    nutrientScore: 0.18
   },
   {
     id: '39',
@@ -661,7 +702,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Whole grain bread', 'Eggs', 'Avocado', 'Cherry tomatoes', 'Microgreens', 'Salt', 'Pepper'],
     difficulty: 'Easy',
-    alternativeIds: ['29', '12']
+    alternativeIds: ['29', '12'],
+    nutrientScore: 0.17
   },
   {
     id: '40',
@@ -678,7 +720,8 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: ['Shrimp', 'Whole wheat pasta', 'Garlic', 'Lemon', 'Olive oil', 'Parsley', 'Red pepper flakes'],
     difficulty: 'Medium',
-    alternativeIds: ['20', '23']
+    alternativeIds: ['20', '23'],
+    nutrientScore: 0.16
   },
   {
     id: '41',
@@ -695,7 +738,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Banana', 'Peanut butter', 'Greek yogurt', 'Milk', 'Honey', 'Ice'],
     difficulty: 'Easy',
-    alternativeIds: ['7', '37']
+    alternativeIds: ['7', '37'],
+    nutrientScore: 0.15
   },
   {
     id: '42',
@@ -712,7 +756,8 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: ['Brussels sprouts', 'Bacon', 'Olive oil', 'Garlic', 'Balsamic vinegar', 'Salt', 'Pepper'],
     difficulty: 'Easy',
-    alternativeIds: ['26', '35']
+    alternativeIds: ['26', '35'],
+    nutrientScore: 0.14
   },
   {
     id: '43',
@@ -729,7 +774,8 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: ['Chicken breast', 'Whole wheat wrap', 'Romaine lettuce', 'Parmesan cheese', 'Caesar dressing', 'Croutons'],
     difficulty: 'Easy',
-    alternativeIds: ['22', '3']
+    alternativeIds: ['22', '3'],
+    nutrientScore: 0.13
   },
   {
     id: '44',
@@ -746,7 +792,8 @@ export const recipeData: Recipe[] = [
     fiber: 10,
     ingredients: ['Mixed vegetables', 'Coconut milk', 'Curry paste', 'Jasmine rice', 'Garlic', 'Ginger', 'Cilantro'],
     difficulty: 'Medium',
-    alternativeIds: ['14', '33']
+    alternativeIds: ['14', '33'],
+    nutrientScore: 0.12
   },
   {
     id: '45',
@@ -763,7 +810,8 @@ export const recipeData: Recipe[] = [
     fiber: 8,
     ingredients: ['Cauliflower', 'Bell peppers', 'Onion', 'Garlic', 'Soy sauce', 'Sesame oil'],
     difficulty: 'Easy',
-    alternativeIds: ['8', '10']
+    alternativeIds: ['8', '10'],
+    nutrientScore: 0.11
   }
 ];
 
@@ -780,3 +828,58 @@ export const getAlternativeRecipes = (recipeId: string): Recipe[] => {
     .map(id => findRecipeById(id))
     .filter((recipe): recipe is Recipe => recipe !== undefined);
 };
+
+// Keep a cache of all recipes (original + food library)
+let allRecipesCache: Recipe[] | null = null;
+
+/**
+ * Gets all recipes including those converted from the food library
+ */
+export async function getAllRecipes(): Promise<Recipe[]> {
+  // Return cached data if available
+  if (allRecipesCache) {
+    return allRecipesCache;
+  }
+  
+  try {
+    // Load veg library and convert items to recipes
+    const vegLibrary = await loadVegLibrary();
+    const vegRecipes = vegLibrary.map(item => convertFoodItemToRecipe(item));
+    
+    // Combine with existing recipes
+    const combinedRecipes = [...recipeData, ...vegRecipes];
+    
+    // Ensure all recipes have nutrient scores
+    const enrichedRecipes = ensureNutrientScore(combinedRecipes);
+    
+    // Cache the results
+    allRecipesCache = enrichedRecipes;
+    return enrichedRecipes;
+  } catch (error) {
+    console.error('Error loading all recipes:', error);
+    // If there's an error loading the veg library, just return the original recipes
+    return ensureNutrientScore(recipeData);
+  }
+}
+
+/**
+ * Finds a recipe by ID from both static and dynamic sources
+ */
+export async function getRecipeById(id: string): Promise<Recipe | undefined> {
+  // Check static recipes first (faster)
+  const staticRecipe = recipeData.find(recipe => recipe.id === id);
+  if (staticRecipe) {
+    return staticRecipe;
+  }
+  
+  // Check if it's a food-converted recipe
+  if (id.startsWith('food-')) {
+    const foodId = parseInt(id.replace('food-', ''), 10);
+    if (!isNaN(foodId)) {
+      const allRecipes = await getAllRecipes();
+      return allRecipes.find(recipe => recipe.id === id);
+    }
+  }
+  
+  return undefined;
+}
