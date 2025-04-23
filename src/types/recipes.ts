@@ -1,4 +1,3 @@
-
 export interface Recipe {
   id: string;
   title: string;
@@ -25,6 +24,7 @@ export interface Recipe {
   cost?: number;      // For cost-related scoring
   cookTimeMinutes?: number; // Numerical cooking time for filtering
   cuisineType?: string; // For cuisine-based matching
+  nutrientScore: number; // REQUIRED now
 }
 
 export interface RecipeFilters {

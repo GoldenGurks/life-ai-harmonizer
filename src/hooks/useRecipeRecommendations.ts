@@ -1,10 +1,10 @@
-
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useUserProfile } from './useUserProfile';
 import { useMealPreferences } from './useMealPreferences';
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { recommendationService } from '@/services/recommendationService';
 import { recipeData } from '@/data/recipeDatabase';
+import { ensureNutrientScore, validateRecipes } from '@/lib/recipeEnrichment';
 
 /**
  * Custom hook for recipe recommendations based on user profile and preferences
@@ -14,12 +14,16 @@ import { recipeData } from '@/data/recipeDatabase';
  * @returns Object containing recommendation functions and state
  */
 export const useRecipeRecommendations = (initialRecipes: Recipe[] = recipeData) => {
+  // Ensure all recipes are enriched with nutrientScore
+  const enrichedInitialRecipes = ensureNutrientScore(initialRecipes);
+  validateRecipes(enrichedInitialRecipes);
+
   // Access user profile and meal preferences
   const { profile } = useUserProfile();
   const { preferences } = useMealPreferences();
   
   // State for recommendation engine
-  const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
+  const [recipes, setRecipes] = useState<Recipe[]>(enrichedInitialRecipes);
   const [recentlyViewedRecipes, setRecentlyViewedRecipes] = useState<string[]>(() => {
     const stored = localStorage.getItem('recentlyViewedRecipes');
     return stored ? JSON.parse(stored) : [];
@@ -78,7 +82,7 @@ export const useRecipeRecommendations = (initialRecipes: Recipe[] = recipeData) 
       fitnessGoal: preferences.fitnessGoal,
       likedFoods: preferences.likedFoods || [],
       dislikedFoods: preferences.dislikedFoods || [],
-      recentlyViewed: recentlyViewedRecipes, // Fixed: Changed from recentlyViewedRecipes to recentlyViewed
+      recentlyViewed: recentlyViewedRecipes,
       calorieTarget: preferences.calorieTarget,
       proteinTarget: preferences.proteinTarget,
       carbTarget: preferences.carbTarget,

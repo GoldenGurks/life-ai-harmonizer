@@ -1,5 +1,6 @@
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { UserPreferences } from '@/types/meal-planning';
+import { ensureNutrientScore, validateRecipes } from '@/lib/recipeEnrichment';
 
 /**
  * Service responsible for recipe recommendations, filtering, scoring, and ranking
@@ -18,9 +19,12 @@ export const recommendationService = {
     recipes: Recipe[], 
     constraints: RecommendationFilters
   ): Recipe[] => {
+    // Enrich and validate before filtering!
+    const enrichedRecipes = ensureNutrientScore(recipes);
+    validateRecipes(enrichedRecipes);
+
     console.log('Filtering recipes with constraints:', constraints);
-    // Start with all recipes
-    let filteredRecipes = [...recipes];
+    let filteredRecipes = [...enrichedRecipes];
     
     // Remove disliked meals
     if (constraints.dislikedMeals.length > 0) {
@@ -122,14 +126,18 @@ export const recommendationService = {
     userPreferences: ScoringPreferences,
     weights: RecommendationWeights
   ): Recipe[] => {
+    // Enrich and validate before scoring!
+    const enrichedRecipes = ensureNutrientScore(recipes);
+    validateRecipes(enrichedRecipes);
+
     console.log('Scoring recipes with preferences:', userPreferences);
     // Calculate scores for each recipe
-    const scoredRecipes = recipes.map(recipe => {
+    const scoredRecipes = enrichedRecipes.map(recipe => {
       // 1. Nutritional Fit Score (0-1)
       const nutritionalFitScore = calculateNutritionalFitScore(recipe, userPreferences);
       
       // 2. Similarity to Likes Score (0-1)
-      const similarityScore = calculateSimilarityScore(recipe, userPreferences.likedMeals, recipes, userPreferences.likedFoods);
+      const similarityScore = calculateSimilarityScore(recipe, userPreferences.likedMeals, enrichedRecipes, userPreferences.likedFoods);
       
       // 3. Variety Boost (0-1) - encourage variety in suggestions
       const varietyScore = calculateVarietyScore(recipe, userPreferences.likedMeals, userPreferences.recentlyViewed);
