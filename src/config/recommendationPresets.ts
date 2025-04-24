@@ -27,6 +27,8 @@ export const PRESETS: Record<string, RecommendationWeights> = {
     recencyPenalty: 0.15
   }
 };
+// Default für neue User bzw. wenn kein anderes Preset gesetzt ist
+export const DEFAULT_RECOMMENDATION_WEIGHTS: RecommendationWeights = PRESETS['Healthy'];
 
 export const normalizeWeights = (raw: Partial<RecommendationWeights>): RecommendationWeights => {
   const total = Object.values(raw).reduce((a, b) => a + b, 0);
