@@ -11,6 +11,8 @@ import FoodPreferenceSlider from './FoodPreferenceSlider';
 import { UserPreferences } from '@/types/meal-planning';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
 import { toast } from 'sonner';
+import { PresetWeightsSection } from './PresetWeightsSection';
+import { RecommendationWeights } from '@/types/recipes';
 
 interface DetailedPlanningModalProps {
   open: boolean;
@@ -283,11 +285,14 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
       case 5:
         return (
           <div className="space-y-4">
-            <h2 className="text-lg font-medium">Food Preferences</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Swipe right for dishes you like, left for those you don't. This helps us customize your meal plan to your taste preferences.
-            </p>
-            <FoodPreferenceSlider onPreferenceChange={handleFoodPreference} />
+            <h2 className="text-lg font-medium">Recipe Recommendation Preferences</h2>
+            <PresetWeightsSection
+              onWeightsChange={(weights, preset) => {
+                handleFormChange('recommendationWeights', weights);
+                handleFormChange('recommendationPreset', preset);
+              }}
+              initialPreset={formData.recommendationPreset || 'Healthy'}
+            />
           </div>
         );
         

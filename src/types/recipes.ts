@@ -1,4 +1,3 @@
-
 export interface Recipe {
   id: string;
   title: string;
@@ -45,7 +44,6 @@ export interface RecipeTag {
   count: number;
 }
 
-// New type for recipe recommendation weight configuration
 export interface RecommendationWeights {
   nutritionalFit: number;
   similarityToLikes: number;
@@ -53,6 +51,21 @@ export interface RecommendationWeights {
   pantryMatch: number;
   costScore: number;
   recencyPenalty: number;
+}
+
+export interface ScoringPreferences {
+  likedMeals: string[];
+  pantry: string[];
+  fitnessGoal?: string;
+  likedFoods?: string[];
+  dislikedFoods?: string[];
+  recentlyViewed?: string[];
+  calorieTarget?: number;
+  proteinTarget?: number;
+  carbTarget?: number;
+  fatTarget?: number;
+  recommendationPreset: 'Healthy' | 'WeightLoss' | 'MuscleGain';
+  recommendationWeights?: RecommendationWeights;
 }
 
 // New type for recommendation service filters
@@ -66,18 +79,6 @@ export interface RecommendationFilters {
 }
 
 // New type for score calculation preferences
-export interface ScoringPreferences {
-  likedMeals: string[];
-  pantry: string[];
-  fitnessGoal?: string;
-  likedFoods?: string[];
-  dislikedFoods?: string[];
-  recentlyViewed?: string[]; // For recency penalty
-  calorieTarget?: number;
-  proteinTarget?: number;
-  carbTarget?: number;
-  fatTarget?: number;
-}
 
 // New interface for the food library items from veg_library.ndjson
 export interface FoodItem {

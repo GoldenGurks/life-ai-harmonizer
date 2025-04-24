@@ -1,11 +1,13 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { Toggle } from '@/components/ui/toggle';
+import { Heart } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ChefHat, Utensils, Info, Coffee } from 'lucide-react';
 import MealCard from './MealCard';
 import DaySelector from './DaySelector';
 import { MealItem } from '@/types/meal-planning';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface WeeklyPlanTabProps {
   currentDay: string;
@@ -34,10 +36,16 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   handleMealChange,
   mealPlans
 }) => {
-  // Find meals for the current day
-  const currentDayMeals = mealPlans.find(plan => plan.day === currentDay)?.meals || [];
-  const currentTotalNutrition = mealPlans.find(plan => plan.day === currentDay)?.totalNutrition;
+  const [showOnlyLiked, setShowOnlyLiked] = useState(false);
+  const { profile } = useUserProfile();
   
+  const filteredMealPlans = mealPlans.map(plan => ({
+    ...plan,
+    meals: showOnlyLiked 
+      ? plan.meals.filter(meal => profile?.likedMeals?.includes(meal.id))
+      : plan.meals
+  }));
+
   const getIconForMealType = (type: string) => {
     switch (type) {
       case 'breakfast':
@@ -59,18 +67,28 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
-  // Get meals by type
-  const getBreakfastMeals = () => currentDayMeals.filter(meal => meal.type === 'breakfast');
-  const getLunchMeals = () => currentDayMeals.filter(meal => meal.type === 'lunch');
-  const getDinnerMeals = () => currentDayMeals.filter(meal => meal.type === 'dinner');
-  const getSnackMeals = () => currentDayMeals.filter(meal => meal.type === 'snack' || meal.type === 'dessert');
+  const getBreakfastMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'breakfast') || [];
+  const getLunchMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'lunch') || [];
+  const getDinnerMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'dinner') || [];
+  const getSnackMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'snack' || meal.type === 'dessert') || [];
+
+  const currentTotalNutrition = filteredMealPlans.find(plan => plan.day === currentDay)?.totalNutrition;
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
-          <CardTitle>Weekly Schedule</CardTitle>
-          <div className="flex gap-2">
+          <CardTitle className="text-xl">Weekly Schedule</CardTitle>
+          <div className="flex gap-2 items-center">
+            <Toggle 
+              pressed={showOnlyLiked} 
+              onPressedChange={setShowOnlyLiked}
+              aria-label="Toggle liked recipes only"
+              className="gap-2"
+            >
+              <Heart className={showOnlyLiked ? "h-4 w-4 text-red-500 fill-red-500" : "h-4 w-4"} />
+              Liked Only
+            </Toggle>
             <Button variant="outline" size="sm">
               <Calendar className="h-4 w-4 mr-2" /> 
               April 7-13, 2025
@@ -88,7 +106,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           onDayChange={onDayChange} 
         />
 
-        {/* Daily Summary */}
         {currentTotalNutrition && (
           <div className="grid grid-cols-4 gap-2 mt-4 mb-6 p-3 bg-muted/20 rounded-md">
             <div className="text-center">
@@ -110,7 +127,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           </div>
         )}
 
-        {/* Breakfast Section */}
         {getBreakfastMeals().length > 0 && (
           <div className="space-y-6 mb-8">
             <h3 className="font-medium flex items-center">
@@ -138,7 +154,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           </div>
         )}
 
-        {/* Lunch Section */}
         <div className="space-y-6 mb-8">
           <h3 className="font-medium flex items-center">
             <Utensils className="h-5 w-5 text-secondary mr-2" />
@@ -164,7 +179,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           ))}
         </div>
 
-        {/* Dinner Section */}
         <div className="space-y-6 mb-8">
           <h3 className="font-medium flex items-center">
             <Utensils className="h-5 w-5 text-accent mr-2" />
@@ -190,7 +204,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           ))}
         </div>
 
-        {/* Snacks/Dessert Section */}
         {getSnackMeals().length > 0 && (
           <div className="space-y-6">
             <h3 className="font-medium flex items-center">
