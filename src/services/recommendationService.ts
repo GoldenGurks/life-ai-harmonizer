@@ -256,6 +256,9 @@ export const recommendationService = {
       );
     }
     
+    // Import PRESETS from the config file
+    import { PRESETS } from '@/config/recommendationPresets';
+    
     // Get weights from preferences or from preset
     const weights: RecommendationWeights = userPreferences.recommendationWeights || 
       PRESETS[userPreferences.recommendationPreset || 'Healthy'];

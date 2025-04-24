@@ -17,6 +17,16 @@ export interface MealPlan {
   totalCalories?: number;
   totalProtein?: number;
   macroBalance?: number;
+  // Add these properties to match usage in MealPlanning.tsx
+  day?: string;
+  meals?: MealItem[];
+  totalNutrition?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
 }
 
 export interface MealPlanTemplate {
@@ -50,6 +60,13 @@ export interface UserPreferences {
   dislikedFoods: string[];
   recommendationPreset: 'Healthy' | 'WeightLoss' | 'MuscleGain';
   recommendationWeights?: RecommendationWeights;
+  // Add missing properties used in components
+  intolerances?: string[];
+  cookingExperience?: 'beginner' | 'intermediate' | 'advanced';
+  preferenceHistory?: {
+    quickSetupProfile?: string;
+    lastUpdated: string;
+  };
 }
 
 export interface MealPlanDay {
@@ -67,4 +84,69 @@ export interface MealPlanProgress {
   totalMeals: number;
   calorieAverage: number;
   proteinAverage: number;
+}
+
+// Add the MealItem type needed by multiple components
+export interface MealItem {
+  id: string;
+  name: string;
+  description: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  tags: string[];
+  preparationTime: number;
+  cookingTime: number;
+  ingredients: { name: string; amount: string; unit: string }[];
+  instructions: string[];
+  image: string;
+  nutritionScore: number;
+}
+
+// Add types for nutrition data display
+export interface NutrientData {
+  day: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface NutrientGoal {
+  name: string;
+  current: number;
+  target: number;
+  unit: string;
+}
+
+// Add types for shopping and pantry
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  category: string;
+  amount: number;
+  unit: string;
+  inPantry: boolean;
+  checked: boolean;
+}
+
+export interface ShoppingList {
+  id: string;
+  name: string;
+  items: ShoppingItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PantryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  expiry?: string;
+  addedAt: string;
 }

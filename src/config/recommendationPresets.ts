@@ -30,9 +30,16 @@ export const PRESETS: Record<string, RecommendationWeights> = {
 
 export const normalizeWeights = (raw: Partial<RecommendationWeights>): RecommendationWeights => {
   const total = Object.values(raw).reduce((a, b) => a + b, 0);
-  const normalized = Object.fromEntries(
-    Object.entries(raw).map(([k, v]) => [k, v / total])
-  );
   
-  return normalized as RecommendationWeights;
+  // Create fully typed object with all required properties
+  const normalized: RecommendationWeights = {
+    nutritionalFit: (raw.nutritionalFit || 0) / total,
+    similarityToLikes: (raw.similarityToLikes || 0) / total,
+    varietyBoost: (raw.varietyBoost || 0) / total,
+    pantryMatch: (raw.pantryMatch || 0) / total,
+    costScore: (raw.costScore || 0) / total,
+    recencyPenalty: (raw.recencyPenalty || 0) / total
+  };
+  
+  return normalized;
 };
