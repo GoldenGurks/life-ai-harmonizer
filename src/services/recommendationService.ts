@@ -256,15 +256,9 @@ export const recommendationService = {
       );
     }
     
-    // Score recipes
-    const weights: RecommendationWeights = {
-      nutritionalFit: 0.35,
-      similarityToLikes: 0.20,
-      varietyBoost: 0.15,
-      pantryMatch: 0.15,
-      costScore: 0.10,
-      recencyPenalty: 0.05
-    };
+    // Get weights from preferences or from preset
+    const weights: RecommendationWeights = userPreferences.recommendationWeights || 
+      PRESETS[userPreferences.recommendationPreset || 'Healthy'];
     
     // Add existing selections to recently viewed to avoid duplicates
     const preferencesWithExisting: ScoringPreferences = {

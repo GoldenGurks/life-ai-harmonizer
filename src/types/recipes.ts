@@ -1,3 +1,4 @@
+
 export interface Recipe {
   id: string;
   title: string;
@@ -28,7 +29,7 @@ export interface Recipe {
 }
 
 export interface RecipeFilters {
-  dietary: string;
+  dietary: string[];
   mealType: string;
   time: string;
   calorieRange: [number, number];
@@ -77,8 +78,6 @@ export interface RecommendationFilters {
   maxCookTime?: number;
   cuisinePreferences?: string[];
 }
-
-// New type for score calculation preferences
 
 // New interface for the food library items from veg_library.ndjson
 export interface FoodItem {

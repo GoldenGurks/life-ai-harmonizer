@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useUserProfile } from './useUserProfile';
 import { useMealPreferences } from './useMealPreferences';
@@ -5,6 +6,7 @@ import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreference
 import { recommendationService } from '@/services/recommendationService';
 import { recipeData } from '@/data/recipeDatabase';
 import { ensureNutrientScore, validateRecipes } from '@/lib/recipeEnrichment';
+import { PRESETS } from '@/config/recommendationPresets';
 
 /**
  * Custom hook for recipe recommendations based on user profile and preferences
@@ -72,7 +74,8 @@ export const useRecipeRecommendations = (initialRecipes: Recipe[] = recipeData) 
     if (!profile || !preferences) {
       return {
         likedMeals: [],
-        pantry: []
+        pantry: [],
+        recommendationPreset: 'Healthy'  // Default preset
       };
     }
     
@@ -86,7 +89,9 @@ export const useRecipeRecommendations = (initialRecipes: Recipe[] = recipeData) 
       calorieTarget: preferences.calorieTarget,
       proteinTarget: preferences.proteinTarget,
       carbTarget: preferences.carbTarget,
-      fatTarget: preferences.fatTarget
+      fatTarget: preferences.fatTarget,
+      recommendationPreset: preferences.recommendationPreset || 'Healthy',
+      recommendationWeights: preferences.recommendationWeights
     };
   }, [profile, preferences, recentlyViewedRecipes]);
 
