@@ -19,13 +19,13 @@ const Header: React.FC = () => {
   // Access user profile information
   const { profile } = useUserProfile();
   // Access recipe recommendations
-  const { getTopN, markRecipeViewed } = useRecipeRecommendations();
+  const { recommendations, markAsViewed, getTopN } = useRecipeRecommendations();
   // Toast notifications
   const { toast } = useToast();
   // State to track if recommendations dropdown is open
   const [showRecommendations, setShowRecommendations] = useState(false);
   // State to store current recommendations
-  const [recommendations, setRecommendations] = useState<Recipe[]>([]);
+  const [displayRecommendations, setDisplayRecommendations] = useState<Recipe[]>([]);
   
   /**
    * Handles navigation to user profile/settings
@@ -40,7 +40,7 @@ const Header: React.FC = () => {
   const handleShowRecommendations = () => {
     // Get top 3 personalized recommendations
     const topRecommendations = getTopN(3);
-    setRecommendations(topRecommendations);
+    setDisplayRecommendations(topRecommendations);
     setShowRecommendations(true);
     
     toast({
@@ -54,7 +54,7 @@ const Header: React.FC = () => {
    */
   const handleRecipeClick = (recipe: Recipe) => {
     // Mark recipe as viewed for recommendation engine feedback loop
-    markRecipeViewed(recipe.id);
+    markAsViewed(recipe.id);
     
     // In a real app, this would navigate to the recipe page
     toast({

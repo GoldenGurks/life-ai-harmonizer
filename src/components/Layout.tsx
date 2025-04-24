@@ -18,12 +18,12 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Initialize recipe recommendations to ensure it's loaded globally
-  const { recipes } = useRecipeRecommendations();
+  const { recommendations } = useRecipeRecommendations();
   
   // Log recommendation engine status on mount
   useEffect(() => {
-    console.log(`Recipe recommendation engine initialized with ${recipes.length} recipes`);
-  }, [recipes.length]);
+    console.log(`Recipe recommendation engine initialized with ${recommendations.length} recipes`);
+  }, [recommendations.length]);
   
   return (
     <div className="flex flex-col min-h-screen">

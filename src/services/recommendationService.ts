@@ -1,6 +1,7 @@
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { UserPreferences } from '@/types/meal-planning';
 import { ensureNutrientScore, validateRecipes } from '@/lib/recipeEnrichment';
+import { PRESETS } from '@/config/recommendationPresets';
 
 /**
  * Service responsible for recipe recommendations, filtering, scoring, and ranking
@@ -255,9 +256,6 @@ export const recommendationService = {
         r.tags.some(t => t.toLowerCase() === mealType.toLowerCase())
       );
     }
-    
-    // Import PRESETS from the config file
-    import { PRESETS } from '@/config/recommendationPresets';
     
     // Get weights from preferences or from preset
     const weights: RecommendationWeights = userPreferences.recommendationWeights || 

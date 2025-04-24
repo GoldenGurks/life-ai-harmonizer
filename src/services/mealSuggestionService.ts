@@ -1,4 +1,3 @@
-
 import { MealItem, UserPreferences } from '@/types/meal-planning';
 import { Recipe } from '@/types/recipes';
 import { recipeData } from '@/data/recipeDatabase';
@@ -136,42 +135,62 @@ export const mealSuggestionService = {
     // @ts-ignore - Sort by score property
     availableRecipes.sort((a, b) => (b.score || 0) - (a.score || 0));
     
-    // Convert recipes to meal items
-    suggestions = availableRecipes.slice(0, count).map(recipe => {
-      const mealType = recipe.category.toLowerCase();
-      // Ensure the meal type is one of the valid types
-      const validType = ['breakfast', 'lunch', 'dinner', 'snack', 'dessert'].includes(mealType) 
-        ? mealType as "breakfast" | "lunch" | "dinner" | "snack" | "dessert" 
-        : "snack";
-        
+    // Map Recipe objects to MealItem for compatibility
+    const topRecipes = availableRecipes.slice(0, count);
+    suggestions = topRecipes.map(recipe => {
+      // Determine appropriate meal type based on the request or recipe category
+      let mealItemType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert' = 'lunch';
+      
+      if (mealType && mealType !== 'any') {
+        // Use the requested meal type if it's a valid MealItem type
+        if (['breakfast', 'lunch', 'dinner', 'snack', 'dessert'].includes(mealType.toLowerCase())) {
+          mealItemType = mealType.toLowerCase() as any;
+        }
+      } else {
+        // Try to determine from recipe category or tags
+        const lowerCategory = recipe.category.toLowerCase();
+        if (lowerCategory.includes('breakfast')) {
+          mealItemType = 'breakfast';
+        } else if (lowerCategory.includes('lunch')) {
+          mealItemType = 'lunch';
+        } else if (lowerCategory.includes('dinner')) {
+          mealItemType = 'dinner';
+        } else if (lowerCategory.includes('snack')) {
+          mealItemType = 'snack';
+        } else if (lowerCategory.includes('dessert')) {
+          mealItemType = 'dessert';
+        }
+      }
+      
       return {
         id: recipe.id,
         name: recipe.title,
-        description: recipe.title,
+        description: `${recipe.difficulty} recipe: ${recipe.tags.join(', ')}`,
         calories: recipe.calories,
         protein: recipe.protein,
         carbs: recipe.carbs,
         fat: recipe.fat,
         fiber: recipe.fiber,
-        sugar: recipe.sugar,
-        type: validType,
+        sugar: recipe.sugar || 0,
+        type: mealItemType,
         tags: recipe.tags,
-        preparationTime: parseInt(recipe.time.match(/\d+/)?.[0] || '0'),
-        cookingTime: parseInt(recipe.time.match(/\d+/)?.[0] || '0'),
-        ingredients: recipe.ingredients.map(i => ({
-          name: i,
-          amount: '1',
-          unit: 'serving'
-        })),
-        instructions: recipe.instructions || recipe.ingredients,
+        preparationTime: 15, // Default values since these might not exist in Recipe
+        cookingTime: parseInt(recipe.time) || 25,
+        ingredients: recipe.ingredients.map(ing => {
+          const parts = ing.split(' ');
+          // Simple parsing of ingredients string
+          return {
+            name: parts.slice(1).join(' '),
+            amount: parts[0] || '1',
+            unit: 'unit'
+          };
+        }),
+        instructions: recipe.instructions || ['No detailed instructions available.'],
         image: recipe.image,
-        nutritionScore: recipe.score || 0,
-        difficulty: recipe.difficulty,
-        useLeftovers: recipe.useLeftovers,
-        isQuick: recipe.isQuick
+        nutritionScore: recipe.nutrientScore || 5
       };
     });
-    
+
     return suggestions;
   }
 };

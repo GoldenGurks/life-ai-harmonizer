@@ -21,21 +21,23 @@ const PantrySection = ({ pantry }: PantrySectionProps) => {
   const [newItem, setNewItem] = useState({
     name: '',
     category: 'Other',
-    amount: 0,
+    quantity: 0,
     unit: 'g',
     expirationDate: '',
+    addedAt: new Date().toISOString(),
   });
 
   const handleAddItem = () => {
-    if (!newItem.name || !newItem.amount) return;
+    if (!newItem.name || !newItem.quantity) return;
     
     pantry.addPantryItem(newItem);
     setNewItem({
       name: '',
       category: 'Other',
-      amount: 0,
+      quantity: 0,
       unit: 'g',
       expirationDate: '',
+      addedAt: new Date().toISOString(),
     });
   };
 
@@ -65,11 +67,11 @@ const PantrySection = ({ pantry }: PantrySectionProps) => {
                     <Badge variant="outline">{item.category}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {item.amount} {item.unit}
+                    {item.quantity || item.amount} {item.unit}
                   </p>
-                  {item.expirationDate && (
+                  {(item.expirationDate || item.expiry) && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Expires: {new Date(item.expirationDate).toLocaleDateString()}
+                      Expires: {new Date(item.expirationDate || item.expiry || '').toLocaleDateString()}
                     </p>
                   )}
                   <Button 
@@ -110,8 +112,8 @@ const PantrySection = ({ pantry }: PantrySectionProps) => {
                     type="number" 
                     placeholder="Amount" 
                     className="mt-1"
-                    value={newItem.amount || ''}
-                    onChange={(e) => setNewItem({ ...newItem, amount: Number(e.target.value) })}
+                    value={newItem.quantity || ''}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
                   />
                 </div>
                 <div>
@@ -181,9 +183,9 @@ const PantrySection = ({ pantry }: PantrySectionProps) => {
                   <span className="text-muted-foreground">Expiring Soon</span>
                   <span className="font-medium text-orange-500">
                     {pantry.pantryItems.filter(item => {
-                      if (!item.expirationDate) return false;
+                      if (!item.expirationDate && !item.expiry) return false;
                       const daysUntilExpiry = Math.floor(
-                        (new Date(item.expirationDate).getTime() - new Date().getTime()) / 
+                        (new Date(item.expirationDate || item.expiry || '').getTime() - new Date().getTime()) / 
                         (1000 * 60 * 60 * 24)
                       );
                       return daysUntilExpiry <= 7;
@@ -200,4 +202,3 @@ const PantrySection = ({ pantry }: PantrySectionProps) => {
 };
 
 export default PantrySection;
-

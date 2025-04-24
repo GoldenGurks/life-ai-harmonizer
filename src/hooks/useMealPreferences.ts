@@ -4,20 +4,23 @@ import { UserPreferences } from '@/types/meal-planning';
 import { toast } from 'sonner';
 
 const defaultPreferences: UserPreferences = {
+  mealCount: 3,
+  calorieTarget: 2000,
+  proteinTarget: 120,
+  carbTarget: 200,
+  fatTarget: 60,
   dietaryPreference: 'omnivore',
   fitnessGoal: 'maintenance',
   allergies: [],
-  intolerances: [],
-  cookingExperience: 'intermediate',
   cookingTime: 30,
+  cuisinePreferences: [],
+  budget: 'medium',
   likedFoods: [],
   dislikedFoods: [],
-  cuisinePreferences: [],
-  mealSizePreference: 'medium',
-  mealFrequency: 3,
-  // New fields for tracking preference history
+  recommendationPreset: 'Healthy',
+  intolerances: [],
+  cookingExperience: 'intermediate',
   preferenceHistory: {
-    quickSetupProfile: '',
     lastUpdated: new Date().toISOString()
   }
 };
@@ -73,7 +76,7 @@ export const useMealPreferences = () => {
         ...prev, 
         ...updates, 
         preferenceHistory: { 
-          ...prev.preferenceHistory, 
+          ...prev.preferenceHistory!, 
           lastUpdated: new Date().toISOString() 
         } 
       };
@@ -101,7 +104,7 @@ export const useMealPreferences = () => {
         likedFoods: updatedLiked,
         dislikedFoods: updatedDisliked,
         preferenceHistory: {
-          ...prev.preferenceHistory,
+          ...prev.preferenceHistory!,
           lastUpdated: new Date().toISOString()
         }
       };
@@ -123,7 +126,7 @@ export const useMealPreferences = () => {
         likedFoods: updatedLiked,
         dislikedFoods: updatedDisliked,
         preferenceHistory: {
-          ...prev.preferenceHistory,
+          ...prev.preferenceHistory!,
           lastUpdated: new Date().toISOString()
         }
       };
@@ -134,7 +137,7 @@ export const useMealPreferences = () => {
     setPreferences(prev => ({
       ...prev,
       preferenceHistory: {
-        ...prev.preferenceHistory,
+        ...prev.preferenceHistory!,
         quickSetupProfile: profileName,
         lastUpdated: new Date().toISOString()
       }
@@ -147,7 +150,7 @@ export const useMealPreferences = () => {
         ...prev, 
         ...finalPreferences,
         preferenceHistory: {
-          ...prev.preferenceHistory,
+          ...prev.preferenceHistory!,
           lastUpdated: new Date().toISOString()
         }
       }));

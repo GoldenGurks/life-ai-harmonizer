@@ -63,6 +63,8 @@ export interface UserPreferences {
   // Add missing properties used in components
   intolerances?: string[];
   cookingExperience?: 'beginner' | 'intermediate' | 'advanced';
+  mealSizePreference?: string;
+  mealFrequency?: number;
   preferenceHistory?: {
     quickSetupProfile?: string;
     lastUpdated: string;
@@ -86,7 +88,7 @@ export interface MealPlanProgress {
   proteinAverage: number;
 }
 
-// Add the MealItem type needed by multiple components
+// Update MealItem type to include sugar property and dessert type
 export interface MealItem {
   id: string;
   name: string;
@@ -96,7 +98,8 @@ export interface MealItem {
   carbs: number;
   fat: number;
   fiber?: number;
-  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  sugar?: number;
+  type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert';
   tags: string[];
   preparationTime: number;
   cookingTime: number;
@@ -122,6 +125,19 @@ export interface NutrientGoal {
   unit: string;
 }
 
+// Update PantryItem to match implementation
+export interface PantryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity?: number;
+  amount?: number;
+  unit: string;
+  expiry?: string;
+  expirationDate?: string;
+  addedAt: string;
+}
+
 // Add types for shopping and pantry
 export interface ShoppingItem {
   id: string;
@@ -138,15 +154,6 @@ export interface ShoppingList {
   name: string;
   items: ShoppingItem[];
   createdAt: string;
-  updatedAt: string;
-}
-
-export interface PantryItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  expiry?: string;
-  addedAt: string;
+  updatedAt?: string;
+  lastUpdated?: string;
 }

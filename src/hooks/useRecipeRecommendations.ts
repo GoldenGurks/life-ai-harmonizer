@@ -1,15 +1,17 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { Recipe, ScoringPreferences } from '@/types/recipes';
 import { useUserProfileContext } from '@/context/UserProfileContext';
 import { recommendationService } from '@/services/recommendationService';
 
 interface UseRecipeRecommendationsProps {
-  recipes: Recipe[];
-  count: number;
+  recipes?: Recipe[];
+  count?: number;
   mealType?: string;
 }
 
-export const useRecipeRecommendations = ({ recipes, count, mealType }: UseRecipeRecommendationsProps) => {
+export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) => {
+  const { recipes = [], count = 5, mealType } = props || {};
   const { profile } = useUserProfileContext();
   const [recommendations, setRecommendations] = useState<Recipe[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
@@ -42,11 +44,11 @@ export const useRecipeRecommendations = ({ recipes, count, mealType }: UseRecipe
       }
 
       return {
-        likedMeals: profile.likedMeals,
-        pantry: profile.pantry,
+        likedMeals: profile.likedMeals || [],
+        pantry: profile.pantry || [],
         fitnessGoal: profile.fitnessGoal,
-        likedFoods: profile.likedFoods,
-        dislikedFoods: profile.dislikedFoods,
+        likedFoods: profile.likedFoods || [],
+        dislikedFoods: profile.dislikedFoods || [],
         recentlyViewed: recentlyViewed || [],
         calorieTarget: profile.calorieTarget,
         proteinTarget: profile.proteinTarget,
@@ -78,5 +80,14 @@ export const useRecipeRecommendations = ({ recipes, count, mealType }: UseRecipe
     setRecentlyViewed(updatedViewed);
   };
 
-  return { recommendations, markAsViewed };
+  // Method to get top N recommendations
+  const getTopN = (n: number): Recipe[] => {
+    return recommendations.slice(0, n);
+  };
+
+  return { 
+    recommendations,
+    markAsViewed,
+    getTopN
+  };
 };

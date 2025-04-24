@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from 'lucide-react';
@@ -55,9 +56,8 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       case 'dinner':
         return <Utensils className="h-5 w-5 text-accent mr-2" />;
       case 'snack':
-        return <Coffee className="h-5 w-5 text-primary mr-2" />;
       case 'dessert':
-        return <Coffee className="h-5 w-5 text-secondary mr-2" />;
+        return <Coffee className="h-5 w-5 text-primary mr-2" />;
       default:
         return null;
     }
