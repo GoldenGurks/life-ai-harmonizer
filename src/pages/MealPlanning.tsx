@@ -402,20 +402,20 @@ const MealPlanning = () => {
       </div>
 
       <Tabs defaultValue="weekly" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="weekly" className="uppercase">
-              <Calendar className="h-4 w-4 mr-2" />
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+          <TabsList className="h-auto flex-wrap">
+            <TabsTrigger value="weekly" className="uppercase flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
               Weekly Plan
             </TabsTrigger>
-            <TabsTrigger value="tinder-dish" className="uppercase">
-              <List className="h-4 w-4 mr-2" />
-              Tinder Dish
+            <TabsTrigger value="tinder-dish" className="uppercase flex items-center gap-2">
+              <List className="h-4 w-4" />
+              Meal Discovery
             </TabsTrigger>
             <TabsTrigger value="saved" className="uppercase">Saved Plans</TabsTrigger>
             <TabsTrigger value="templates" className="uppercase">Templates</TabsTrigger>
           </TabsList>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={handleOpenPreferences} className="gap-2">
               <Settings className="h-4 w-4" />
               Preferences
@@ -428,34 +428,16 @@ const MealPlanning = () => {
         </div>
 
         <TabsContent value="weekly" className="space-y-4">
-          {unplacedMeals.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div className="md:col-span-3 lg:col-span-3">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {unplacedMeals.length > 0 && (
+              <div className="lg:col-span-3">
                 <UnplacedMealsList 
                   meals={unplacedMeals} 
                   onAddToDay={handleAddMealToDay} 
                 />
               </div>
-              <div className="md:col-span-9 lg:col-span-9">
-                <WeeklyPlanTab 
-                  currentDay={currentDay}
-                  days={days}
-                  onDayChange={setCurrentDay}
-                  handleMealChange={handleMealChange}
-                  mealPlans={mealPlans}
-                />
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" onClick={() => setShowWeeklySetupModal(true)} className="gap-2">
-                    <Edit className="h-4 w-4" />
-                    Edit Plan Settings
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {unplacedMeals.length === 0 && (
-            <>
+            )}
+            <div className={`${unplacedMeals.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'}`}>
               <WeeklyPlanTab 
                 currentDay={currentDay}
                 days={days}
@@ -463,14 +445,14 @@ const MealPlanning = () => {
                 handleMealChange={handleMealChange}
                 mealPlans={mealPlans}
               />
-              <div className="flex justify-end mt-4">
-                <Button variant="outline" onClick={() => setShowWeeklySetupModal(true)} className="gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit Plan Settings
-                </Button>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button variant="outline" onClick={() => setShowWeeklySetupModal(true)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Edit Plan Settings
+            </Button>
+          </div>
         </TabsContent>
 
         <TabsContent value="tinder-dish" className="space-y-4">

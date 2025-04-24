@@ -1,4 +1,3 @@
-
 import { RecommendationWeights } from '@/types/recipes';
 
 export const PRESETS: Record<string, RecommendationWeights> = {
@@ -27,14 +26,20 @@ export const PRESETS: Record<string, RecommendationWeights> = {
     recencyPenalty: 0.15
   }
 };
-// Default für neue User bzw. wenn kein anderes Preset gesetzt ist
-export const DEFAULT_RECOMMENDATION_WEIGHTS: RecommendationWeights = PRESETS['Healthy'];
+
+// Default for new users or when no other preset is set
+export const DEFAULT_RECOMMENDATION_WEIGHTS: RecommendationWeights = {
+  nutritionalFit: 0.4,
+  similarityToLikes: 0.2,
+  varietyBoost: 0.1,
+  pantryMatch: 0.1,
+  costScore: 0.1,
+  recencyPenalty: 0.1
+};
 
 export const normalizeWeights = (raw: Partial<RecommendationWeights>): RecommendationWeights => {
   const total = Object.values(raw).reduce((a, b) => a + b, 0);
-  
-  // Create fully typed object with all required properties
-  const normalized: RecommendationWeights = {
+  return {
     nutritionalFit: (raw.nutritionalFit || 0) / total,
     similarityToLikes: (raw.similarityToLikes || 0) / total,
     varietyBoost: (raw.varietyBoost || 0) / total,
@@ -42,6 +47,4 @@ export const normalizeWeights = (raw: Partial<RecommendationWeights>): Recommend
     costScore: (raw.costScore || 0) / total,
     recencyPenalty: (raw.recencyPenalty || 0) / total
   };
-  
-  return normalized;
 };

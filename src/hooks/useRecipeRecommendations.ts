@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Recipe, ScoringPreferences } from '@/types/recipes';
 import { useUserProfileContext } from '@/context/UserProfileContext';
 import { recommendationService } from '@/services/recommendationService';
+import { DEFAULT_RECOMMENDATION_WEIGHTS } from '@/config/recommendationPresets';
 
 interface UseRecipeRecommendationsProps {
   recipes?: Recipe[];
@@ -30,34 +30,37 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
     }
   }, [recommendations]);
 
+  const scoringPrefs: ScoringPreferences = useMemo(() => {
+    if (!profile) {
+      return {
+        likedMeals: [],
+        pantry: [],
+        recommendationPreset: 'Healthy',
+        recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS
+      };
+    }
+
+    return {
+      likedMeals: profile.likedMeals || [],
+      pantry: profile.pantry || [],
+      fitnessGoal: profile.fitnessGoal,
+      likedFoods: profile.likedFoods || [],
+      dislikedFoods: profile.dislikedFoods || [],
+      recentlyViewed: recentlyViewed || [],
+      calorieTarget: profile.calorieTarget,
+      proteinTarget: profile.proteinTarget,
+      carbTarget: profile.carbTarget,
+      fatTarget: profile.fatTarget,
+      recommendationPreset: profile.recommendationPreset || 'Healthy',
+      recommendationWeights: profile.recommendationWeights || DEFAULT_RECOMMENDATION_WEIGHTS
+    };
+  }, [profile, recentlyViewed]);
+
   useEffect(() => {
     if (recipes.length === 0) return;
 
     // Create scoring preferences from user profile
-    const scoringPrefs: ScoringPreferences = useMemo(() => {
-      if (!profile) {
-        return {
-          likedMeals: [],
-          pantry: [],
-          recommendationPreset: 'Healthy' // Add default preset
-        };
-      }
-
-      return {
-        likedMeals: profile.likedMeals || [],
-        pantry: profile.pantry || [],
-        fitnessGoal: profile.fitnessGoal,
-        likedFoods: profile.likedFoods || [],
-        dislikedFoods: profile.dislikedFoods || [],
-        recentlyViewed: recentlyViewed || [],
-        calorieTarget: profile.calorieTarget,
-        proteinTarget: profile.proteinTarget,
-        carbTarget: profile.carbTarget,
-        fatTarget: profile.fatTarget,
-        recommendationPreset: profile.recommendationPreset || 'Healthy', // Add preset with fallback
-        recommendationWeights: profile.recommendationWeights
-      };
-    }, [profile, recentlyViewed]);
+    
 
     // Generate recommendations
     const generateRecommendations = async () => {
@@ -87,7 +90,6 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
 
   return { 
     recommendations,
-    markAsViewed,
-    getTopN
+    markAsViewed
   };
 };
