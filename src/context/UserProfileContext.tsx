@@ -1,32 +1,15 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { UserPreferences } from "@/types/meal-planning";
 import { DEFAULT_RECOMMENDATION_WEIGHTS, PRESETS } from "@/config/recommendationPresets";
 
-/**
- * Context props exposing profile and actions
- */
-interface UserProfileContextProps {
-  profile: UserPreferences;
-  updateProfile: (input: Partial<UserPreferences>) => void;
-  addLikedMeal: (mealId: string) => void;
-  addDislikedMeal: (mealId: string) => void;
-  addLikedFood: (food: string) => void;
-  addDislikedFood: (food: string) => void;
-  resetProfile: () => void;
-}
-
-/**
- * Default profile state for new users
- */
 const defaultProfile: UserPreferences = {
   mealCount: 3,
   calorieTarget: 2000,
-  proteinTarget: 50,
-  carbTarget: 250,
-  fatTarget: 70,
-  fitnessGoal: 'general',
-  dietaryPreference: '',
+  proteinTarget: 120,
+  carbTarget: 200,
+  fatTarget: 60,
+  dietaryPreference: 'omnivore',
+  fitnessGoal: 'maintenance',
   allergies: [],
   intolerances: [],
   cookingTime: 30,
@@ -43,57 +26,58 @@ const defaultProfile: UserPreferences = {
   preferenceHistory: {
     lastUpdated: new Date().toISOString()
   },
-  onlyLikedRecipes: false,
   recommendationPreset: 'Healthy',
   recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS,
   profileComplete: false,
 };
 
-// Create the context
-const UserProfileContext = createContext<UserProfileContextProps | undefined>(undefined);
+interface UserProfileContextValue {
+  profile: UserPreferences | null;
+  updateProfile: (updates: Partial<UserPreferences>) => void;
+  addLikedMeal: (mealId: string) => void;
+  addDislikedMeal: (mealId: string) => void;
+  resetProfile: () => void;
+}
 
-/**
- * Provider wraps the app and persists profile to localStorage
- */
-export const UserProfileProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
-  const [profile, setProfile] = useState<UserPreferences>(() => {
-    const stored = localStorage.getItem('userProfile');
-    return stored ? JSON.parse(stored) : defaultProfile;
+const UserProfileContext = createContext<UserProfileContextValue | null>(null);
+
+export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [profile, setProfile] = useState<UserPreferences | null>(() => {
+    const storedProfile = localStorage.getItem('userProfile');
+    return storedProfile ? JSON.parse(storedProfile) : defaultProfile;
   });
 
   useEffect(() => {
     localStorage.setItem('userProfile', JSON.stringify(profile));
   }, [profile]);
 
-  const updateProfile = (input: Partial<UserPreferences>) => {
-    setProfile(prev => ({ ...prev, ...input }));
+  const updateProfile = (updates: Partial<UserPreferences>) => {
+    setProfile(prev => {
+      const updatedProfile = { ...prev, ...updates } as UserPreferences;
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      return updatedProfile;
+    });
   };
 
-  const addLikedMeal = (id: string) => updateProfile({
-    likedMeals: profile.likedMeals.includes(id)
-      ? profile.likedMeals
-      : [...profile.likedMeals, id],
-    dislikedMeals: profile.dislikedMeals.filter(x => x !== id),
-  });
+  const addLikedMeal = (mealId: string) => {
+    setProfile(prev => {
+      if (!prev) return prev;
+      const updatedLikedMeals = [...(prev.likedMeals || []), mealId];
+      const updatedProfile = { ...prev, likedMeals: updatedLikedMeals } as UserPreferences;
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      return updatedProfile;
+    });
+  };
 
-  const addDislikedMeal = (id: string) => updateProfile({
-    dislikedMeals: profile.dislikedMeals.includes(id)
-      ? profile.dislikedMeals
-      : [...profile.dislikedMeals, id],
-    likedMeals: profile.likedMeals.filter(x => x !== id),
-  });
-
-  const addLikedFood = (food: string) => updateProfile({
-    likedFoods: profile.likedFoods.includes(food)
-      ? profile.likedFoods
-      : [...profile.likedFoods, food],
-  });
-
-  const addDislikedFood = (food: string) => updateProfile({
-    dislikedFoods: profile.dislikedFoods.includes(food)
-      ? profile.dislikedFoods
-      : [...profile.dislikedFoods, food],
-  });
+  const addDislikedMeal = (mealId: string) => {
+    setProfile(prev => {
+      if (!prev) return prev;
+      const updatedDislikedMeals = [...(prev.dislikedMeals || []), mealId];
+      const updatedProfile = { ...prev, dislikedMeals: updatedDislikedMeals } as UserPreferences;
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      return updatedProfile;
+    });
+  };
 
   const resetProfile = () => {
     localStorage.removeItem('userProfile');
@@ -101,27 +85,16 @@ export const UserProfileProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
   };
 
   return (
-    <UserProfileContext.Provider
-      value={{
-        profile,
-        updateProfile,
-        addLikedMeal,
-        addDislikedMeal,
-        addLikedFood,
-        addDislikedFood,
-        resetProfile,
-      }}
-    >
+    <UserProfileContext.Provider value={{ profile, updateProfile, addLikedMeal, addDislikedMeal, resetProfile }}>
       {children}
     </UserProfileContext.Provider>
   );
 };
 
-/**
- * Hook to access the user profile context
- */
 export const useUserProfileContext = () => {
-  const ctx = useContext(UserProfileContext);
-  if (!ctx) throw new Error('useUserProfileContext must be inside UserProfileProvider');
-  return ctx;
+  const context = useContext(UserProfileContext);
+  if (!context) {
+    throw new Error("useUserProfileContext must be used within a UserProfileProvider");
+  }
+  return context;
 };

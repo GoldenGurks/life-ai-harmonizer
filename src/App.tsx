@@ -1,17 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Recipes from "./pages/Recipes";
-import MealPlanning from "./pages/MealPlanning";
-import Nutrition from "./pages/Nutrition";
-import Shopping from "./pages/Shopping";
-import NotFound from "./pages/NotFound";
-
 import { UserProfileProvider } from "@/context/UserProfileContext";
+import { UIPreferencesProvider } from "@/context/UIPreferencesContext";
 import OnboardingModal from "@/components/profile/OnboardingModal";
 import React, { useState } from "react";
 
@@ -50,25 +43,27 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <UserProfileProvider>
-        <TooltipProvider>
-          {/* Toast notifications for user feedback */}
-          <Toaster />
-          <Sonner />
-          {/* Onboarding modal for first-time users */}
-          <OnboardingModal open={showOnboard} />
-          <BrowserRouter>
-            <Routes>
-              {/* Main application routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/recipes" element={<Recipes />} />
-              <Route path="/meal-planning" element={<MealPlanning />} />
-              <Route path="/nutrition" element={<Nutrition />} />
-              <Route path="/shopping" element={<Shopping />} />
-              {/* Fallback for non-existent routes */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <UIPreferencesProvider>
+          <TooltipProvider>
+            {/* Toast notifications for user feedback */}
+            <Toaster />
+            <Sonner />
+            {/* Onboarding modal for first-time users */}
+            <OnboardingModal open={showOnboard} />
+            <BrowserRouter>
+              <Routes>
+                {/* Main application routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/recipes" element={<Recipes />} />
+                <Route path="/meal-planning" element={<MealPlanning />} />
+                <Route path="/nutrition" element={<Nutrition />} />
+                <Route path="/shopping" element={<Shopping />} />
+                {/* Fallback for non-existent routes */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </UIPreferencesProvider>
       </UserProfileProvider>
     </QueryClientProvider>
   );

@@ -63,11 +63,10 @@ export interface UserPreferences {
   cookingExperience?: 'beginner' | 'intermediate' | 'advanced';
   mealSizePreference?: string;
   mealFrequency?: number;
-  preferenceHistory?: {
+  preferenceHistory: {
     quickSetupProfile?: string;
     lastUpdated: string;
   };
-  
   likedMeals: string[];
   dislikedMeals: string[];
   pantry: string[];

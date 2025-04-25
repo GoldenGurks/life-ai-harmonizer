@@ -1,7 +1,7 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from 'lucide-react';
+import { useUIPreferences } from '@/context/UIPreferencesContext';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ChefHat, Utensils, Info, Coffee } from 'lucide-react';
@@ -37,12 +37,12 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   handleMealChange,
   mealPlans
 }) => {
-  const [showOnlyLiked, setShowOnlyLiked] = useState(false);
+  const { ui, setUI } = useUIPreferences();
   const { profile } = useUserProfile();
   
   const filteredMealPlans = mealPlans.map(plan => ({
     ...plan,
-    meals: showOnlyLiked 
+    meals: ui.onlyLikedRecipes 
       ? plan.meals.filter(meal => profile?.likedMeals?.includes(meal.id))
       : plan.meals
   }));
@@ -81,12 +81,12 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
           <CardTitle className="text-xl">Weekly Schedule</CardTitle>
           <div className="flex gap-2 items-center">
             <Toggle 
-              pressed={showOnlyLiked} 
-              onPressedChange={setShowOnlyLiked}
+              pressed={ui.onlyLikedRecipes} 
+              onPressedChange={(pressed) => setUI({ onlyLikedRecipes: pressed })}
               aria-label="Toggle liked recipes only"
               className="gap-2"
             >
-              <Heart className={showOnlyLiked ? "h-4 w-4 text-red-500 fill-red-500" : "h-4 w-4"} />
+              <Heart className={ui.onlyLikedRecipes ? "h-4 w-4 text-red-500 fill-red-500" : "h-4 w-4"} />
               Liked Only
             </Toggle>
             <Button variant="outline" size="sm">
