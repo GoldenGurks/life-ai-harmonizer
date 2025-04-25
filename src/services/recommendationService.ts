@@ -1,3 +1,4 @@
+
 import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
 import { UserPreferences } from '@/types/meal-planning';
 import { ensureNutrientScore, validateRecipes } from '@/lib/recipeEnrichment';
@@ -146,10 +147,14 @@ export const recommendationService = {
       );
       
       // 3. Variety Boost (0-1) - encourage variety in suggestions
-      const varietyScore = calculateVarietyScore(recipe, userPreferences.likedMeals, userPreferences.recentlyViewed);
+      const varietyScore = calculateVarietyScore(
+        recipe, 
+        userPreferences.likedMeals || [], // Provide empty array if undefined
+        userPreferences.recentlyViewed || [] // Provide empty array if undefined
+      );
       
       // 4. Pantry Match Score (0-1)
-      const pantryScore = calculatePantryMatchScore(recipe, userPreferences.pantry);
+      const pantryScore = calculatePantryMatchScore(recipe, userPreferences.pantry || []);
       
       // 5. Cost Score (0-1) - lower cost is better
       const costScore = calculateCostScore(recipe);
@@ -451,7 +456,7 @@ function calculateVarietyScore(recipe: Recipe, likedMeals: string[], recentlyVie
   const recentCategories = new Set<string>();
   
   // Add categories from liked meals
-  if (likedMeals?.length > 0) {
+  if (likedMeals && likedMeals.length > 0) {
     // This would work better with actual recipe objects, but for now
     // just use the category from the recipe ID if we can extract it
     likedMeals.forEach(id => {
