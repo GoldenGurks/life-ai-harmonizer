@@ -258,8 +258,10 @@ export const recommendationService = {
     }
     
     // Get weights from preferences or from preset
-    const weights: RecommendationWeights = userPreferences.recommendationWeights || 
-      PRESETS[userPreferences.recommendationPreset || 'Healthy'];
+    const presetName = userPreferences.recommendationPreset || 'Healthy';
+    const presetWeights = PRESETS[presetName] || PRESETS['Healthy'];
+    
+    const weights: RecommendationWeights = userPreferences.recommendationWeights || presetWeights;
     
     // Add existing selections to recently viewed to avoid duplicates
     const preferencesWithExisting: ScoringPreferences = {

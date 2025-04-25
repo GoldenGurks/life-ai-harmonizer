@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { UserPreferences } from "@/types/meal-planning";
 import { DEFAULT_RECOMMENDATION_WEIGHTS, PRESETS } from "@/config/recommendationPresets";
@@ -29,7 +30,7 @@ const defaultProfile: UserPreferences = {
   allergies: [],
   intolerances: [],
   cookingTime: 30,
-  cookingExperience: 'Beginner',
+  cookingExperience: 'beginner',
   cuisinePreferences: [],
   budget: 'medium',
   likedMeals: [],
@@ -37,7 +38,11 @@ const defaultProfile: UserPreferences = {
   likedFoods: [],
   dislikedFoods: [],
   pantry: [],
-  preferenceHistory: [],
+  dietaryRestrictions: [],
+  goals: [],
+  preferenceHistory: {
+    lastUpdated: new Date().toISOString()
+  },
   onlyLikedRecipes: false,
   recommendationPreset: 'Healthy',
   recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS,

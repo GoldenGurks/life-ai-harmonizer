@@ -1,3 +1,4 @@
+
 import { RecommendationWeights } from '@/types/recipes';
 
 export const PRESETS: Record<string, RecommendationWeights> = {
@@ -38,7 +39,9 @@ export const DEFAULT_RECOMMENDATION_WEIGHTS: RecommendationWeights = {
 };
 
 export const normalizeWeights = (raw: Partial<RecommendationWeights>): RecommendationWeights => {
-  const total = Object.values(raw).reduce((a, b) => a + b, 0);
+  const values = Object.values(raw).filter(value => typeof value === 'number') as number[];
+  const total = values.reduce((a, b) => a + b, 0);
+  
   return {
     nutritionalFit: (raw.nutritionalFit || 0) / total,
     similarityToLikes: (raw.similarityToLikes || 0) / total,

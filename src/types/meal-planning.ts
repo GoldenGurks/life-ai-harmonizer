@@ -1,4 +1,3 @@
-
 import { RecommendationWeights } from "./recipes";
 
 export interface MealSlot {
@@ -60,7 +59,6 @@ export interface UserPreferences {
   dislikedFoods: string[];
   recommendationPreset: 'Healthy' | 'WeightLoss' | 'MuscleGain';
   recommendationWeights?: RecommendationWeights;
-  // Add missing properties used in components
   intolerances?: string[];
   cookingExperience?: 'beginner' | 'intermediate' | 'advanced';
   mealSizePreference?: string;
@@ -69,6 +67,13 @@ export interface UserPreferences {
     quickSetupProfile?: string;
     lastUpdated: string;
   };
+  
+  likedMeals: string[];
+  dislikedMeals: string[];
+  pantry: string[];
+  dietaryRestrictions?: string[];
+  goals?: string[];
+  profileComplete?: boolean;
 }
 
 export interface MealPlanDay {

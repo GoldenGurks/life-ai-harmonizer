@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { Recipe, ScoringPreferences } from '@/types/recipes';
 import { useUserProfileContext } from '@/context/UserProfileContext';
@@ -59,9 +60,6 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
   useEffect(() => {
     if (recipes.length === 0) return;
 
-    // Create scoring preferences from user profile
-    
-
     // Generate recommendations
     const generateRecommendations = async () => {
       const recommended = recommendationService.getDiversifiedRecommendations(
@@ -74,7 +72,7 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
     };
 
     generateRecommendations();
-  }, [recipes, count, mealType, profile, recentlyViewed]);
+  }, [recipes, count, mealType, profile, recentlyViewed, scoringPrefs]);
 
   const markAsViewed = (recipeId: string) => {
     // Update recently viewed in local storage
@@ -90,6 +88,7 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
 
   return { 
     recommendations,
-    markAsViewed
+    markAsViewed,
+    getTopN
   };
 };
