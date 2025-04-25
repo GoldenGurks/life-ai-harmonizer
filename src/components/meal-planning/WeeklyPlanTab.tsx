@@ -219,6 +219,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
               onRecipeSelect={handleRecipeSelect}
               onSavePlan={handleSavePlan}
               onDislikeRecipe={handleDislikeRecipe}
+              onShowShoppingList={() => setIsShoppingListOpen(true)}
             />
           </CardContent>
         </Card>

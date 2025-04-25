@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, ThumbsDown, ImageOff } from 'lucide-react';
+import { Check, ThumbsDown, ImageOff, ShoppingCart } from 'lucide-react';
 import { MealItem } from '@/types/meal-planning';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ interface RecipeSelectionGridProps {
   onRecipeSelect: (recipe: MealItem) => void;
   onSavePlan: () => void;
   onDislikeRecipe: (recipeId: string) => void;
+  onShowShoppingList?: () => void;
 }
 
 const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
@@ -19,7 +20,8 @@ const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
   selectedRecipes,
   onRecipeSelect,
   onSavePlan,
-  onDislikeRecipe
+  onDislikeRecipe,
+  onShowShoppingList
 }) => {
   return (
     <div className="space-y-6">
@@ -34,6 +36,7 @@ const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
                 "cursor-pointer transition-all hover:shadow-md overflow-hidden",
                 isSelected && "ring-2 ring-primary"
               )}
+              onClick={() => onRecipeSelect(recipe)}
             >
               <CardHeader className="relative p-0">
                 <div className="relative h-48 w-full">
@@ -84,7 +87,10 @@ const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
                 <Button 
                   variant="ghost" 
                   className="w-full mt-2 h-8 text-sm"
-                  onClick={() => onRecipeSelect(recipe)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRecipeSelect(recipe);
+                  }}
                 >
                   {isSelected ? 'Deselect' : 'Select for Week'}
                 </Button>
@@ -99,12 +105,24 @@ const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
           <div className="text-sm text-muted-foreground">
             {selectedRecipes.length} of 5 meals selected
           </div>
-          <Button
-            onClick={onSavePlan}
-            disabled={selectedRecipes.length !== 5}
-          >
-            Create Weekly Plan
-          </Button>
+          <div className="flex gap-2">
+            {selectedRecipes.length === 5 && onShowShoppingList && (
+              <Button 
+                variant="outline" 
+                onClick={onShowShoppingList}
+                className="flex items-center gap-1"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                View Shopping List
+              </Button>
+            )}
+            <Button
+              onClick={onSavePlan}
+              disabled={selectedRecipes.length !== 5}
+            >
+              Create Weekly Plan
+            </Button>
+          </div>
         </div>
       </div>
     </div>
