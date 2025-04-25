@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from 'lucide-react';
 import { useUIPreferences } from '@/context/UIPreferencesContext';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ChefHat, Utensils, Info, Coffee } from 'lucide-react';
+import { MealItem, WeeklyPlan } from '@/types/meal-planning';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import MealCard from './MealCard';
 import DaySelector from './DaySelector';
-import { MealItem } from '@/types/meal-planning';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import RecipeSelectionGrid from './RecipeSelectionGrid';
+import WeekOverview from './WeekOverview';
+import { toast } from 'sonner';
 
 interface WeeklyPlanTabProps {
   currentDay: string;
@@ -38,8 +42,82 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   mealPlans
 }) => {
   const { ui, setUI } = useUIPreferences();
-  const { profile } = useUserProfile();
+  const { profile, updateProfile } = useUserProfile();
+  const { recommendations: suggestedRecipes } = useRecipeRecommendations({ count: 10 });
+  const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   
+  const handleRecipeSelect = (recipe: MealItem) => {
+    setSelectedRecipes(current => {
+      const isSelected = current.some(r => r.id === recipe.id);
+      
+      if (isSelected) {
+        return current.filter(r => r.id !== recipe.id);
+      }
+      
+      if (current.length >= 5) {
+        toast.error("You can only select 5 recipes");
+        return current;
+      }
+      
+      return [...current, recipe];
+    });
+  };
+
+  const handleSavePlan = () => {
+    if (selectedRecipes.length !== 5) {
+      toast.error("Please select exactly 5 recipes");
+      return;
+    }
+
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const assignedDays: { [key: string]: MealItem } = {};
+    
+    selectedRecipes.forEach((recipe, index) => {
+      assignedDays[weekdays[index]] = recipe;
+    });
+
+    const newPlan: WeeklyPlan = {
+      selectedRecipes,
+      assignedDays,
+      createdAt: new Date().toISOString()
+    };
+
+    updateProfile({
+      ...profile,
+      currentWeekPlan: newPlan
+    });
+
+    toast.success("Weekly meal plan saved!");
+  };
+
+  // If no plan exists, show the recipe selection grid
+  if (!profile?.currentWeekPlan) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Your Weekly Plan</CardTitle>
+          <CardDescription>
+            Select 5 recipes to create your weekly meal plan
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RecipeSelectionGrid
+            recipes={suggestedRecipes}
+            selectedRecipes={selectedRecipes}
+            onRecipeSelect={handleRecipeSelect}
+            onSavePlan={handleSavePlan}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If plan exists, show the week overview and existing functionality
+  return (
+    <>
+      <WeekOverview plan={profile.currentWeekPlan} />
+      <div className="mt-8">
+        
   const filteredMealPlans = mealPlans.map(plan => ({
     ...plan,
     meals: ui.onlyLikedRecipes 

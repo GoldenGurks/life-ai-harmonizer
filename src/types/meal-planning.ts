@@ -73,6 +73,7 @@ export interface UserPreferences {
   dietaryRestrictions?: string[];
   goals?: string[];
   profileComplete?: boolean;
+  currentWeekPlan?: WeeklyPlan;
 }
 
 export interface MealPlanDay {
@@ -160,4 +161,12 @@ export interface ShoppingList {
   createdAt: string;
   updatedAt?: string;
   lastUpdated?: string;
+}
+
+export interface WeeklyPlan {
+  selectedRecipes: MealItem[];
+  assignedDays: {
+    [key: string]: MealItem;
+  };
+  createdAt: string;
 }
