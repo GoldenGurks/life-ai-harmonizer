@@ -138,7 +138,12 @@ export const recommendationService = {
       const nutritionalFitScore = calculateNutritionalFitScore(recipe, userPreferences);
       
       // 2. Similarity to Likes Score (0-1)
-      const similarityScore = calculateSimilarityScore(recipe, userPreferences.likedMeals, enrichedRecipes, userPreferences.likedFoods);
+      const similarityScore = calculateSimilarityScore(
+        recipe, 
+        userPreferences.likedMeals || [], // Provide empty array if undefined
+        enrichedRecipes, 
+        userPreferences.likedFoods || [] // Provide empty array if undefined
+      );
       
       // 3. Variety Boost (0-1) - encourage variety in suggestions
       const varietyScore = calculateVarietyScore(recipe, userPreferences.likedMeals, userPreferences.recentlyViewed);
