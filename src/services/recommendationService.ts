@@ -207,8 +207,8 @@ export const recommendationService = {
         const targetIngredients = new Set(r.ingredients.map(i => i.toLowerCase()));
         
         // Calculate tag overlap
-        const sourceTags = new Set(recipe.tags.map(t => t.toLowerCase()));
-        const targetTags = new Set(r.tags.map(t => t.toLowerCase()));
+        const sourceTags = new Set(recipe.tags?.map(t => t.toLowerCase()) || []);
+        const targetTags = new Set(r.tags?.map(t => t.toLowerCase()) || []);
         
         // Calculate similarity score based on ingredients and tags
         const ingredientOverlap = [...sourceIngredients].filter(i => targetIngredients.has(i)).length;
@@ -387,10 +387,10 @@ function calculateSimilarityScore(
     if (likedRecipes.length > 0) {
       // Tag similarity between current recipe and liked recipes
       let tagSimilarity = 0;
-      const currentTags = new Set(recipe.tags.map(t => t.toLowerCase()));
+      const currentTags = new Set(recipe.tags?.map(t => t.toLowerCase()) || []);
       
       likedRecipes.forEach(likedRecipe => {
-        const likedTags = new Set(likedRecipe.tags.map(t => t.toLowerCase()));
+        const likedTags = new Set(likedRecipe.tags?.map(t => t.toLowerCase()) || []);
         const commonTags = [...currentTags].filter(t => likedTags.has(t)).length;
         tagSimilarity += commonTags / Math.max(currentTags.size, 1);
       });

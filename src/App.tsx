@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,16 @@ import { UserProfileProvider } from "@/context/UserProfileContext";
 import { UIPreferencesProvider } from "@/context/UIPreferencesContext";
 import OnboardingModal from "@/components/profile/OnboardingModal";
 import React, { useState } from "react";
+
+// Import all the page components
+import Index from "@/pages/Index";
+import Recipes from "@/pages/Recipes";
+import MealPlanning from "@/pages/MealPlanning";
+import Nutrition from "@/pages/Nutrition";
+import NotFound from "@/pages/NotFound";
+
+// We need to create the Shopping page
+import Shopping from "@/pages/Shopping";
 
 /**
  * Create a QueryClient instance for React Query

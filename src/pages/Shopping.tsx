@@ -1,100 +1,190 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Layout from '@/components/Layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShoppingCart, Check, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, RefreshCcw } from 'lucide-react';
-import { toast } from 'sonner';
-import { ShoppingList } from '@/types/meal-planning';
-import ShoppingListSection from '@/components/shopping/ShoppingListSection';
-import AddItemSection from '@/components/shopping/AddItemSection';
-import PantrySection from '@/components/shopping/PantrySection';
-import { usePantry } from '@/hooks/usePantry';
-
-const sampleShoppingList: ShoppingList = {
-  id: '1',
-  name: 'Weekly Shopping List',
-  createdAt: '2025-04-15T10:00:00Z',
-  lastUpdated: '2025-04-17T15:30:00Z',
-  items: [
-    { id: '1', name: 'Chicken breast', category: 'Proteins', amount: 500, unit: 'g', inPantry: false, checked: false },
-    { id: '2', name: 'Spinach', category: 'Vegetables', amount: 200, unit: 'g', inPantry: false, checked: false },
-    { id: '3', name: 'Greek yogurt', category: 'Dairy', amount: 500, unit: 'g', inPantry: true, checked: false },
-    { id: '4', name: 'Quinoa', category: 'Grains', amount: 250, unit: 'g', inPantry: true, checked: false },
-    { id: '5', name: 'Sweet potatoes', category: 'Vegetables', amount: 750, unit: 'g', inPantry: false, checked: false },
-    { id: '6', name: 'Olive oil', category: 'Pantry', amount: 1, unit: 'bottle', inPantry: false, checked: false },
-    { id: '7', name: 'Almonds', category: 'Nuts & Seeds', amount: 200, unit: 'g', inPantry: false, checked: false },
-    { id: '8', name: 'Almond milk', category: 'Dairy Alternatives', amount: 1, unit: 'L', inPantry: false, checked: false },
-  ]
-};
+import { Input } from '@/components/ui/input';
 
 const Shopping = () => {
-  const [shoppingItems, setShoppingItems] = useState(sampleShoppingList.items);
-  const [searchQuery, setSearchQuery] = useState('');
-  const pantry = usePantry();
-  
-  const generateFromMealPlan = () => {
-    toast.success('Shopping list updated from your meal plan');
-  };
-  
-  const updateFromPantry = () => {
-    toast.info('Shopping list updated based on your pantry items');
-  };
-  
-  const categoryItems = shoppingItems.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, typeof shoppingItems>);
-  
-  const sortedCategories = Object.keys(categoryItems).sort();
-  
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Shopping List</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={updateFromPantry}>
-            <Package className="h-4 w-4 mr-2" />
-            Update from Pantry
-          </Button>
-          <Button onClick={generateFromMealPlan}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Generate from Meal Plan
-          </Button>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Shopping List</h1>
+        <p className="text-muted-foreground">
+          Manage your grocery list based on your meal plans.
+        </p>
       </div>
-      
-      <Tabs defaultValue="shopping" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="shopping">Shopping List</TabsTrigger>
-          <TabsTrigger value="pantry">Pantry</TabsTrigger>
+
+      <Tabs defaultValue="current" className="w-full">
+        <TabsList>
+          <TabsTrigger value="current">Current List</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="shopping">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <ShoppingListSection
-                shoppingItems={shoppingItems}
-                setShoppingItems={setShoppingItems}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-              />
-            </div>
-            <div>
-              <AddItemSection
-                shoppingItems={shoppingItems}
-                setShoppingItems={setShoppingItems}
-                sortedCategories={sortedCategories}
-              />
+
+        <TabsContent value="current" className="space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium">This Week's Shopping</h2>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <Check className="h-4 w-4 mr-2" />
+                Mark All
+              </Button>
+              <Button size="sm">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Generate from Meal Plan
+              </Button>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Produce section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                  Produce
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {['Spinach (2 bunches)', 'Tomatoes (4)', 'Carrots (1 bag)', 'Avocados (2)'].map((item, i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <input type="checkbox" className="mr-3 h-4 w-4" />
+                        <span>{item}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">×</Button>
+                    </li>
+                  ))}
+                  <li>
+                    <form className="flex mt-2">
+                      <Input placeholder="Add item..." className="text-sm h-8" />
+                      <Button type="submit" size="sm" className="ml-2 h-8">
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Protein section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
+                  Proteins
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {['Chicken breast (1 lb)', 'Ground beef (1 lb)', 'Eggs (1 dozen)', 'Tofu (1 block)'].map((item, i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <input type="checkbox" className="mr-3 h-4 w-4" />
+                        <span>{item}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">×</Button>
+                    </li>
+                  ))}
+                  <li>
+                    <form className="flex mt-2">
+                      <Input placeholder="Add item..." className="text-sm h-8" />
+                      <Button type="submit" size="sm" className="ml-2 h-8">
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Pantry section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 mr-2"></span>
+                  Pantry & Grains
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {['Rice (2 lb bag)', 'Pasta (1 pack)', 'Olive oil (1 bottle)', 'Canned beans (2 cans)'].map((item, i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <input type="checkbox" className="mr-3 h-4 w-4" />
+                        <span>{item}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">×</Button>
+                    </li>
+                  ))}
+                  <li>
+                    <form className="flex mt-2">
+                      <Input placeholder="Add item..." className="text-sm h-8" />
+                      <Button type="submit" size="sm" className="ml-2 h-8">
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Dairy section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="h-2 w-2 rounded-full bg-blue-500 mr-2"></span>
+                  Dairy & Alternatives
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {['Milk (1 carton)', 'Greek yogurt (1 tub)', 'Cheese (8 oz)', 'Almond milk (1 carton)'].map((item, i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <input type="checkbox" className="mr-3 h-4 w-4" />
+                        <span>{item}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">×</Button>
+                    </li>
+                  ))}
+                  <li>
+                    <form className="flex mt-2">
+                      <Input placeholder="Add item..." className="text-sm h-8" />
+                      <Button type="submit" size="sm" className="ml-2 h-8">
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
-        
-        <TabsContent value="pantry">
-          <PantrySection pantry={pantry} />
+
+        <TabsContent value="history">
+          <div className="text-center py-16">
+            <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-medium mb-2">Shopping History</h3>
+            <p className="text-muted-foreground mb-4">
+              Your past shopping lists will appear here.
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="templates">
+          <div className="text-center py-16">
+            <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-medium mb-2">Shopping Templates</h3>
+            <p className="text-muted-foreground mb-4">
+              Create reusable shopping templates for your regular grocery runs.
+            </p>
+            <Button>Create Template</Button>
+          </div>
         </TabsContent>
       </Tabs>
     </Layout>
