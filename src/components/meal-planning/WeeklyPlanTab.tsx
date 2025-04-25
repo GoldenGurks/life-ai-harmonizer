@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from 'lucide-react';
@@ -14,6 +13,33 @@ import DaySelector from './DaySelector';
 import RecipeSelectionGrid from './RecipeSelectionGrid';
 import WeekOverview from './WeekOverview';
 import { toast } from 'sonner';
+import { Recipe } from '@/types/recipes';
+
+const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
+  return {
+    id: recipe.id,
+    name: recipe.title,
+    description: recipe.category,
+    calories: recipe.calories,
+    protein: recipe.protein,
+    carbs: recipe.carbs,
+    fat: recipe.fat,
+    fiber: recipe.fiber || 0,
+    sugar: recipe.sugar || 0,
+    type: recipe.category.toLowerCase() as any,
+    tags: recipe.tags,
+    preparationTime: recipe.cookTimeMinutes || 15,
+    cookingTime: recipe.cookTimeMinutes || 15,
+    ingredients: recipe.ingredients.map(ingredient => ({
+      name: ingredient,
+      amount: '1',
+      unit: 'portion'
+    })),
+    instructions: recipe.instructions || ['Prepare according to preference'],
+    image: recipe.image,
+    nutritionScore: recipe.nutrientScore
+  };
+};
 
 interface WeeklyPlanTabProps {
   currentDay: string;
@@ -44,7 +70,10 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
 }) => {
   const { ui, setUI } = useUIPreferences();
   const { profile, updateProfile } = useUserProfile();
-  const { recommendations: suggestedRecipes } = useRecipeRecommendations({ count: 10 });
+  const { recommendations } = useRecipeRecommendations({ count: 10 });
+  
+  const suggestedRecipes = recommendations.map(convertRecipeToMealItem);
+  
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   
   const handleRecipeSelect = (recipe: MealItem) => {
@@ -91,7 +120,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     toast.success("Weekly meal plan saved!");
   };
 
-  // Filter meal plans based on UI preferences
   const filteredMealPlans = mealPlans.map(plan => ({
     ...plan,
     meals: ui.onlyLikedRecipes 
@@ -126,7 +154,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
 
   const currentTotalNutrition = filteredMealPlans.find(plan => plan.day === currentDay)?.totalNutrition;
 
-  // If no plan exists, show the recipe selection grid
   if (!profile?.currentWeekPlan) {
     return (
       <Card>
@@ -148,7 +175,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     );
   }
 
-  // If plan exists, show the week overview and existing functionality
   return (
     <>
       <WeekOverview plan={profile.currentWeekPlan} />
