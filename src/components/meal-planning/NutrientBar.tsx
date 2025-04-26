@@ -15,44 +15,57 @@ const NutrientBar: React.FC<NutrientBarProps> = ({
   protein,
   carbs,
   fat,
-  maxCalories = 1000, // Reasonable default for visualization
+  maxCalories = 2000, // More reasonable default for visualization
   showLegend = false
 }) => {
-  const total = calories;
-  const scale = maxCalories / 100;
+  // Calculate percentages for the bar segments
+  const caloriesPercent = Math.min(100, (calories / maxCalories) * 100);
+  const proteinCalories = protein * 4;
+  const carbCalories = carbs * 4;
+  const fatCalories = fat * 9;
+  const totalMacroCalories = proteinCalories + carbCalories + fatCalories;
   
-  const segments = [
-    { name: 'Calories', value: calories / scale, color: 'bg-blue-400' },
-    { name: 'Protein', value: (protein * 4) / scale, color: 'bg-red-400' },
-    { name: 'Carbs', value: (carbs * 4) / scale, color: 'bg-green-400' },
-    { name: 'Fat', value: (fat * 9) / scale, color: 'bg-yellow-400' }
-  ];
+  // Calculate proportions of each macro
+  const proteinPct = totalMacroCalories > 0 ? (proteinCalories / totalMacroCalories) * 100 : 0;
+  const carbPct = totalMacroCalories > 0 ? (carbCalories / totalMacroCalories) * 100 : 0;
+  const fatPct = totalMacroCalories > 0 ? (fatCalories / totalMacroCalories) * 100 : 0;
 
   return (
     <div className="w-full space-y-1">
       {showLegend && (
         <div className="flex mb-2 text-xs justify-between">
-          {segments.map(segment => (
-            <div key={segment.name} className="flex items-center">
-              <div className={`w-3 h-3 ${segment.color} mr-1 rounded-sm`}></div>
-              <span>{segment.name}</span>
-            </div>
-          ))}
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-blue-400 mr-1 rounded-sm"></div>
+            <span>Calories</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-red-400 mr-1 rounded-sm"></div>
+            <span>Protein</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-green-400 mr-1 rounded-sm"></div>
+            <span>Carbs</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-yellow-400 mr-1 rounded-sm"></div>
+            <span>Fat</span>
+          </div>
         </div>
       )}
-      <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-        {segments.map((segment, index) => (
-          <div
-            key={segment.name}
-            className={`${segment.color} transition-all`}
-            style={{ width: `${segment.value}%` }}
-          />
-        ))}
-      </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
-        {segments.map((segment) => (
-          <span key={segment.name}>{segment.name}</span>
-        ))}
+      
+      <div className="flex flex-col gap-0.5">
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>{calories}</span>
+          <span>{protein}g</span>
+          <span>{carbs}g</span>
+          <span>{fat}g</span>
+        </div>
+        
+        <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+          <div className="bg-red-400 transition-all" style={{ width: `${proteinPct}%` }}></div>
+          <div className="bg-green-400 transition-all" style={{ width: `${carbPct}%` }}></div>
+          <div className="bg-yellow-400 transition-all" style={{ width: `${fatPct}%` }}></div>
+        </div>
       </div>
     </div>
   );

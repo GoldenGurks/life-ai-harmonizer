@@ -1,22 +1,15 @@
-
-import React, { useState, useCallback } from 'react';
-import { Toggle } from '@/components/ui/toggle';
-import { Heart } from 'lucide-react';
-import { useUIPreferences } from '@/context/UIPreferencesContext';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, ChefHat, Utensils, Info, Coffee, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { MealItem, WeeklyPlan } from '@/types/meal-planning';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
-import MealCard from './MealCard';
-import DaySelector from './DaySelector';
 import RecipeSelectionGrid from './RecipeSelectionGrid';
 import WeekOverview from './WeekOverview';
 import ShoppingListModal from './ShoppingListModal';
 import { toast } from 'sonner';
 import { Recipe } from '@/types/recipes';
-import DayAssignment from './DayAssignment';
 
 const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
   return {
@@ -71,27 +64,26 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   handleMealChange,
   mealPlans
 }) => {
-  const { ui, setUI } = useUIPreferences();
   const { profile, updateProfile } = useUserProfile();
   const { recommendations, getTopN } = useRecipeRecommendations({ count: 20 });
   
   const [availableRecipes, setAvailableRecipes] = useState<MealItem[]>([]);
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
-  const [showDayAssignment, setShowDayAssignment] = useState(false);
+  const [mealCount, setMealCount] = useState(5); // Default number of meals to plan for
   
   // Initialize available recipes from recommendations
-  React.useEffect(() => {
+  useEffect(() => {
     if (recommendations.length > 0 && availableRecipes.length === 0) {
       const initialRecipes = getTopN(10).map(convertRecipeToMealItem);
       setAvailableRecipes(initialRecipes);
     }
   }, [recommendations, getTopN, availableRecipes.length]);
 
-  // Mock data for available recipes if recommendations are empty
-  React.useEffect(() => {
+  // Create mock data when recommendations are empty
+  useEffect(() => {
     if (recommendations.length === 0 && availableRecipes.length === 0) {
-      // Create mock recipes for demonstration when no real recommendations exist
+      // Using the same mock data as before
       const mockRecipes: MealItem[] = [
         {
           id: 'mock-1',
@@ -308,19 +300,14 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
         return current.filter(r => r.id !== recipe.id);
       }
       
-      if (current.length >= 5) {
-        toast.error("You can only select 5 recipes");
+      if (current.length >= mealCount) {
+        toast.error(`You can only select ${mealCount} recipes`);
         return current;
       }
       
-      const newSelection = [...current, recipe];
-      if (newSelection.length === 5) {
-        setShowDayAssignment(true);
-      }
-      
-      return newSelection;
+      return [...current, recipe];
     });
-  }, []);
+  }, [mealCount]);
   
   // Handle recipe dislike/replacement
   const handleDislikeRecipe = useCallback((recipeId: string) => {
@@ -352,16 +339,21 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
 
   // Handle saving the weekly plan
   const handleSavePlan = useCallback(() => {
-    if (selectedRecipes.length !== 5) {
-      toast.error("Please select exactly 5 recipes");
+    if (selectedRecipes.length !== mealCount) {
+      toast.error(`Please select exactly ${mealCount} recipes`);
       return;
     }
 
-    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    // Automatically assign recipes to days
     const assignedDays: { [key: string]: MealItem } = {};
     
+    // Get the days we need based on the number of recipes selected
+    const daysNeeded = days.slice(0, mealCount);
+    
     selectedRecipes.forEach((recipe, index) => {
-      assignedDays[weekdays[index]] = recipe;
+      if (index < daysNeeded.length) {
+        assignedDays[daysNeeded[index]] = recipe;
+      }
     });
 
     const newPlan: WeeklyPlan = {
@@ -379,43 +371,34 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     
     // Show shopping list after saving the plan
     setIsShoppingListOpen(true);
-  }, [selectedRecipes, profile, updateProfile]);
+  }, [selectedRecipes, mealCount, days, profile, updateProfile]);
 
-  const handleDayAssignment = useCallback((assignments: { [key: string]: MealItem }) => {
-    const newPlan: WeeklyPlan = {
-      selectedRecipes,
-      assignedDays: assignments,
-      createdAt: new Date().toISOString()
-    };
-
-    updateProfile({
-      ...profile,
-      currentWeekPlan: newPlan
-    });
-
-    toast.success("Weekly meal plan saved!");
-    setShowDayAssignment(false);
-    setIsShoppingListOpen(true);
-  }, [selectedRecipes, profile, updateProfile]);
-
-  // Filter meal plans based on UI preferences
-  const filteredMealPlans = mealPlans.map(plan => ({
-    ...plan,
-    meals: ui.onlyLikedRecipes 
-      ? plan.meals.filter(meal => profile?.likedMeals?.includes(meal.id))
-      : plan.meals
-  }));
-  
-  // If no plan exists and we're not assigning days, show the recipe selection grid
-  if (!profile?.currentWeekPlan && !showDayAssignment) {
+  // If no plan exists, show the recipe selection grid
+  if (!profile?.currentWeekPlan) {
     return (
       <>
         <Card>
           <CardHeader>
             <CardTitle>Create Your Weekly Plan</CardTitle>
             <CardDescription>
-              Select 5 recipes to create your weekly meal plan. Dislike any recipe to see a new suggestion.
+              Select {mealCount} recipes to create your weekly meal plan. 
+              Dislike any recipe to see a new suggestion.
             </CardDescription>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm">Number of meals to plan:</span>
+              <div className="flex gap-2">
+                {[3, 5, 7].map(count => (
+                  <Button 
+                    key={count}
+                    variant={mealCount === count ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setMealCount(count)}
+                  >
+                    {count}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <RecipeSelectionGrid
@@ -438,44 +421,34 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     );
   }
 
-  // If we're assigning days, show the day assignment view
-  if (showDayAssignment) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Assign Meals to Days</CardTitle>
-          <CardDescription>
-            Choose which meal you'd like to have on each day of the week.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DayAssignment
-            selectedRecipes={selectedRecipes}
-            onAssign={handleDayAssignment}
-          />
-        </CardContent>
-      </Card>
-    );
-  }
-
   // If plan exists, show the week overview
   return (
     <>
       <WeekOverview plan={profile.currentWeekPlan} />
-      <Button 
-        variant="outline" 
-        className="mt-4" 
-        onClick={() => {
-          updateProfile({
-            ...profile,
-            currentWeekPlan: undefined
-          });
-          setSelectedRecipes([]);
-          toast.success("Weekly plan cleared. You can now create a new plan.");
-        }}
-      >
-        Clear Current Plan
-      </Button>
+      <div className="flex justify-between mt-4">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            updateProfile({
+              ...profile,
+              currentWeekPlan: undefined
+            });
+            setSelectedRecipes([]);
+            toast.success("Weekly plan cleared. You can now create a new plan.");
+          }}
+        >
+          Clear Current Plan
+        </Button>
+        
+        <Button 
+          onClick={() => setIsShoppingListOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          View Shopping List
+        </Button>
+      </div>
+      
       <ShoppingListModal 
         isOpen={isShoppingListOpen}
         onClose={() => setIsShoppingListOpen(false)}
