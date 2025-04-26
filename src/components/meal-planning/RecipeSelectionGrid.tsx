@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,17 @@ const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
 }) => {
   return (
     <div className="space-y-6">
+      <div className="mb-4">
+        <NutrientBar
+          calories={100}
+          protein={25}
+          carbs={50}
+          fat={25}
+          maxCalories={100}
+          showLegend={true}
+        />
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {recipes.map((recipe) => {
           const isSelected = selectedRecipes.some(r => r.id === recipe.id);

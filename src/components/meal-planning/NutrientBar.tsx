@@ -7,6 +7,7 @@ interface NutrientBarProps {
   carbs: number;
   fat: number;
   maxCalories?: number;
+  showLegend?: boolean;
 }
 
 const NutrientBar: React.FC<NutrientBarProps> = ({
@@ -14,7 +15,8 @@ const NutrientBar: React.FC<NutrientBarProps> = ({
   protein,
   carbs,
   fat,
-  maxCalories = 1000 // Reasonable default for visualization
+  maxCalories = 1000, // Reasonable default for visualization
+  showLegend = false
 }) => {
   const total = calories;
   const scale = maxCalories / 100;
@@ -28,6 +30,16 @@ const NutrientBar: React.FC<NutrientBarProps> = ({
 
   return (
     <div className="w-full space-y-1">
+      {showLegend && (
+        <div className="flex mb-2 text-xs justify-between">
+          {segments.map(segment => (
+            <div key={segment.name} className="flex items-center">
+              <div className={`w-3 h-3 ${segment.color} mr-1 rounded-sm`}></div>
+              <span>{segment.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="flex h-2 overflow-hidden rounded-full bg-muted">
         {segments.map((segment, index) => (
           <div

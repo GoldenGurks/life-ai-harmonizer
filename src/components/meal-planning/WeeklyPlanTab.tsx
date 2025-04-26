@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from 'lucide-react';
@@ -86,6 +87,217 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       setAvailableRecipes(initialRecipes);
     }
   }, [recommendations, getTopN, availableRecipes.length]);
+
+  // Mock data for available recipes if recommendations are empty
+  React.useEffect(() => {
+    if (recommendations.length === 0 && availableRecipes.length === 0) {
+      // Create mock recipes for demonstration when no real recommendations exist
+      const mockRecipes: MealItem[] = [
+        {
+          id: 'mock-1',
+          name: 'Mediterranean Salad',
+          description: 'Fresh greens with feta cheese and olive oil',
+          calories: 450,
+          protein: 12,
+          carbs: 22,
+          fat: 32,
+          type: 'lunch',
+          tags: ['vegetarian', 'fresh'],
+          preparationTime: 15,
+          cookingTime: 0,
+          ingredients: [
+            { name: 'Mixed greens', amount: '100', unit: 'g' },
+            { name: 'Feta cheese', amount: '50', unit: 'g' }
+          ],
+          instructions: ['Combine all ingredients', 'Add dressing'],
+          image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
+          nutritionScore: 7
+        },
+        {
+          id: 'mock-2',
+          name: 'Grilled Salmon',
+          description: 'Wild-caught salmon with vegetables',
+          calories: 580,
+          protein: 32,
+          carbs: 30,
+          fat: 28,
+          type: 'dinner',
+          tags: ['high-protein', 'omega-3'],
+          preparationTime: 10,
+          cookingTime: 25,
+          ingredients: [
+            { name: 'Salmon fillet', amount: '150', unit: 'g' },
+            { name: 'Broccoli', amount: '100', unit: 'g' }
+          ],
+          instructions: ['Season salmon', 'Grill for about 4 minutes on each side'],
+          image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288',
+          nutritionScore: 9
+        },
+        {
+          id: 'mock-3',
+          name: 'Greek Yogurt & Berries',
+          description: 'Protein-rich breakfast with fresh berries',
+          calories: 320,
+          protein: 18,
+          carbs: 35,
+          fat: 10,
+          type: 'breakfast',
+          tags: ['high-protein', 'quick'],
+          preparationTime: 5,
+          cookingTime: 0,
+          ingredients: [
+            { name: 'Greek yogurt', amount: '200', unit: 'g' },
+            { name: 'Mixed berries', amount: '100', unit: 'g' }
+          ],
+          instructions: ['Mix all ingredients in a bowl'],
+          image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929',
+          nutritionScore: 8
+        },
+        {
+          id: 'mock-4',
+          name: 'Avocado Toast',
+          description: 'Whole grain toast with smashed avocado',
+          calories: 350,
+          protein: 8,
+          carbs: 40,
+          fat: 18,
+          type: 'breakfast',
+          tags: ['vegetarian', 'quick'],
+          preparationTime: 10,
+          cookingTime: 5,
+          ingredients: [
+            { name: 'Whole grain bread', amount: '2', unit: 'slices' },
+            { name: 'Avocado', amount: '1', unit: 'medium' }
+          ],
+          instructions: ['Toast bread', 'Smash avocado and spread on toast'],
+          image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93',
+          nutritionScore: 7
+        },
+        {
+          id: 'mock-5',
+          name: 'Quinoa Bowl',
+          description: 'Protein-packed bowl with vegetables',
+          calories: 520,
+          protein: 15,
+          carbs: 70,
+          fat: 18,
+          type: 'lunch',
+          tags: ['vegetarian', 'high-fiber'],
+          preparationTime: 15,
+          cookingTime: 20,
+          ingredients: [
+            { name: 'Quinoa', amount: '100', unit: 'g' },
+            { name: 'Mixed vegetables', amount: '200', unit: 'g' }
+          ],
+          instructions: ['Cook quinoa', 'Sauté vegetables', 'Combine in bowl'],
+          image: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2',
+          nutritionScore: 9
+        },
+        {
+          id: 'mock-6',
+          name: 'Chicken Stir Fry',
+          description: 'Quick protein-rich dinner',
+          calories: 450,
+          protein: 35,
+          carbs: 25,
+          fat: 20,
+          type: 'dinner',
+          tags: ['high-protein', 'quick'],
+          preparationTime: 15,
+          cookingTime: 15,
+          ingredients: [
+            { name: 'Chicken breast', amount: '150', unit: 'g' },
+            { name: 'Mixed vegetables', amount: '200', unit: 'g' }
+          ],
+          instructions: ['Slice chicken', 'Stir fry with vegetables'],
+          image: 'https://images.unsplash.com/photo-1512058556646-c4da40fba323',
+          nutritionScore: 8
+        },
+        {
+          id: 'mock-7',
+          name: 'Berry Smoothie Bowl',
+          description: 'Refreshing breakfast bowl',
+          calories: 380,
+          protein: 12,
+          carbs: 60,
+          fat: 8,
+          type: 'breakfast',
+          tags: ['vegan', 'quick'],
+          preparationTime: 10,
+          cookingTime: 0,
+          ingredients: [
+            { name: 'Frozen berries', amount: '200', unit: 'g' },
+            { name: 'Banana', amount: '1', unit: 'medium' }
+          ],
+          instructions: ['Blend all ingredients', 'Pour into bowl and add toppings'],
+          image: 'https://images.unsplash.com/photo-1584277261846-c6a1672ed979',
+          nutritionScore: 8
+        },
+        {
+          id: 'mock-8',
+          name: 'Lentil Curry',
+          description: 'Protein and fiber rich curry',
+          calories: 420,
+          protein: 18,
+          carbs: 60,
+          fat: 10,
+          type: 'dinner',
+          tags: ['vegetarian', 'high-fiber'],
+          preparationTime: 15,
+          cookingTime: 25,
+          ingredients: [
+            { name: 'Red lentils', amount: '150', unit: 'g' },
+            { name: 'Coconut milk', amount: '200', unit: 'ml' }
+          ],
+          instructions: ['Cook lentils', 'Add spices and coconut milk'],
+          image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641',
+          nutritionScore: 7
+        },
+        {
+          id: 'mock-9',
+          name: 'Oatmeal with Nuts',
+          description: 'Hearty breakfast with nuts and fruits',
+          calories: 410,
+          protein: 12,
+          carbs: 65,
+          fat: 12,
+          type: 'breakfast',
+          tags: ['vegetarian', 'high-fiber'],
+          preparationTime: 5,
+          cookingTime: 10,
+          ingredients: [
+            { name: 'Rolled oats', amount: '80', unit: 'g' },
+            { name: 'Mixed nuts', amount: '30', unit: 'g' }
+          ],
+          instructions: ['Cook oats with milk', 'Top with nuts and fruits'],
+          image: 'https://images.unsplash.com/photo-16260784370964-39294faeae90',
+          nutritionScore: 8
+        },
+        {
+          id: 'mock-10',
+          name: 'Tuna Salad Wrap',
+          description: 'Protein-packed lunch wrap',
+          calories: 380,
+          protein: 28,
+          carbs: 35,
+          fat: 15,
+          type: 'lunch',
+          tags: ['high-protein', 'quick'],
+          preparationTime: 10,
+          cookingTime: 0,
+          ingredients: [
+            { name: 'Tuna', amount: '120', unit: 'g' },
+            { name: 'Whole grain wrap', amount: '1', unit: 'piece' }
+          ],
+          instructions: ['Mix tuna with mayo and vegetables', 'Fill wrap and roll'],
+          image: 'https://images.unsplash.com/photo-1511689660979-10e8c7567f5b',
+          nutritionScore: 8
+        }
+      ];
+      
+      setAvailableRecipes(mockRecipes);
+    }
+  }, [recommendations, availableRecipes.length]);
   
   // Handle recipe selection
   const handleRecipeSelect = useCallback((recipe: MealItem) => {
@@ -194,35 +406,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       : plan.meals
   }));
   
-  // Helper functions for meal type handling
-  const getIconForMealType = (type: string) => {
-    switch (type) {
-      case 'breakfast':
-        return <ChefHat className="h-5 w-5 text-primary mr-2" />;
-      case 'lunch':
-        return <Utensils className="h-5 w-5 text-secondary mr-2" />;
-      case 'dinner':
-        return <Utensils className="h-5 w-5 text-accent mr-2" />;
-      case 'snack':
-      case 'dessert':
-        return <Coffee className="h-5 w-5 text-primary mr-2" />;
-      default:
-        return null;
-    }
-  };
-
-  const getMealTitle = (type: string) => {
-    return type.charAt(0).toUpperCase() + type.slice(1);
-  };
-
-  // Helper functions to get meals by type
-  const getBreakfastMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'breakfast') || [];
-  const getLunchMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'lunch') || [];
-  const getDinnerMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'dinner') || [];
-  const getSnackMeals = () => filteredMealPlans.find(plan => plan.day === currentDay)?.meals.filter(meal => meal.type === 'snack' || meal.type === 'dessert') || [];
-
-  const currentTotalNutrition = filteredMealPlans.find(plan => plan.day === currentDay)?.totalNutrition;
-
   // If no plan exists and we're not assigning days, show the recipe selection grid
   if (!profile?.currentWeekPlan && !showDayAssignment) {
     return (
@@ -279,6 +462,20 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   return (
     <>
       <WeekOverview plan={profile.currentWeekPlan} />
+      <Button 
+        variant="outline" 
+        className="mt-4" 
+        onClick={() => {
+          updateProfile({
+            ...profile,
+            currentWeekPlan: undefined
+          });
+          setSelectedRecipes([]);
+          toast.success("Weekly plan cleared. You can now create a new plan.");
+        }}
+      >
+        Clear Current Plan
+      </Button>
       <ShoppingListModal 
         isOpen={isShoppingListOpen}
         onClose={() => setIsShoppingListOpen(false)}
