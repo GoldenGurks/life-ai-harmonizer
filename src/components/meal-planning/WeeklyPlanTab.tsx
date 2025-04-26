@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from 'lucide-react';
@@ -16,6 +15,7 @@ import WeekOverview from './WeekOverview';
 import ShoppingListModal from './ShoppingListModal';
 import { toast } from 'sonner';
 import { Recipe } from '@/types/recipes';
+import DayAssignment from './DayAssignment';
 
 const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
   return {
@@ -74,10 +74,10 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   const { profile, updateProfile } = useUserProfile();
   const { recommendations, getTopN } = useRecipeRecommendations({ count: 20 });
   
-  // State for recipe selection
   const [availableRecipes, setAvailableRecipes] = useState<MealItem[]>([]);
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [showDayAssignment, setShowDayAssignment] = useState(false);
   
   // Initialize available recipes from recommendations
   React.useEffect(() => {
@@ -101,7 +101,12 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
         return current;
       }
       
-      return [...current, recipe];
+      const newSelection = [...current, recipe];
+      if (newSelection.length === 5) {
+        setShowDayAssignment(true);
+      }
+      
+      return newSelection;
     });
   }, []);
   
@@ -164,6 +169,23 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     setIsShoppingListOpen(true);
   }, [selectedRecipes, profile, updateProfile]);
 
+  const handleDayAssignment = useCallback((assignments: { [key: string]: MealItem }) => {
+    const newPlan: WeeklyPlan = {
+      selectedRecipes,
+      assignedDays: assignments,
+      createdAt: new Date().toISOString()
+    };
+
+    updateProfile({
+      ...profile,
+      currentWeekPlan: newPlan
+    });
+
+    toast.success("Weekly meal plan saved!");
+    setShowDayAssignment(false);
+    setIsShoppingListOpen(true);
+  }, [selectedRecipes, profile, updateProfile]);
+
   // Filter meal plans based on UI preferences
   const filteredMealPlans = mealPlans.map(plan => ({
     ...plan,
@@ -201,8 +223,8 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
 
   const currentTotalNutrition = filteredMealPlans.find(plan => plan.day === currentDay)?.totalNutrition;
 
-  // If no plan exists, show the recipe selection grid
-  if (!profile?.currentWeekPlan) {
+  // If no plan exists and we're not assigning days, show the recipe selection grid
+  if (!profile?.currentWeekPlan && !showDayAssignment) {
     return (
       <>
         <Card>
@@ -233,187 +255,30 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     );
   }
 
-  // If plan exists, show the week overview and existing functionality
+  // If we're assigning days, show the day assignment view
+  if (showDayAssignment) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Assign Meals to Days</CardTitle>
+          <CardDescription>
+            Choose which meal you'd like to have on each day of the week.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DayAssignment
+            selectedRecipes={selectedRecipes}
+            onAssign={handleDayAssignment}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If plan exists, show the week overview
   return (
     <>
       <WeekOverview plan={profile.currentWeekPlan} />
-      <div className="mt-8">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-xl">Weekly Schedule</CardTitle>
-              <div className="flex gap-2 items-center">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setIsShoppingListOpen(true)}
-                  className="flex items-center gap-1"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Shopping List
-                </Button>
-                <Toggle 
-                  pressed={ui.onlyLikedRecipes} 
-                  onPressedChange={(pressed) => setUI({ onlyLikedRecipes: pressed })}
-                  aria-label="Toggle liked recipes only"
-                  className="gap-2"
-                >
-                  <Heart className={ui.onlyLikedRecipes ? "h-4 w-4 text-red-500 fill-red-500" : "h-4 w-4"} />
-                  Liked Only
-                </Toggle>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4 mr-2" /> 
-                  April 7-13, 2025
-                </Button>
-              </div>
-            </div>
-            <CardDescription>
-              View and modify your weekly meal plan.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DaySelector 
-              days={days} 
-              currentDay={currentDay} 
-              onDayChange={onDayChange} 
-            />
-
-            {currentTotalNutrition && (
-              <div className="grid grid-cols-4 gap-2 mt-4 mb-6 p-3 bg-muted/20 rounded-md">
-                <div className="text-center">
-                  <div className="text-sm font-medium">{currentTotalNutrition.calories}</div>
-                  <div className="text-xs text-muted-foreground">Calories</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-medium">{currentTotalNutrition.protein}g</div>
-                  <div className="text-xs text-muted-foreground">Protein</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-medium">{currentTotalNutrition.carbs}g</div>
-                  <div className="text-xs text-muted-foreground">Carbs</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-medium">{currentTotalNutrition.fat}g</div>
-                  <div className="text-xs text-muted-foreground">Fat</div>
-                </div>
-              </div>
-            )}
-
-            {getBreakfastMeals().length > 0 && (
-              <div className="space-y-6 mb-8">
-                <h3 className="font-medium flex items-center">
-                  <ChefHat className="h-5 w-5 text-primary mr-2" />
-                  Breakfast
-                </h3>
-                {getBreakfastMeals().map((meal) => (
-                  <MealCard
-                    key={meal.id}
-                    title={getMealTitle(meal.type)}
-                    icon={getIconForMealType(meal.type)}
-                    name={meal.name}
-                    description={meal.description}
-                    calories={meal.calories}
-                    protein={meal.protein}
-                    carbs={meal.carbs}
-                    fat={meal.fat}
-                    fiber={meal.fiber}
-                    sugar={meal.sugar}
-                    tags={meal.tags}
-                    ingredients={meal.ingredients}
-                    onMealChange={() => handleMealChange(meal.id)}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div className="space-y-6 mb-8">
-              <h3 className="font-medium flex items-center">
-                <Utensils className="h-5 w-5 text-secondary mr-2" />
-                Lunch
-              </h3>
-              {getLunchMeals().map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  title={getMealTitle(meal.type)}
-                  icon={getIconForMealType(meal.type)}
-                  name={meal.name}
-                  description={meal.description}
-                  calories={meal.calories}
-                  protein={meal.protein}
-                  carbs={meal.carbs}
-                  fat={meal.fat}
-                  fiber={meal.fiber}
-                  sugar={meal.sugar}
-                  tags={meal.tags}
-                  ingredients={meal.ingredients}
-                  onMealChange={() => handleMealChange(meal.id)}
-                />
-              ))}
-            </div>
-
-            <div className="space-y-6 mb-8">
-              <h3 className="font-medium flex items-center">
-                <Utensils className="h-5 w-5 text-accent mr-2" />
-                Dinner
-              </h3>
-              {getDinnerMeals().map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  title={getMealTitle(meal.type)}
-                  icon={getIconForMealType(meal.type)}
-                  name={meal.name}
-                  description={meal.description}
-                  calories={meal.calories}
-                  protein={meal.protein}
-                  carbs={meal.carbs}
-                  fat={meal.fat}
-                  fiber={meal.fiber}
-                  sugar={meal.sugar}
-                  tags={meal.tags}
-                  ingredients={meal.ingredients}
-                  onMealChange={() => handleMealChange(meal.id)}
-                />
-              ))}
-            </div>
-
-            {getSnackMeals().length > 0 && (
-              <div className="space-y-6">
-                <h3 className="font-medium flex items-center">
-                  <Coffee className="h-5 w-5 text-primary mr-2" />
-                  Snacks & Desserts
-                </h3>
-                {getSnackMeals().map((meal) => (
-                  <MealCard
-                    key={meal.id}
-                    title={getMealTitle(meal.type)}
-                    icon={getIconForMealType(meal.type)}
-                    name={meal.name}
-                    description={meal.description}
-                    calories={meal.calories}
-                    protein={meal.protein}
-                    carbs={meal.carbs}
-                    fat={meal.fat}
-                    fiber={meal.fiber}
-                    sugar={meal.sugar}
-                    tags={meal.tags}
-                    ingredients={meal.ingredients}
-                    onMealChange={() => handleMealChange(meal.id)}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-end">
-              <Button variant="outline" className="mr-2">Save Plan</Button>
-              <Button>
-                <Info className="h-4 w-4 mr-2" />
-                View Nutrition Summary
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
       <ShoppingListModal 
         isOpen={isShoppingListOpen}
         onClose={() => setIsShoppingListOpen(false)}
