@@ -1,5 +1,6 @@
 
 import { Recipe } from '@/types/recipes';
+import { ingredientContains } from '@/utils/ingredientUtils';
 
 /**
  * Calculates similarity between this recipe and previously liked recipes/foods
@@ -48,14 +49,17 @@ export function calculateSimilarityScore(
   // Calculate similarity to liked foods/ingredients
   if (likedFoods && likedFoods.length > 0) {
     // Check if recipe contains any liked foods
-    const recipeIngredients = recipe.ingredients.map(i => i.toLowerCase());
-    const likedFoodsLower = likedFoods.map(f => f.toLowerCase());
+    let foodMatches = 0;
+    for (const food of likedFoods) {
+      for (const ingredient of recipe.ingredients) {
+        if (ingredientContains(ingredient, food)) {
+          foodMatches++;
+          break;
+        }
+      }
+    }
     
-    const foodMatches = likedFoodsLower.filter(food => 
-      recipeIngredients.some(ingredient => ingredient.includes(food))
-    ).length;
-    
-    const foodSimilarity = foodMatches / Math.max(likedFoodsLower.length, 1);
+    const foodSimilarity = foodMatches / Math.max(likedFoods.length, 1);
     similarityScore += foodSimilarity * 0.3; // 30% weight to ingredient similarity
   }
   

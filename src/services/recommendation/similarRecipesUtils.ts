@@ -1,5 +1,6 @@
 
 import { Recipe } from '@/types/recipes';
+import { getIngredientAsString } from '@/utils/ingredientUtils';
 
 /**
  * Finds similar recipes to the provided recipe
@@ -20,8 +21,8 @@ export function findSimilarRecipes(
     .filter(r => r.id !== recipe.id) // Filter out the source recipe
     .map(r => {
       // Calculate ingredient overlap
-      const sourceIngredients = new Set(recipe.ingredients.map(i => i.toLowerCase()));
-      const targetIngredients = new Set(r.ingredients.map(i => i.toLowerCase()));
+      const sourceIngredients = new Set(recipe.ingredients.map(i => getIngredientAsString(i).toLowerCase()));
+      const targetIngredients = new Set(r.ingredients.map(i => getIngredientAsString(i).toLowerCase()));
       
       // Calculate tag overlap
       const sourceTags = new Set(recipe.tags?.map(t => t.toLowerCase()) || []);

@@ -1,4 +1,6 @@
+
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
+import { isRecipeIngredient, getIngredientId, getIngredientAmount } from '@/utils/ingredientUtils';
 
 // Cache for the loaded library
 let vegLibraryCache: FoodItem[] | null = null;
@@ -103,7 +105,7 @@ export async function calculateNutritionAndCost(
   // Process each ingredient
   for (const ingredient of recipe.ingredients) {
     // Skip string ingredients or handle them differently during transition
-    if (typeof ingredient === 'string') {
+    if (!isRecipeIngredient(ingredient)) {
       continue;
     }
     
@@ -187,15 +189,14 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
             carbs: recipe.carbs,
             fat: recipe.fat,
             fiber: recipe.fiber || 0,
-            sugar: recipe.sugar,
+            sugar: recipe.sugar || 0,
             cost
           }
         };
       }
       
       // If recipe has ingredients with IDs, calculate nutrition
-      if (recipe.ingredients && recipe.ingredients.some((ing): ing is RecipeIngredient => 
-        typeof ing === 'object' && 'id' in ing && 'amount' in ing)) {
+      if (recipe.ingredients && recipe.ingredients.some(isRecipeIngredient)) {
         return calculateNutritionAndCost(recipe, foodLibrary);
       }
       

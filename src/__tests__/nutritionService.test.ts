@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { loadVegLibrary, getFoodItemById, convertFoodItemToRecipe, calculateNutritionAndCost, ensureNutritionAndCost } from '@/services/nutritionService';
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
+import { getIngredientId, getIngredientAmount } from '@/utils/ingredientUtils';
 
 describe('Nutrition Service', () => {
   let vegLibrary: FoodItem[];

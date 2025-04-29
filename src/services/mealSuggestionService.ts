@@ -1,6 +1,7 @@
 import { MealItem, UserPreferences } from '@/types/meal-planning';
 import { Recipe } from '@/types/recipes';
 import { recipeData } from '@/data/recipeDatabase';
+import { getIngredientAsString, ingredientContains } from '@/utils/ingredientUtils';
 
 export const mealSuggestionService = {
   // Generate meal suggestions based on user preferences
@@ -40,9 +41,7 @@ export const mealSuggestionService = {
       availableRecipes = availableRecipes.filter(recipe => {
         // Check if any ingredient contains allergies
         return !preferences.allergies!.some(allergy => 
-          recipe.ingredients.some(ingredient => 
-            ingredient.toLowerCase().includes(allergy.toLowerCase())
-          )
+          recipe.ingredients.some(ingredient => ingredientContains(ingredient, allergy))
         );
       });
     }
@@ -63,7 +62,7 @@ export const mealSuggestionService = {
         preferences.likedFoods!.forEach(likedFood => {
           if (recipe.tags.some(tag => tag.toLowerCase().includes(likedFood.toLowerCase())) || 
               recipe.title.toLowerCase().includes(likedFood.toLowerCase()) ||
-              recipe.ingredients.some(i => i.toLowerCase().includes(likedFood.toLowerCase()))) {
+              recipe.ingredients.some(i => ingredientContains(i, likedFood))) {
             score += 2;
           }
         });
@@ -82,7 +81,7 @@ export const mealSuggestionService = {
         preferences.dislikedFoods!.forEach(dislikedFood => {
           if (recipe.tags.some(tag => tag.toLowerCase().includes(dislikedFood.toLowerCase())) || 
               recipe.title.toLowerCase().includes(dislikedFood.toLowerCase()) ||
-              recipe.ingredients.some(i => i.toLowerCase().includes(dislikedFood.toLowerCase()))) {
+              recipe.ingredients.some(i => ingredientContains(i, dislikedFood))) {
             // @ts-ignore - Modifying score property
             recipe.score -= 3;
           }
@@ -162,25 +161,37 @@ export const mealSuggestionService = {
         }
       }
       
+      // Get nutrition data, either from the new nutrition object or from legacy properties
+      const nutrition = recipe.nutrition || {
+        calories: recipe.calories || 0,
+        protein: recipe.protein || 0,
+        carbs: recipe.carbs || 0,
+        fat: recipe.fat || 0,
+        fiber: recipe.fiber || 0,
+        sugar: recipe.sugar || 0,
+        cost: recipe.cost || 0
+      };
+      
       return {
         id: recipe.id,
         name: recipe.title,
         description: `${recipe.difficulty} recipe: ${recipe.tags.join(', ')}`,
-        calories: recipe.calories,
-        protein: recipe.protein,
-        carbs: recipe.carbs,
-        fat: recipe.fat,
-        fiber: recipe.fiber,
-        sugar: recipe.sugar || 0,
+        calories: nutrition.calories,
+        protein: nutrition.protein,
+        carbs: nutrition.carbs,
+        fat: nutrition.fat,
+        fiber: nutrition.fiber,
+        sugar: nutrition.sugar || 0,
         type: mealItemType,
         tags: recipe.tags,
         preparationTime: 15, // Default values since these might not exist in Recipe
         cookingTime: parseInt(recipe.time) || 25,
         ingredients: recipe.ingredients.map(ing => {
-          const parts = ing.split(' ');
-          // Simple parsing of ingredients string
+          // Handle both string and RecipeIngredient types
+          const ingredientStr = getIngredientAsString(ing);
+          const parts = ingredientStr.split(' ');
           return {
-            name: parts.slice(1).join(' '),
+            name: parts.slice(1).join(' ') || ingredientStr,
             amount: parts[0] || '1',
             unit: 'unit'
           };

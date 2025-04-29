@@ -1,38 +1,47 @@
 
 import { Recipe } from '@/types/recipes';
+import { getIngredientAsString } from '@/utils/ingredientUtils';
 
 /**
- * Calculates cost-effectiveness score
- * Lower cost = higher score
+ * Calculates a cost score for recipe (lower cost is better)
+ * Normalizes recipe cost against typical cost range
  * 
  * @param recipe - Recipe to score
  * @returns Score from 0-1
  */
 export function calculateCostScore(recipe: Recipe): number {
-  // If we have explicit cost data, use it
-  if (recipe.cost) {
-    // Normalize cost on a 0-1 scale where 0 is expensive and 1 is cheap
-    // Assume cost range is from $2-$20 per serving
-    const maxCost = 20;
-    const minCost = 2;
-    return 1 - Math.min(1, Math.max(0, (recipe.cost - minCost) / (maxCost - minCost)));
+  // If recipe has nutrition with cost data, use that
+  if (recipe.nutrition?.cost) {
+    // Normalize against expected cost range (€2-€15)
+    const min = 2;
+    const max = 15;
+    const actualCost = recipe.nutrition.cost;
+    
+    // Invert so lower cost = higher score
+    // Clamp between 0 and 1
+    return Math.max(0, Math.min(1, 1 - ((actualCost - min) / (max - min))));
   }
   
-  // If no explicit cost, estimate based on ingredients count and protein source
-  // More ingredients generally means more expensive
-  const ingredientCountPenalty = Math.min(0.5, recipe.ingredients.length / 20);
+  // If recipe has legacy cost field, use that
+  if (recipe.cost) {
+    // Same normalization as above
+    const min = 2;
+    const max = 15;
+    const actualCost = recipe.cost;
+    
+    return Math.max(0, Math.min(1, 1 - ((actualCost - min) / (max - min))));
+  }
   
-  // Check for expensive protein sources
-  const hasExpensiveProtein = recipe.ingredients.some(ing => {
-    const lowerIng = ing.toLowerCase();
-    return lowerIng.includes('steak') || 
-           lowerIng.includes('salmon') || 
-           lowerIng.includes('shrimp') ||
-           lowerIng.includes('lamb');
-  });
+  // Estimate based on number of ingredients
+  const ingredientCount = recipe.ingredients.length;
+  const premiumIngredients = recipe.ingredients.filter(ing => {
+    const ingStr = getIngredientAsString(ing).toLowerCase();
+    return ingStr.includes('beef') || ingStr.includes('salmon') || 
+           ingStr.includes('shrimp') || ingStr.includes('cheese');
+  }).length;
   
-  const proteinPenalty = hasExpensiveProtein ? 0.3 : 0;
+  // Simple formula: more ingredients and premium ingredients = higher cost = lower score
+  const estimatedScore = 1 - ((ingredientCount / 20) * 0.7 + (premiumIngredients / 5) * 0.3);
   
-  // Calculate final cost score (higher = more cost-effective)
-  return Math.max(0, 1 - ingredientCountPenalty - proteinPenalty);
+  return Math.max(0, Math.min(1, estimatedScore));
 }

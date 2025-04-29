@@ -13,6 +13,7 @@ import { motion } from '@/lib/motion';
 import { Recipe, RecipeFilters } from '@/types/recipes';
 import { recipeData, findRecipeById, getAlternativeRecipes } from '@/data/recipeDatabase';
 import { Checkbox } from '@/components/ui/checkbox';
+import { getIngredientAsString, ingredientContains } from '@/utils/ingredientUtils';
 
 const mealTypeFilters = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
 const timeFilters = ['All', 'Under 15 mins', 'Under 30 mins', 'Under 45 mins', 'Under 60 mins'];
@@ -83,7 +84,7 @@ const Recipes = () => {
     const query = searchQuery.toLowerCase().trim();
     const results = recipeData.filter(recipe => {
       if (recipe.title.toLowerCase().includes(query)) return true;
-      if (recipe.ingredients.some(ingredient => ingredient.toLowerCase().includes(query))) return true;
+      if (recipe.ingredients.some(ingredient => ingredientContains(ingredient, query))) return true;
       if (recipe.tags.some(tag => tag.toLowerCase().includes(query))) return true;
       return false;
     });
@@ -146,7 +147,7 @@ const Recipes = () => {
       const query = searchQuery.toLowerCase().trim();
       results = results.filter(recipe => {
         return recipe.title.toLowerCase().includes(query) || 
-               recipe.ingredients.some(ingredient => ingredient.toLowerCase().includes(query)) ||
+               recipe.ingredients.some(ingredient => ingredientContains(ingredient, query)) ||
                recipe.tags.some(tag => tag.toLowerCase().includes(query));
       });
     }
@@ -718,7 +719,7 @@ const Recipes = () => {
                       {selectedRecipe.ingredients?.map((ingredient, index) => (
                         <li key={index} className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-primary" />
-                          <span>{ingredient}</span>
+                          <span>{getIngredientAsString(ingredient)}</span>
                         </li>
                       ))}
                     </ul>
