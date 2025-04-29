@@ -10,13 +10,16 @@ import QuickSetupModal from '@/components/meal-planning/QuickSetupModal';
 import DetailedPlanningModal from '@/components/meal-planning/DetailedPlanningModal';
 import WeeklySetupModal, { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
 import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
-import UnplacedMealsList from '@/components/meal-planning/UnplacedMealsList';
+
+//import UnplacedMealsList from '@/components/meal-planning/UnplacedMealsList';
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
 import TemplatesTab from '@/components/meal-planning/TemplatesTab';
 import TinderDishTab from '@/components/meal-planning/TinderDishTab';
 import { MealPlan, MealItem } from '@/types/meal-planning';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
-import { mealSuggestionService } from '@/services/mealSuggestionService';
+import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
+import { convertRecipeToMealItem } from '@/components/meal-planning/WeeklyPlanTab';
+//import { mealSuggestionService } from '@/services/mealSuggestionService';
 import { toast } from 'sonner';
 
 interface WeeklyPlanDisplay {
@@ -54,110 +57,48 @@ const MealPlanning = () => {
       : { dishCount: 7, includeBreakfast: true };
   });
   
-  const [unplacedMeals, setUnplacedMeals] = useState<MealItem[]>([]);
+  /*const [unplacedMeals, setUnplacedMeals] = useState<MealItem[]>([]);
   
-  const [mealSuggestions, setMealSuggestions] = useState<MealItem[]>([]);
+  const [mealSuggestions, setMealSuggestions] = useState<MealItem[]>([]);*/
 
-  const initialMealPlan: WeeklyPlanDisplay = {
-    id: '1',
-    name: 'Balanced Week',
-    day: 'Monday',
-    meals: [
-      {
-        id: '1',
-        name: 'Greek Yogurt with Berries',
-        description: 'Protein-rich Greek yogurt topped with fresh berries and honey',
-        calories: 320,
-        protein: 18,
-        carbs: 35,
-        fat: 10,
-        type: 'breakfast',
-        tags: ['high-protein', 'quick'],
-        preparationTime: 5,
-        cookingTime: 0,
-        ingredients: [
-          { name: 'Greek yogurt', amount: '200', unit: 'g' },
-          { name: 'Mixed berries', amount: '100', unit: 'g' },
-          { name: 'Honey', amount: '1', unit: 'tbsp' }
-        ],
-        instructions: ['Mix all ingredients in a bowl and enjoy.'],
-        image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929',
-        nutritionScore: 8
-      },
-      {
-        id: '2',
-        name: 'Mediterranean Salad',
-        description: 'Fresh greens with feta cheese, olives, tomatoes, and olive oil dressing',
-        calories: 450,
-        protein: 12,
-        carbs: 22,
-        fat: 32,
-        type: 'lunch',
-        tags: ['vegetarian', 'fresh'],
-        preparationTime: 15,
-        cookingTime: 0,
-        ingredients: [
-          { name: 'Mixed greens', amount: '100', unit: 'g' },
-          { name: 'Feta cheese', amount: '50', unit: 'g' },
-          { name: 'Olives', amount: '30', unit: 'g' },
-          { name: 'Cherry tomatoes', amount: '100', unit: 'g' },
-          { name: 'Olive oil', amount: '1', unit: 'tbsp' }
-        ],
-        instructions: ['Combine all ingredients in a bowl', 'Drizzle with olive oil and toss'],
-        image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
-        nutritionScore: 7
-      },
-      {
-        id: '3',
-        name: 'Grilled Salmon with Vegetables',
-        description: 'Wild-caught salmon with steamed broccoli and sweet potatoes',
-        calories: 580,
-        protein: 32,
-        carbs: 30,
-        fat: 28,
-        type: 'dinner',
-        tags: ['high-protein', 'omega-3'],
-        preparationTime: 10,
-        cookingTime: 25,
-        ingredients: [
-          { name: 'Salmon fillet', amount: '150', unit: 'g' },
-          { name: 'Broccoli', amount: '100', unit: 'g' },
-          { name: 'Sweet potato', amount: '150', unit: 'g' },
-          { name: 'Olive oil', amount: '1', unit: 'tbsp' },
-          { name: 'Lemon', amount: '1', unit: 'slice' }
-        ],
-        instructions: [
-          'Season salmon with salt and pepper',
-          'Grill for about 4 minutes on each side',
-          'Steam broccoli and sweet potatoes'
-        ],
-        image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288',
-        nutritionScore: 9
-      },
-      {
-        id: '4',
-        name: 'Apple with Almond Butter',
-        description: 'Sliced apple with 2 tbsp natural almond butter',
-        calories: 210,
-        protein: 5,
-        carbs: 25,
-        fat: 12,
-        type: 'snack',
-        tags: ['quick', 'fiber'],
-        preparationTime: 2,
-        cookingTime: 0,
-        ingredients: [
-          { name: 'Apple', amount: '1', unit: 'medium' },
-          { name: 'Almond butter', amount: '2', unit: 'tbsp' }
-        ],
-        instructions: ['Slice apple and serve with almond butter'],
-        image: 'https://images.unsplash.com/photo-1502741384106-56538287cff6',
-        nutritionScore: 6
-      }
-    ]
-  };
+  // Anzahl der Gerichte, die dein WeeklySetupModal vorgibt:
+const dishCount = weeklySettings.dishCount;
 
-  const [mealPlans, setMealPlans] = useState<WeeklyPlanDisplay[]>([initialMealPlan]);
+// Verwende deinen Hook, um genau dishCount Rezepte zu laden:
+const { recommendations } = useRecipeRecommendations({ count: dishCount });
+
+  const [mealPlans, setMealPlans] = useState<WeeklyPlanDisplay[]>([]);
+
+useEffect(() => {
+    // Wenn noch keine Empfehlungen vorliegen, nichts tun
+    if (recommendations.length === 0) return;
+
+    // Für jeden Wochentag ein Plan-Objekt bauen
+    const newPlans = days.map((day, idx) => {
+      const recipe = recommendations[idx];
+      const mealItem = recipe
+        ? convertRecipeToMealItem(recipe)
+        : undefined;
+
+      return {
+        id: day.toLowerCase(),
+        name: `${day}'s Plan`,
+        day,
+        meals: mealItem ? [mealItem] : [],
+        totalNutrition: mealItem
+          ? {
+              calories: mealItem.calories,
+              protein: mealItem.protein,
+              carbs: mealItem.carbs,
+              fat: mealItem.fat,
+              fiber: mealItem.fiber,
+            }
+          : undefined,
+      } as WeeklyPlanDisplay;
+    });
+
+    setMealPlans(newPlans);
+  }, [recommendations, days]);
 
   useEffect(() => {
     localStorage.setItem('weeklyMealSettings', JSON.stringify(weeklySettings));
