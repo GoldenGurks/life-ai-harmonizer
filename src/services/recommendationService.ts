@@ -1,8 +1,8 @@
 
-import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences } from '@/types/recipes';
-import { UserPreferences } from '@/types/meal-planning';
-import { ensureNutrientScore, validateRecipes } from '@/lib/recipeEnrichment';
+import { Recipe, RecommendationWeights, RecommendationFilters, ScoringPreferences, EnrichedRecipe } from '@/types/recipes';
+import { validateRecipes } from '@/lib/recipeEnrichment';
 import { PRESETS } from '@/config/recommendationPresets';
+import { ensureNutritionAndCost } from '@/services/nutritionService';
 
 // Import from the refactored modules
 import { filterRecipes } from './recommendation/filterUtils';
@@ -21,6 +21,19 @@ export const recommendationService = {
    * @param recipes - List of recipes to filter
    * @param constraints - User dietary constraints and preferences
    * @returns Filtered list of recipes that match the user's constraints
+   */
+  async preprocessRecipes(recipes: Recipe[]): Promise<EnrichedRecipe[]> {
+    // Ensure all recipes have nutrition data calculated
+    const enrichedRecipes = await ensureNutritionAndCost(recipes);
+    
+    // Validate the recipes
+    validateRecipes(enrichedRecipes);
+    
+    return enrichedRecipes;
+  },
+  
+  /**
+   * Filters recipes based on user constraints
    */
   filterRecipes,
   
@@ -56,5 +69,31 @@ export const recommendationService = {
    * @param mealType - Type of meal to recommend (breakfast, lunch, dinner)
    * @returns List of recommended recipes
    */
-  getDiversifiedRecommendations
+  getDiversifiedRecommendations,
+
+  /**
+   * Complete recommendation pipeline - preprocess, filter, score and rank recipes
+   */
+  async getRecommendations(
+    recipes: Recipe[],
+    userPreferences: ScoringPreferences,
+    filters: RecommendationFilters,
+    count: number = 5
+  ): Promise<EnrichedRecipe[]> {
+    // Step 1: Preprocess recipes (ensure nutrition data)
+    const enrichedRecipes = await this.preprocessRecipes(recipes);
+    
+    // Step 2: Apply hard filters
+    const filteredRecipes = this.filterRecipes(enrichedRecipes, filters);
+    
+    // Step 3: Get weights from preferences or preset
+    const presetName = userPreferences.recommendationPreset || 'Healthy';
+    const weights = userPreferences.recommendationWeights || PRESETS[presetName];
+    
+    // Step 4: Score and rank recipes
+    const scoredRecipes = this.scoreRecipes(filteredRecipes, userPreferences, weights);
+    
+    // Step 5: Return top N recommendations
+    return scoredRecipes.slice(0, count);
+  }
 };

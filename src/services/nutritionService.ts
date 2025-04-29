@@ -1,6 +1,5 @@
 
-import { FoodItem, Recipe } from '@/types/recipes';
-import { ensureNutrientScore } from '@/lib/recipeEnrichment';
+import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
 
 // Cache for the loaded library
 let vegLibraryCache: FoodItem[] | null = null;
@@ -16,7 +15,7 @@ export async function loadVegLibrary(): Promise<FoodItem[]> {
   }
 
   try {
-    const response = await fetch('/src/data/veg_library.ndjson');
+    const response = await fetch('/src/data/veg_library_v2.ndjson');
     const text = await response.text();
     
     // Parse each line as JSON
@@ -68,6 +67,7 @@ function validateFoodItem(item: any): FoodItem {
     category: item.category || 'Other',
     servingSize: item.servingSize || 100,
     servingUnit: item.servingUnit || 'g',
+    costPer100g: item.costPer100g || 0,
     nutrients,
     evidence: item.evidence,
     citations: item.citations || [],
@@ -77,64 +77,171 @@ function validateFoodItem(item: any): FoodItem {
 }
 
 /**
- * Converts a FoodItem to a Recipe format
+ * Calculates nutrition and cost for a recipe based on its ingredients
+ * @param recipe Recipe with ingredients
+ * @param foodLibrary Optional pre-loaded food library
+ * @returns Promise with enriched recipe including nutrition data
  */
-export function convertFoodItemToRecipe(foodItem: FoodItem): Recipe {
+export async function calculateNutritionAndCost(
+  recipe: Recipe,
+  foodLibrary?: FoodItem[]
+): Promise<EnrichedRecipe> {
+  // Load food library if not provided
+  const library = foodLibrary || await loadVegLibrary();
+  
+  // Initialize nutrition totals
+  let sumCalories = 0;
+  let sumProtein = 0;
+  let sumCarbs = 0;
+  let sumFat = 0;
+  let sumFiber = 0;
+  let sumSugar = 0;
+  let sumCost = 0;
+  
+  // Missing ingredient IDs for error reporting
+  const missingIngredients: number[] = [];
+  
+  // Process each ingredient
+  for (const ingredient of recipe.ingredients) {
+    // Find food item in library
+    const foodItem = library.find(item => item.id === ingredient.id);
+    
+    if (!foodItem) {
+      missingIngredients.push(ingredient.id);
+      continue;
+    }
+    
+    // Calculate nutrient amounts based on ingredient amount
+    // Convert to per 100g basis first
+    const scaleFactor = ingredient.amount / 100;
+    
+    sumCalories += scaleFactor * foodItem.nutrients.calories;
+    sumProtein += scaleFactor * foodItem.nutrients.protein_g;
+    sumCarbs += scaleFactor * foodItem.nutrients.carbs_g;
+    sumFat += scaleFactor * foodItem.nutrients.fat_g;
+    sumFiber += scaleFactor * foodItem.nutrients.fiber_g;
+    
+    // Some items might not have sugar data
+    if (foodItem.nutrients.sugar_g) {
+      sumSugar += scaleFactor * foodItem.nutrients.sugar_g;
+    }
+    
+    // Calculate cost if available
+    if (foodItem.costPer100g) {
+      sumCost += scaleFactor * foodItem.costPer100g;
+    }
+  }
+  
+  // Report any missing ingredients
+  if (missingIngredients.length > 0) {
+    console.warn(`Recipe ${recipe.id} has missing ingredients:`, missingIngredients);
+  }
+  
+  // Create enriched recipe with calculated nutrition
   return {
-    id: `food-${foodItem.id}`,
-    title: foodItem.name,
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd', // Default image
-    time: '10 mins', // Default time
-    category: foodItem.category,
-    tags: [foodItem.category],
-    saved: false,
-    calories: foodItem.nutrients.calories,
-    protein: foodItem.nutrients.protein_g,
-    carbs: foodItem.nutrients.carbs_g,
-    fat: foodItem.nutrients.fat_g,
-    fiber: foodItem.nutrients.fiber_g,
-    ingredients: [`${foodItem.servingSize} ${foodItem.servingUnit} ${foodItem.name}`],
-    difficulty: 'Easy' as const,
-    nutrientScore: calculateNutrientScore(foodItem)
+    ...recipe,
+    nutrition: {
+      calories: Math.round(sumCalories),
+      protein: Math.round(sumProtein * 10) / 10, // Round to 1 decimal place
+      carbs: Math.round(sumCarbs * 10) / 10,
+      fat: Math.round(sumFat * 10) / 10,
+      fiber: Math.round(sumFiber * 10) / 10,
+      sugar: Math.round(sumSugar * 10) / 10,
+      cost: Math.round(sumCost * 100) / 100, // Round to 2 decimal places
+    }
   };
 }
 
 /**
- * Calculate a nutrient score based on the food's nutritional content
+ * Ensures all recipes have nutrition data by calculating it if missing
+ * @param recipes Array of recipes
+ * @returns Promise with array of enriched recipes
  */
-function calculateNutrientScore(foodItem: FoodItem): number {
-  const nutrients = foodItem.nutrients;
+export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<EnrichedRecipe[]> {
+  // Load food library once for all recipes
+  const foodLibrary = await loadVegLibrary();
   
-  // Basic nutrition score calculation (similar to computeFromMacros in recipeEnrichment)
-  const fiberScore = nutrients.fiber_g / 30;
-  const calorieScore = 1 - Math.min(1, nutrients.calories / 1000);
-  const proteinScore = Math.min(1, nutrients.protein_g / 50);
+  // Process each recipe
+  const enrichedRecipes = await Promise.all(
+    recipes.map(async (recipe) => {
+      // Skip calculation if nutrition data already exists and is complete
+      if (recipe.nutrition?.calories && recipe.nutrition?.protein && 
+          recipe.nutrition?.carbs && recipe.nutrition?.fat && 
+          recipe.nutrition?.fiber && recipe.nutrition?.cost) {
+        return recipe as EnrichedRecipe;
+      }
+      
+      // For backward compatibility - if recipe has legacy fields, use them
+      if (recipe.calories && recipe.protein && recipe.carbs && recipe.fat) {
+        const cost = recipe.cost || calculateEstimatedCost(recipe);
+        
+        return {
+          ...recipe,
+          nutrition: {
+            calories: recipe.calories,
+            protein: recipe.protein,
+            carbs: recipe.carbs,
+            fat: recipe.fat,
+            fiber: recipe.fiber || 0,
+            sugar: recipe.sugar,
+            cost
+          }
+        };
+      }
+      
+      // If recipe has ingredients with IDs, calculate nutrition
+      if (recipe.ingredients && recipe.ingredients.some((ing): ing is RecipeIngredient => 
+        typeof ing === 'object' && 'id' in ing && 'amount' in ing)) {
+        return calculateNutritionAndCost(recipe, foodLibrary);
+      }
+      
+      // For legacy recipes with string ingredients, estimate nutrition
+      console.warn(`Recipe ${recipe.id || 'unknown'} has no ingredient IDs, using estimated nutrition.`);
+      return estimateRecipeNutrition(recipe);
+    })
+  );
+
+  return enrichedRecipes;
+}
+
+/**
+ * Estimates recipe cost based on ingredient count and category
+ */
+function calculateEstimatedCost(recipe: Recipe): number {
+  // Simple estimation based on number of ingredients and recipe category
+  const basePrice = 2.0;
+  const ingredientCost = (recipe.ingredients?.length || 0) * 0.5;
   
-  // Add vitamin/mineral consideration if available
-  let vitaminScore = 0;
-  let mineralCount = 0;
+  // Premium for certain categories
+  let categoryMultiplier = 1.0;
+  const category = recipe.category?.toLowerCase() || '';
   
-  if (nutrients.vitaminA_ug !== undefined) {
-    vitaminScore += Math.min(1, nutrients.vitaminA_ug / 900);
-    mineralCount++;
+  if (category.includes('premium') || category.includes('gourmet')) {
+    categoryMultiplier = 1.5;
+  } else if (category.includes('dessert') || category.includes('seafood')) {
+    categoryMultiplier = 1.2;
   }
-  if (nutrients.vitaminC_mg !== undefined) {
-    vitaminScore += Math.min(1, nutrients.vitaminC_mg / 90);
-    mineralCount++;
-  }
-  if (nutrients.calcium_mg !== undefined) {
-    vitaminScore += Math.min(1, nutrients.calcium_mg / 1000);
-    mineralCount++;
-  }
-  if (nutrients.iron_mg !== undefined) {
-    vitaminScore += Math.min(1, nutrients.iron_mg / 18);
-    mineralCount++;
-  }
   
-  const micronutrientScore = mineralCount > 0 ? vitaminScore / mineralCount : 0;
-  
-  // Combine scores (weighted average)
-  return Math.max(0, (fiberScore * 0.3 + calorieScore * 0.2 + proteinScore * 0.3 + micronutrientScore * 0.2));
+  return Math.round((basePrice + ingredientCost) * categoryMultiplier * 100) / 100;
+}
+
+/**
+ * Estimates recipe nutrition for legacy recipes without ingredient IDs
+ */
+function estimateRecipeNutrition(recipe: Recipe): EnrichedRecipe {
+  // Use existing nutrition data if available, otherwise estimate
+  return {
+    ...recipe,
+    nutrition: {
+      calories: recipe.calories || 500,
+      protein: recipe.protein || 15,
+      carbs: recipe.carbs || 50,
+      fat: recipe.fat || 20,
+      fiber: recipe.fiber || 5,
+      sugar: recipe.sugar || 10,
+      cost: recipe.cost || calculateEstimatedCost(recipe)
+    }
+  };
 }
 
 /**
@@ -151,4 +258,36 @@ export async function getFoodItemById(id: number): Promise<FoodItem | undefined>
 export async function getFoodItemsByCategory(category: string): Promise<FoodItem[]> {
   const library = await loadVegLibrary();
   return library.filter(item => item.category === category);
+}
+
+/**
+ * Converts a FoodItem to a Recipe format
+ */
+export function convertFoodItemToRecipe(foodItem: FoodItem): EnrichedRecipe {
+  return {
+    id: `food-${foodItem.id}`,
+    title: foodItem.name,
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd', // Default image
+    time: '10 mins', // Default time
+    category: foodItem.category,
+    tags: [foodItem.category],
+    saved: false,
+    ingredients: [
+      {
+        id: foodItem.id,
+        amount: 100,
+        unit: 'g' as const,
+        name: foodItem.name
+      }
+    ],
+    difficulty: 'Easy' as const,
+    nutrition: {
+      calories: foodItem.nutrients.calories,
+      protein: foodItem.nutrients.protein_g,
+      carbs: foodItem.nutrients.carbs_g,
+      fat: foodItem.nutrients.fat_g,
+      fiber: foodItem.nutrients.fiber_g,
+      cost: foodItem.costPer100g || 0
+    }
+  };
 }

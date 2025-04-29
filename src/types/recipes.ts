@@ -7,13 +7,7 @@ export interface Recipe {
   category: string;
   tags: string[];
   saved: boolean;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber: number;
-  sugar?: number;
-  ingredients: string[];
+  ingredients: RecipeIngredient[];
   instructions?: string[];
   difficulty: 'Easy' | 'Medium' | 'Hard';
   alternativeIds?: string[];
@@ -22,10 +16,34 @@ export interface Recipe {
   isQuick?: boolean;
   // New fields for recommendation engine
   vector?: number[];  // For embedding-based similarity
-  cost?: number;      // For cost-related scoring
+  cuisine?: string;   // For cuisine-based filtering
   cookTimeMinutes?: number; // Numerical cooking time for filtering
-  cuisineType?: string; // For cuisine-based matching
-  nutrientScore: number; // REQUIRED now
+  authorStyle?: string; // For LLM-based recipe generation
+  // Added nutrition and cost will be calculated at runtime
+  nutrition?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+    sugar?: number;
+    cost: number;
+  };
+  // Legacy fields that will be removed after migration
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  cost?: number;
+  nutrientScore?: number;
+}
+
+export interface RecipeIngredient {
+  id: number;
+  amount: number;
+  unit: 'g' | 'ml' | 'piece';
+  name?: string; // For display purposes
 }
 
 export interface RecipeFilters {
@@ -52,6 +70,10 @@ export interface RecommendationWeights {
   pantryMatch: number;
   costScore: number;
   recencyPenalty: number;
+  // New weights for hybrid system
+  metadataOverlap: number;
+  vectorSimilarity: number;
+  collaborativeFiltering: number;
 }
 
 export interface ScoringPreferences {
@@ -79,13 +101,14 @@ export interface RecommendationFilters {
   cuisinePreferences?: string[];
 }
 
-// New interface for the food library items from veg_library.ndjson
+// New interface for the food library items from veg_library_v2.ndjson
 export interface FoodItem {
   id: number;
   name: string;
   category: string;
   servingSize: number;
   servingUnit: string;
+  costPer100g?: number;
   nutrients: {
     calories: number;
     protein_g: number;
@@ -116,6 +139,19 @@ export interface FoodItem {
   }>;
   source?: string;
   lastUpdated?: string;
+}
+
+// Extended Recipe type with calculated nutrition
+export interface EnrichedRecipe extends Recipe {
+  nutrition: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+    sugar?: number;
+    cost: number;
+  };
 }
 
 // Utility type for converting FoodItem to Recipe

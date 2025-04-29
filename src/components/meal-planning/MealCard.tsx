@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { RefreshCw, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Euro } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import NutrientProgressBar from '@/components/dashboard/NutrientProgressBar';
 import { toast } from 'sonner';
 
 interface Ingredient {
@@ -18,15 +19,18 @@ interface MealCardProps {
   icon: React.ReactNode;
   name: string;
   description: string;
-  calories: number;
-  protein: number;
-  carbs?: number;
-  fat?: number;
-  fiber?: number;
-  sugar?: number;
+  nutrition: {
+    calories: number;
+    protein: number;
+    carbs?: number;
+    fat?: number;
+    fiber?: number;
+    sugar?: number;
+    cost: number;
+  };
   tags: string[];
   ingredients?: Ingredient[];
-  alternativeMeals?: { name: string; calories: number; protein: number; image?: string }[];
+  alternativeMeals?: { name: string; nutrition: { calories: number; cost: number }; image?: string }[];
   onMealChange: (mealType: string) => void;
   onLike?: () => void;
   onDislike?: () => void;
@@ -37,12 +41,7 @@ const MealCard: React.FC<MealCardProps> = ({
   icon,
   name,
   description,
-  calories,
-  protein,
-  carbs = 0,
-  fat = 0,
-  fiber = 0,
-  sugar = 0,
+  nutrition,
   tags,
   ingredients = [],
   alternativeMeals = [],
@@ -51,6 +50,7 @@ const MealCard: React.FC<MealCardProps> = ({
   onDislike,
 }) => {
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
+  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [currentAlternative, setCurrentAlternative] = useState(0);
   
   const handleLike = () => {
@@ -83,40 +83,86 @@ const MealCard: React.FC<MealCardProps> = ({
         </div>
       </CardHeader>
       <CardContent className="pt-4 flex-1">
-        <h3 className="font-medium text-base">{name}</h3>
-        <p className="text-muted-foreground text-sm mt-1">
+        <div className="flex justify-between items-center">
+          <h3 className="font-medium text-base">{name}</h3>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Euro className="h-3 w-3" />
+            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(nutrition.cost)}
+          </Badge>
+        </div>
+        
+        <p className="text-muted-foreground text-sm mt-1 mb-3">
           {description}
         </p>
         
-        <div className="grid grid-cols-3 gap-2 mt-3 mb-3">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="bg-muted p-2 rounded text-center">
-            <span className="block text-sm font-medium">{calories}</span>
+            <span className="block text-sm font-medium">{nutrition.calories}</span>
             <span className="text-xs text-muted-foreground">kcal</span>
           </div>
           <div className="bg-muted p-2 rounded text-center">
-            <span className="block text-sm font-medium">{protein}g</span>
+            <span className="block text-sm font-medium">{nutrition.protein}g</span>
             <span className="text-xs text-muted-foreground">protein</span>
           </div>
           <div className="bg-muted p-2 rounded text-center">
-            <span className="block text-sm font-medium">{carbs}g</span>
+            <span className="block text-sm font-medium">{nutrition.carbs || 0}g</span>
             <span className="text-xs text-muted-foreground">carbs</span>
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="flex justify-between text-xs items-center">
-            <span>Fat</span>
-            <span className="font-medium">{fat}g</span>
-          </div>
-          <div className="flex justify-between text-xs items-center">
-            <span>Fiber</span>
-            <span className="font-medium">{fiber}g</span>
-          </div>
-          <div className="flex justify-between text-xs items-center">
-            <span>Sugar</span>
-            <span className="font-medium">{sugar}g</span>
-          </div>
-        </div>
+        <Collapsible open={isNutritionOpen} onOpenChange={setIsNutritionOpen} className="w-full mb-3">
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full flex justify-between my-2">
+              <span>Nutrition Details</span>
+              {isNutritionOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="p-2">
+            <NutrientProgressBar 
+              label="Calories" 
+              value={nutrition.calories} 
+              max={800} 
+              unit="kcal"
+              color="bg-amber-500"
+            />
+            <NutrientProgressBar 
+              label="Protein" 
+              value={nutrition.protein} 
+              max={50} 
+              unit="g"
+              color="bg-blue-500"
+            />
+            <NutrientProgressBar 
+              label="Carbs" 
+              value={nutrition.carbs || 0} 
+              max={100} 
+              unit="g"
+              color="bg-green-500"
+            />
+            <NutrientProgressBar 
+              label="Fat" 
+              value={nutrition.fat || 0} 
+              max={30} 
+              unit="g"
+              color="bg-secondary"
+            />
+            <NutrientProgressBar 
+              label="Fiber" 
+              value={nutrition.fiber || 0} 
+              max={25} 
+              unit="g"
+              color="bg-accent"
+            />
+            <NutrientProgressBar 
+              label="Cost" 
+              value={nutrition.cost} 
+              max={10} 
+              unit="€"
+              color="bg-primary"
+              isCost={true}
+            />
+          </CollapsibleContent>
+        </Collapsible>
         
         <div className="flex flex-wrap gap-2 mb-3">
           {tags.map((tag, index) => (
@@ -153,7 +199,10 @@ const MealCard: React.FC<MealCardProps> = ({
             <div className="bg-muted/50 p-2 rounded-md">
               <div className="flex justify-between items-center">
                 <span className="text-sm">{alternativeMeals[currentAlternative].name}</span>
-                <span className="text-xs text-muted-foreground">{alternativeMeals[currentAlternative].calories} kcal</span>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{alternativeMeals[currentAlternative].nutrition.calories} kcal</span>
+                  <span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(alternativeMeals[currentAlternative].nutrition.cost)}</span>
+                </div>
               </div>
               <Button variant="ghost" size="sm" className="w-full mt-1" onClick={showNextAlternative}>
                 Show next alternative

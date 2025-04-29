@@ -9,6 +9,7 @@ interface NutrientProgressBarProps {
   max: number;
   unit: string;
   color?: string;
+  isCost?: boolean;
 }
 
 const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
@@ -16,16 +17,26 @@ const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
   value,
   max,
   unit,
-  color = "bg-primary"
+  color = "bg-primary",
+  isCost = false
 }) => {
   const percentage = Math.min((value / max) * 100, 100);
+  
+  // Format cost values to show currency symbol
+  const formattedValue = isCost ? 
+    new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value) : 
+    `${value} ${unit}`;
+  
+  const formattedMax = isCost ? 
+    new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(max) : 
+    `${max} ${unit}`;
   
   return (
     <div className="mb-3">
       <div className="flex justify-between text-sm mb-1">
         <span>{label}</span>
         <span className="text-muted-foreground">
-          {value} / {max} {unit}
+          {isCost ? formattedValue : `${value} / ${max} ${unit}`}
         </span>
       </div>
       <Progress 
@@ -34,6 +45,9 @@ const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
           "[&>div]:bg-primary": color === "bg-primary",
           "[&>div]:bg-secondary": color === "bg-secondary",
           "[&>div]:bg-accent": color === "bg-accent",
+          "[&>div]:bg-green-500": color === "bg-green-500",
+          "[&>div]:bg-amber-500": color === "bg-amber-500",
+          "[&>div]:bg-blue-500": color === "bg-blue-500",
         })}
       />
     </div>
