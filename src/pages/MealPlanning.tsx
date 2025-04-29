@@ -11,17 +11,17 @@ import DetailedPlanningModal from '@/components/meal-planning/DetailedPlanningMo
 import WeeklySetupModal, { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
 import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
 
-//import UnplacedMealsList from '@/components/meal-planning/UnplacedMealsList';
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
-import TemplatesTab from '@/components/meal-planning/TemplatesTab';
 import TinderDishTab from '@/components/meal-planning/TinderDishTab';
 import { MealPlan, MealItem } from '@/types/meal-planning';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { convertRecipeToMealItem } from '@/components/meal-planning/WeeklyPlanTab';
-//import { mealSuggestionService } from '@/services/mealSuggestionService';
 import { toast } from 'sonner';
 
+/**
+ * Interface for displaying the weekly meal plan
+ */
 interface WeeklyPlanDisplay {
   id: string;
   name: string;
@@ -36,44 +36,49 @@ interface WeeklyPlanDisplay {
   };
 }
 
+/**
+ * MealPlanning component handles the main meal planning functionality
+ * Allows users to create weekly meal plans with breakfast, lunch, and dinner options
+ */
 const MealPlanning = () => {
   const { toast: toastNotification } = useToast();
   const [activeTab, setActiveTab] = useState('weekly');
   const [currentDay, setCurrentDay] = useState('Monday');
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
+  // Get user preferences
   const { preferences, isSetupComplete } = useMealPreferences();
   
+  // Modal states
   const [isNewUser, setIsNewUser] = useState(!isSetupComplete);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
-  
   const [showWeeklySetupModal, setShowWeeklySetupModal] = useState(false);
+  
+  // Weekly meal setup settings
   const [weeklySettings, setWeeklySettings] = useState<WeeklySetupSettings>(() => {
     const savedSettings = localStorage.getItem('weeklyMealSettings');
     return savedSettings 
       ? JSON.parse(savedSettings) 
       : { dishCount: 7, includeBreakfast: true };
   });
-  
-  /*const [unplacedMeals, setUnplacedMeals] = useState<MealItem[]>([]);
-  
-  const [mealSuggestions, setMealSuggestions] = useState<MealItem[]>([]);*/
 
-  // Anzahl der Gerichte, die dein WeeklySetupModal vorgibt:
-const dishCount = weeklySettings.dishCount;
+  // Get number of dishes from settings
+  const dishCount = weeklySettings.dishCount;
 
-// Verwende deinen Hook, um genau dishCount Rezepte zu laden:
-const { recommendations } = useRecipeRecommendations({ count: dishCount });
+  // Load recipe recommendations
+  const { recommendations } = useRecipeRecommendations({ count: dishCount });
 
+  // State for meal plans
   const [mealPlans, setMealPlans] = useState<WeeklyPlanDisplay[]>([]);
 
-useEffect(() => {
-    // Wenn noch keine Empfehlungen vorliegen, nichts tun
+  // Initialize meal plans based on recommendations
+  useEffect(() => {
+    // Skip if no recommendations are available
     if (recommendations.length === 0) return;
 
-    // Für jeden Wochentag ein Plan-Objekt bauen
+    // Create a plan object for each day of the week
     const newPlans = days.map((day, idx) => {
       const recipe = recommendations[idx];
       const mealItem = recipe
@@ -100,10 +105,12 @@ useEffect(() => {
     setMealPlans(newPlans);
   }, [recommendations, days]);
 
+  // Save weekly settings to local storage
   useEffect(() => {
     localStorage.setItem('weeklyMealSettings', JSON.stringify(weeklySettings));
   }, [weeklySettings]);
 
+  // Show welcome modal for new users or weekly setup for returning users
   useEffect(() => {
     if (isNewUser) {
       const timer = setTimeout(() => {
@@ -116,88 +123,16 @@ useEffect(() => {
       if (!hasGeneratedBefore) {
         setShowWeeklySetupModal(true);
       } else {
-        generateMealSuggestions();
+        // Generate meal plans without the meal suggestions functionality
+        // We'll keep this function placeholder for future implementation
+        generateAIMealPlan();
       }
     }
   }, [isNewUser, isSetupComplete]);
 
-  const generateMealSuggestions = () => {
-    if (!preferences) return;
-    
-    localStorage.setItem('hasGeneratedMealPlan', 'true');
-    
-    const newPlans: WeeklyPlanDisplay[] = [];
-    let allUnplacedMeals: MealItem[] = [];
-    let allSuggestions: MealItem[] = [];
-    
-    if (!weeklySettings.includeBreakfast) {
-      const extraLunchMeals = mealSuggestionService.generateSuggestions(
-        preferences, 
-        Math.ceil(weeklySettings.dishCount * 0.6), 
-        'lunch'
-      );
-      
-      const extraDinnerMeals = mealSuggestionService.generateSuggestions(
-        preferences, 
-        Math.ceil(weeklySettings.dishCount * 0.6), 
-        'dinner'
-      );
-      
-      allUnplacedMeals = [...extraLunchMeals, ...extraDinnerMeals];
-      setUnplacedMeals(allUnplacedMeals);
-    } else {
-      setUnplacedMeals([]);
-    }
-    
-    days.forEach((day) => {
-      let dayMeals: MealItem[] = [];
-      
-      if (weeklySettings.includeBreakfast) {
-        const breakfastMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'breakfast');
-        dayMeals = [...dayMeals, ...breakfastMeals];
-        allSuggestions = [...allSuggestions, ...breakfastMeals];
-      }
-      
-      const lunchMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'lunch');
-      const dinnerMeals = mealSuggestionService.generateSuggestions(preferences, 1, 'dinner');
-      
-      dayMeals = [...dayMeals, ...lunchMeals, ...dinnerMeals];
-      allSuggestions = [...allSuggestions, ...lunchMeals, ...dinnerMeals];
-      
-      const totalCalories = dayMeals.reduce((sum, meal) => sum + meal.calories, 0);
-      const totalProtein = dayMeals.reduce((sum, meal) => sum + meal.protein, 0);
-      const totalCarbs = dayMeals.reduce((sum, meal) => sum + (meal.carbs || 0), 0);
-      const totalFat = dayMeals.reduce((sum, meal) => sum + (meal.fat || 0), 0);
-      const totalFiber = dayMeals.reduce((sum, meal) => sum + (meal.fiber || 0), 0);
-      
-      const dayPlan: WeeklyPlanDisplay = {
-        id: day.toLowerCase(),
-        name: `${day}'s Plan`,
-        day: day,
-        meals: dayMeals,
-        totalNutrition: {
-          calories: totalCalories,
-          protein: totalProtein,
-          carbs: totalCarbs,
-          fat: totalFat,
-          fiber: totalFiber
-        }
-      };
-      
-      newPlans.push(dayPlan);
-    });
-    
-    setMealPlans(newPlans);
-    
-    const additionalSuggestions = mealSuggestionService.generateSuggestions(
-      preferences,
-      10,
-      'any'
-    );
-    
-    setMealSuggestions([...allSuggestions, ...additionalSuggestions]);
-  };
-
+  /**
+   * Generate AI meal plan based on user preferences
+   */
   const generateAIMealPlan = () => {
     if (!isSetupComplete) {
       toast.error("Please complete your meal preferences setup first");
@@ -208,6 +143,10 @@ useEffect(() => {
     setShowWeeklySetupModal(true);
   };
 
+  /**
+   * Handle weekly setup settings
+   * @param settings Weekly setup settings
+   */
   const handleWeeklySetup = (settings: WeeklySetupSettings) => {
     setWeeklySettings(settings);
     
@@ -216,9 +155,8 @@ useEffect(() => {
       description: "Your personalized meal plan is being created based on your preferences.",
     });
     
+    // Simulate plan generation (future implementation)
     setTimeout(() => {
-      generateMealSuggestions();
-      
       toastNotification({
         title: "Meal Plan Ready!",
         description: "Your new meal plan has been created and is ready to review.",
@@ -226,6 +164,10 @@ useEffect(() => {
     }, 1000);
   };
 
+  /**
+   * Handle meal change by replacing a meal in the current day's plan
+   * @param mealId ID of the meal to change
+   */
   const handleMealChange = (mealId: string) => {
     if (!isSetupComplete) {
       toast.error("Please complete your meal preferences setup first");
@@ -237,19 +179,30 @@ useEffect(() => {
       description: "Showing alternative meals based on your preferences and nutritional goals.",
     });
     
+    // Find the current plan and meal to replace
     const currentPlan = mealPlans.find(plan => plan.day === currentDay);
     if (!currentPlan) return;
     
     const mealToReplace = currentPlan.meals.find(meal => meal.id === mealId);
     if (!mealToReplace) return;
     
-    const replacementMeals = mealSuggestionService.generateSuggestions(preferences, 1, mealToReplace.type);
-    if (replacementMeals.length === 0) return;
+    // Find a replacement from recommendations
+    const replacementMeal = recommendations.find(recipe => 
+      recipe.id !== mealId
+    );
+    
+    if (!replacementMeal) {
+      toast.error("No alternative meals available");
+      return;
+    }
+    
+    // Convert to meal item and update the plan
+    const newMealItem = convertRecipeToMealItem(replacementMeal);
     
     const updatedPlans = mealPlans.map(plan => {
       if (plan.day === currentDay) {
         const updatedMeals = plan.meals.map(meal => 
-          meal.id === mealId ? replacementMeals[0] : meal
+          meal.id === mealId ? newMealItem : meal
         );
         
         const totalNutrition = {
@@ -273,6 +226,11 @@ useEffect(() => {
     toast.success(`Meal updated successfully!`);
   };
 
+  /**
+   * Handle adding a meal to a specific day
+   * @param meal Meal to add
+   * @param day Day to add the meal to
+   */
   const handleAddMealToDay = (meal: MealItem, day: string) => {
     const dayPlan = mealPlans.find(plan => plan.day === day);
     if (!dayPlan) return;
@@ -305,12 +263,13 @@ useEffect(() => {
     });
     
     setMealPlans(updatedPlans);
-    
-    setUnplacedMeals(current => current.filter(m => m.id !== meal.id));
-    
     toast.success(`Added ${meal.name} to ${day}`);
   };
 
+  /**
+   * Handle setup choice
+   * @param choice Setup choice ('quick' or 'detailed')
+   */
   const handleSetupChoice = (choice: 'quick' | 'detailed') => {
     if (choice === 'quick') {
       setShowQuickSetupModal(true);
@@ -320,21 +279,32 @@ useEffect(() => {
     setShowWelcomeModal(false);
   };
 
+  /**
+   * Open preferences modal
+   */
   const handleOpenPreferences = () => {
     setShowDetailedPlanningModal(true);
   };
 
+  /**
+   * Handle accepting a meal in the Tinder-style interface
+   * @param meal Meal to accept
+   */
   const handleAcceptMeal = (meal: MealItem) => {
     handleAddMealToDay(meal, currentDay);
   };
 
+  /**
+   * Handle rejecting a meal in the Tinder-style interface
+   * @param meal Meal to reject
+   */
   const handleRejectMeal = (meal: MealItem) => {
-    setMealSuggestions(current => current.filter(m => m.id !== meal.id));
     toast.info(`Removed ${meal.name} from suggestions`);
   };
 
   return (
     <Layout>
+      {/* Header section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 uppercase">Meal Planning</h1>
         <p className="text-muted-foreground">
@@ -342,6 +312,7 @@ useEffect(() => {
         </p>
       </div>
 
+      {/* Tabs navigation */}
       <Tabs defaultValue="weekly" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
           <TabsList className="h-auto flex-wrap">
@@ -354,7 +325,6 @@ useEffect(() => {
               Meal Discovery
             </TabsTrigger>
             <TabsTrigger value="saved" className="uppercase">Saved Plans</TabsTrigger>
-            <TabsTrigger value="templates" className="uppercase">Templates</TabsTrigger>
           </TabsList>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={handleOpenPreferences} className="gap-2">
@@ -368,17 +338,10 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* Weekly plan tab content */}
         <TabsContent value="weekly" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {unplacedMeals.length > 0 && (
-              <div className="lg:col-span-3">
-                <UnplacedMealsList 
-                  meals={unplacedMeals} 
-                  onAddToDay={handleAddMealToDay} 
-                />
-              </div>
-            )}
-            <div className={`${unplacedMeals.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'}`}>
+            <div className="lg:col-span-12">
               <WeeklyPlanTab 
                 currentDay={currentDay}
                 days={days}
@@ -396,23 +359,22 @@ useEffect(() => {
           </div>
         </TabsContent>
 
+        {/* Meal discovery tab content */}
         <TabsContent value="tinder-dish" className="space-y-4">
           <TinderDishTab 
-            suggestions={mealSuggestions}
+            suggestions={recommendations.map(convertRecipeToMealItem)}
             onAccept={handleAcceptMeal}
             onReject={handleRejectMeal}
           />
         </TabsContent>
 
+        {/* Saved plans tab content */}
         <TabsContent value="saved" className="space-y-4">
           <SavedPlansTab />
         </TabsContent>
-
-        <TabsContent value="templates" className="space-y-4">
-          <TemplatesTab />
-        </TabsContent>
       </Tabs>
       
+      {/* Modals */}
       <WelcomeModal 
         open={showWelcomeModal} 
         onClose={() => setShowWelcomeModal(false)} 

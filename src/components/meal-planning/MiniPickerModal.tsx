@@ -17,6 +17,9 @@ interface MiniPickerModalProps {
   onSelectRecipe: (recipe: MealItem) => void;
 }
 
+/**
+ * Modal component for picking a meal recipe to add to a specific day and meal type
+ */
 const MiniPickerModal: React.FC<MiniPickerModalProps> = ({
   isOpen,
   onClose,
@@ -24,20 +27,32 @@ const MiniPickerModal: React.FC<MiniPickerModalProps> = ({
   availableRecipes,
   onSelectRecipe
 }) => {
+  // Track currently selected recipe
   const [selectedRecipe, setSelectedRecipe] = useState<MealItem | null>(null);
 
-  // Filter recipes based on meal type - fixed comparison with MealType
+  // Filter recipes based on meal type or show all if no matching types
   const filteredRecipes = availableRecipes.filter(recipe => 
-    !recipe.type || recipe.type === mealType
+    !recipe.type || recipe.type === mealType || recipe.type === 'any'
   );
 
+  /**
+   * Handle recipe selection
+   */
   const handleSelection = (recipe: MealItem) => {
     setSelectedRecipe(recipe);
   };
 
+  /**
+   * Handle saving the selected recipe
+   */
   const handleSave = () => {
     if (selectedRecipe) {
-      onSelectRecipe(selectedRecipe);
+      // Create a copy with the correct meal type
+      const recipeWithType = {
+        ...selectedRecipe,
+        type: mealType
+      };
+      onSelectRecipe(recipeWithType);
       setSelectedRecipe(null);
       onClose();
     }

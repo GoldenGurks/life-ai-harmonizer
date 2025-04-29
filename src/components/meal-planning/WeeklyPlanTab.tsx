@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,12 @@ import { toast } from 'sonner';
 import { Recipe } from '@/types/recipes';
 import { MealType } from './DaySlot';
 
-const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
+/**
+ * Converts a Recipe object to a MealItem for use in the meal planner
+ * @param recipe Recipe object from the database
+ * @returns Converted MealItem with appropriate properties
+ */
+export const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
   return {
     id: recipe.id,
     name: recipe.title,
@@ -24,7 +30,8 @@ const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
     fat: recipe.fat,
     fiber: recipe.fiber || 0,
     sugar: recipe.sugar || 0,
-    type: recipe.category.toLowerCase() as any,
+    type: recipe.category.toLowerCase().includes('breakfast') ? 'breakfast' : 
+          recipe.category.toLowerCase().includes('dinner') ? 'dinner' : 'lunch',
     tags: recipe.tags,
     preparationTime: recipe.cookTimeMinutes || 15,
     cookingTime: recipe.cookTimeMinutes || 15,
@@ -66,15 +73,17 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   handleMealChange,
   mealPlans
 }) => {
+  // Hooks for user profile and recipe recommendations
   const { profile, updateProfile } = useUserProfile();
   const { recommendations, getTopN } = useRecipeRecommendations({ count: 20 });
   
+  // State for recipe management
   const [availableRecipes, setAvailableRecipes] = useState<MealItem[]>([]);
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [mealCount, setMealCount] = useState(5); // Default number of meals to plan for
   
-  // New state for the mini picker modal
+  // State for the mini picker modal
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [currentMealType, setCurrentMealType] = useState<MealType>('lunch');
   const [currentPickerDay, setCurrentPickerDay] = useState<string>('');
@@ -90,7 +99,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   // Create mock data when recommendations are empty
   useEffect(() => {
     if (recommendations.length === 0 && availableRecipes.length === 0) {
-      // Using the same mock data as before
+      // Using mock data for demonstration
       const mockRecipes: MealItem[] = [
         {
           id: 'mock-1',
@@ -351,15 +360,26 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       return;
     }
 
-    // Automatically assign recipes to days
-    const assignedDays: { [key: string]: MealItem } = {};
+    // Create an empty weekly plan structure
+    const assignedDays: { [day: string]: { [key: string]: MealItem | undefined } } = {};
     
+    // Initialize the structure for all days
+    days.forEach(day => {
+      assignedDays[day] = {
+        breakfast: undefined,
+        lunch: undefined,
+        dinner: undefined
+      };
+    });
+
     // Get the days we need based on the number of recipes selected
     const daysNeeded = days.slice(0, mealCount);
     
+    // Assign recipes to lunch slots by default
     selectedRecipes.forEach((recipe, index) => {
       if (index < daysNeeded.length) {
-        assignedDays[daysNeeded[index]] = recipe;
+        const day = daysNeeded[index];
+        assignedDays[day].lunch = recipe;
       }
     });
 
@@ -380,25 +400,36 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     setIsShoppingListOpen(true);
   }, [selectedRecipes, mealCount, days, profile, updateProfile]);
 
-  // New function to handle adding a meal to a specific day and meal type
+  /**
+   * Handles opening the meal picker modal for a specific day and meal type
+   * @param day The day to add the meal to
+   * @param mealType The type of meal (breakfast, lunch, dinner)
+   */
   const handleAddMeal = useCallback((day: string, mealType: MealType) => {
     setCurrentPickerDay(day);
     setCurrentMealType(mealType);
     setIsPickerOpen(true);
   }, []);
 
-  // New function to select recipe from mini picker
+  /**
+   * Handles selecting a recipe from the mini picker and updating the meal plan
+   * @param recipe The recipe selected from the picker
+   */
   const handleSelectFromPicker = useCallback((recipe: MealItem) => {
     if (!profile?.currentWeekPlan) return;
     
-    const updatedPlan = { ...profile.currentWeekPlan };
+    // Create a deep copy of the current plan
+    const updatedPlan = { 
+      ...profile.currentWeekPlan,
+      assignedDays: { ...profile.currentWeekPlan.assignedDays }
+    };
     
     // Initialize the day if it doesn't exist
     if (!updatedPlan.assignedDays[currentPickerDay]) {
       updatedPlan.assignedDays[currentPickerDay] = {};
     }
     
-    // Add the meal to the specific meal type for the day
+    // Create a deep copy of the day's meals
     updatedPlan.assignedDays[currentPickerDay] = {
       ...updatedPlan.assignedDays[currentPickerDay],
       [currentMealType]: recipe
