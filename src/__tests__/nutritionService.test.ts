@@ -175,8 +175,8 @@ describe('Nutrition Service', () => {
         tags: ['Test'],
         saved: false,
         ingredients: [
-          { id: 1, amount: 200, unit: 'g' },
-          { id: 2, amount: 100, unit: 'g' }
+          { id: 1, amount: 200, unit: 'g' } as RecipeIngredient,
+          { id: 2, amount: 100, unit: 'g' } as RecipeIngredient
         ],
         difficulty: 'Medium'
       },
