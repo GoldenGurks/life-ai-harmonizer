@@ -1,4 +1,3 @@
-
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
 import { isRecipeIngredient, getIngredientId, getIngredientAmount } from '@/utils/ingredientUtils';
 
@@ -109,17 +108,20 @@ export async function calculateNutritionAndCost(
       continue;
     }
     
+    const ingredientId = getIngredientId(ingredient);
+    
     // Find food item in library
-    const foodItem = library.find(item => item.id === ingredient.id);
+    const foodItem = library.find(item => item.id === ingredientId);
     
     if (!foodItem) {
-      missingIngredients.push(ingredient.id);
+      missingIngredients.push(ingredientId);
       continue;
     }
     
     // Calculate nutrient amounts based on ingredient amount
     // Convert to per 100g basis first
-    const scaleFactor = ingredient.amount / 100;
+    const amount = getIngredientAmount(ingredient);
+    const scaleFactor = amount / 100;
     
     sumCalories += scaleFactor * foodItem.nutrients.calories;
     sumProtein += scaleFactor * foodItem.nutrients.protein_g;
