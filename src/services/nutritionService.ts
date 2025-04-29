@@ -1,4 +1,3 @@
-
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
 
 // Cache for the loaded library
@@ -103,6 +102,11 @@ export async function calculateNutritionAndCost(
   
   // Process each ingredient
   for (const ingredient of recipe.ingredients) {
+    // Skip string ingredients or handle them differently during transition
+    if (typeof ingredient === 'string') {
+      continue;
+    }
+    
     // Find food item in library
     const foodItem = library.find(item => item.id === ingredient.id);
     

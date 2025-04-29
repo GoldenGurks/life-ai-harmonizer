@@ -1,10 +1,11 @@
-import React from 'react';
+
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { MealItem, WeeklyPlan } from '@/types/meal-planning';
 import { WeeklyPlanDisplay } from './useMealManager';
-import { Recipe } from '@/types/recipes';
+import { Recipe, RecipeIngredient } from '@/types/recipes';
 import { toast } from 'sonner';
 
 import RecipeSelectionGrid from './RecipeSelectionGrid';
@@ -16,8 +17,6 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
 
-import { useState, useCallback, useEffect } from 'react';
-
 /**
  * Converts a Recipe object to a MealItem for use in the meal planner
  * @param recipe Recipe object from the database
@@ -28,22 +27,33 @@ export const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
     id: recipe.id,
     name: recipe.title,
     description: recipe.category,
-    calories: recipe.calories,
-    protein: recipe.protein,
-    carbs: recipe.carbs,
-    fat: recipe.fat,
-    fiber: recipe.fiber || 0,
-    sugar: recipe.sugar || 0,
+    calories: recipe.nutrition?.calories || recipe.calories || 0,
+    protein: recipe.nutrition?.protein || recipe.protein || 0,
+    carbs: recipe.nutrition?.carbs || recipe.carbs || 0,
+    fat: recipe.nutrition?.fat || recipe.fat || 0,
+    fiber: recipe.nutrition?.fiber || recipe.fiber || 0,
+    sugar: recipe.nutrition?.sugar || 0,
     type: recipe.category.toLowerCase().includes('breakfast') ? 'breakfast' : 
           recipe.category.toLowerCase().includes('dinner') ? 'dinner' : 'lunch',
     tags: recipe.tags,
     preparationTime: recipe.cookTimeMinutes || 15,
     cookingTime: recipe.cookTimeMinutes || 15,
-    ingredients: recipe.ingredients.map(ingredient => ({
-      name: ingredient,
-      amount: '1',
-      unit: 'portion'
-    })),
+    ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients.map(ingredient => {
+      // Handle both string ingredients and RecipeIngredient objects
+      if (typeof ingredient === 'string') {
+        return {
+          name: ingredient,
+          amount: '1',
+          unit: 'portion'
+        };
+      } else {
+        return {
+          name: ingredient.name || `Ingredient ${ingredient.id}`,
+          amount: ingredient.amount.toString(),
+          unit: ingredient.unit
+        };
+      }
+    }) : [],
     instructions: recipe.instructions || ['Prepare according to preference'],
     image: recipe.image,
     nutritionScore: recipe.nutrientScore

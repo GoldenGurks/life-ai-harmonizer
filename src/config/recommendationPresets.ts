@@ -8,7 +8,11 @@ export const PRESETS: Record<string, RecommendationWeights> = {
     varietyBoost: 0.1,
     pantryMatch: 0.1,
     costScore: 0.1,
-    recencyPenalty: 0.1
+    recencyPenalty: 0.1,
+    // New hybrid system weights
+    metadataOverlap: 0.0,
+    vectorSimilarity: 0.0,
+    collaborativeFiltering: 0.0
   },
   WeightLoss: {
     nutritionalFit: 0.6,
@@ -16,7 +20,11 @@ export const PRESETS: Record<string, RecommendationWeights> = {
     varietyBoost: 0.1,
     pantryMatch: 0.1,
     costScore: 0.05,
-    recencyPenalty: 0.05
+    recencyPenalty: 0.05,
+    // New hybrid system weights
+    metadataOverlap: 0.0,
+    vectorSimilarity: 0.0,
+    collaborativeFiltering: 0.0
   },
   MuscleGain: {
     nutritionalFit: 0.5,
@@ -24,7 +32,11 @@ export const PRESETS: Record<string, RecommendationWeights> = {
     varietyBoost: 0.1,
     pantryMatch: 0.1,
     costScore: 0.05,
-    recencyPenalty: 0.15
+    recencyPenalty: 0.15,
+    // New hybrid system weights
+    metadataOverlap: 0.0,
+    vectorSimilarity: 0.0,
+    collaborativeFiltering: 0.0
   }
 };
 
@@ -35,7 +47,10 @@ export const DEFAULT_RECOMMENDATION_WEIGHTS: RecommendationWeights = {
   varietyBoost: 0.1,
   pantryMatch: 0.1,
   costScore: 0.1,
-  recencyPenalty: 0.1
+  recencyPenalty: 0.1,
+  metadataOverlap: 0.0,
+  vectorSimilarity: 0.0,
+  collaborativeFiltering: 0.0
 };
 
 export const normalizeWeights = (raw: Partial<RecommendationWeights>): RecommendationWeights => {
@@ -48,6 +63,9 @@ export const normalizeWeights = (raw: Partial<RecommendationWeights>): Recommend
     varietyBoost: (raw.varietyBoost || 0) / total,
     pantryMatch: (raw.pantryMatch || 0) / total,
     costScore: (raw.costScore || 0) / total,
-    recencyPenalty: (raw.recencyPenalty || 0) / total
+    recencyPenalty: (raw.recencyPenalty || 0) / total,
+    metadataOverlap: (raw.metadataOverlap || 0) / total,
+    vectorSimilarity: (raw.vectorSimilarity || 0) / total,
+    collaborativeFiltering: (raw.collaborativeFiltering || 0) / total
   };
 };

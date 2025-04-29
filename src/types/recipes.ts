@@ -7,7 +7,7 @@ export interface Recipe {
   category: string;
   tags: string[];
   saved: boolean;
-  ingredients: RecipeIngredient[];
+  ingredients: (RecipeIngredient | string)[]; // Allow both string and RecipeIngredient types for backward compatibility
   instructions?: string[];
   difficulty: 'Easy' | 'Medium' | 'Hard';
   alternativeIds?: string[];
