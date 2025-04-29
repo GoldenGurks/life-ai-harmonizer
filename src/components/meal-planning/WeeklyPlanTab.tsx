@@ -1,17 +1,22 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { MealItem, WeeklyPlan } from '@/types/meal-planning';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
+import { WeeklyPlanDisplay } from './useMealManager';
+import { Recipe } from '@/types/recipes';
+import { toast } from 'sonner';
+
 import RecipeSelectionGrid from './RecipeSelectionGrid';
 import WeekOverview from './WeekOverview';
 import ShoppingListModal from './ShoppingListModal';
 import MiniPickerModal from './MiniPickerModal';
-import { toast } from 'sonner';
-import { Recipe } from '@/types/recipes';
 import { MealType } from './DaySlot';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
+
+import { useState, useCallback, useEffect } from 'react';
 
 /**
  * Converts a Recipe object to a MealItem for use in the meal planner
@@ -50,19 +55,7 @@ interface WeeklyPlanTabProps {
   days: string[];
   onDayChange: (day: string) => void;
   handleMealChange: (mealId: string) => void;
-  mealPlans: {
-    id: string;
-    name: string;
-    day: string;
-    meals: MealItem[];
-    totalNutrition?: {
-      calories: number;
-      protein: number;
-      carbs: number;
-      fat: number;
-      fiber: number;
-    };
-  }[];
+  mealPlans: WeeklyPlanDisplay[];
 }
 
 /**
@@ -79,12 +72,15 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   // Hooks for user profile and recipe recommendations
   const { profile, updateProfile } = useUserProfile();
   const { recommendations, getTopN } = useRecipeRecommendations({ count: 20 });
+  const { weeklySettings } = useMealPreferences();
   
   // State for recipe management
   const [availableRecipes, setAvailableRecipes] = useState<MealItem[]>([]);
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
-  const [mealCount, setMealCount] = useState(5); // Default number of meals to plan for
+  
+  // Get mealCount from weekly settings
+  const mealCount = weeklySettings.dishCount;
   
   // State for the mini picker modal
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -462,21 +458,6 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
               Select {mealCount} recipes to create your weekly meal plan. 
               Dislike any recipe to see a new suggestion.
             </CardDescription>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm">Number of meals to plan:</span>
-              <div className="flex gap-2">
-                {[3, 5, 7].map(count => (
-                  <Button 
-                    key={count}
-                    variant={mealCount === count ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setMealCount(count)}
-                  >
-                    {count}
-                  </Button>
-                ))}
-              </div>
-            </div>
           </CardHeader>
           <CardContent>
             <RecipeSelectionGrid
@@ -486,7 +467,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
               onSavePlan={handleSavePlan}
               onDislikeRecipe={handleDislikeRecipe}
               onShowShoppingList={() => setIsShoppingListOpen(true)}
-              maxMeals={mealCount} // Pass the mealCount as maxMeals prop
+              maxMeals={mealCount}
             />
           </CardContent>
         </Card>
