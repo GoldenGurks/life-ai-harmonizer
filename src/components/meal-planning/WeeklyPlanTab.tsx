@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +65,10 @@ interface WeeklyPlanTabProps {
   }[];
 }
 
+/**
+ * Main component for the weekly plan tab view
+ * Handles displaying and managing the current week's meal plan
+ */
 const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   currentDay,
   days,
@@ -483,6 +486,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
               onSavePlan={handleSavePlan}
               onDislikeRecipe={handleDislikeRecipe}
               onShowShoppingList={() => setIsShoppingListOpen(true)}
+              maxMeals={mealCount} // Pass the mealCount as maxMeals prop
             />
           </CardContent>
         </Card>

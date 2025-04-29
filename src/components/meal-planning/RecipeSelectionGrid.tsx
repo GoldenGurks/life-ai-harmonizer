@@ -15,18 +15,22 @@ interface RecipeSelectionGridProps {
   onSavePlan: () => void;
   onDislikeRecipe: (recipeId: string) => void;
   onShowShoppingList?: () => void;
+  maxMeals: number; // Added prop to receive the meal count from parent
 }
 
+/**
+ * Grid component for displaying and selecting recipes during meal planning setup
+ */
 const RecipeSelectionGrid: React.FC<RecipeSelectionGridProps> = ({
   recipes,
   selectedRecipes,
   onRecipeSelect,
   onSavePlan,
   onDislikeRecipe,
-  onShowShoppingList
+  onShowShoppingList,
+  maxMeals // Use this prop instead of hardcoded value
 }) => {
   const mealCount = selectedRecipes.length;
-  const maxMeals = 5; // Default max meals
   
   return (
     <div className="space-y-6">

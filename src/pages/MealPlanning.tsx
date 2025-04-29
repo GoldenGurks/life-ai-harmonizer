@@ -67,7 +67,7 @@ const MealPlanning = () => {
   // Get number of dishes from settings
   const dishCount = weeklySettings.dishCount;
 
-  // Load recipe recommendations
+  // Load recipe recommendations with the current dish count
   const { recommendations } = useRecipeRecommendations({ count: dishCount });
 
   // State for meal plans
@@ -149,6 +149,7 @@ const MealPlanning = () => {
    */
   const handleWeeklySetup = (settings: WeeklySetupSettings) => {
     setWeeklySettings(settings);
+    localStorage.setItem('weeklyMealSettings', JSON.stringify(settings));
     
     toastNotification({
       title: "AI-Generated Plan",

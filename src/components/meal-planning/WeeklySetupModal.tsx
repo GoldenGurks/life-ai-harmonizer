@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -19,6 +19,10 @@ export interface WeeklySetupSettings {
   includeBreakfast: boolean;
 }
 
+/**
+ * Modal component for setting up weekly meal planning preferences
+ * Allows users to select the number of dishes and whether to include breakfasts
+ */
 const WeeklySetupModal: React.FC<WeeklySetupModalProps> = ({
   open,
   onClose,
@@ -28,6 +32,14 @@ const WeeklySetupModal: React.FC<WeeklySetupModalProps> = ({
   const { updateWeeklyMealCount } = useMealPreferences();
   const [dishCount, setDishCount] = useState(initialSettings?.dishCount || 7);
   const [includeBreakfast, setIncludeBreakfast] = useState(initialSettings?.includeBreakfast ?? true);
+
+  // Update state when initialSettings change
+  useEffect(() => {
+    if (initialSettings) {
+      setDishCount(initialSettings.dishCount);
+      setIncludeBreakfast(initialSettings.includeBreakfast);
+    }
+  }, [initialSettings]);
 
   const handleSave = () => {
     // Update the weekly meal count in our preferences hook
