@@ -1,3 +1,4 @@
+
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
 import { isRecipeIngredient, getIngredientId, getIngredientAmount } from '@/utils/ingredientUtils';
 
@@ -172,7 +173,8 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
       // Skip calculation if nutrition data already exists and is complete
       if (recipe.nutrition?.calories && recipe.nutrition?.protein && 
           recipe.nutrition?.carbs && recipe.nutrition?.fat && 
-          recipe.nutrition?.fiber && recipe.nutrition?.cost) {
+          recipe.nutrition?.fiber && recipe.nutrition?.cost && 
+          recipe.nutrition?.sugar !== undefined) {
         return recipe as EnrichedRecipe;
       }
       
@@ -188,7 +190,7 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
             carbs: recipe.carbs,
             fat: recipe.fat,
             fiber: recipe.fiber || 0,
-            sugar: recipe.sugar || 0,
+            sugar: recipe.sugar ?? 0, // Use nullish coalescing for sugar
             cost
           }
         };
@@ -291,6 +293,7 @@ export function convertFoodItemToRecipe(foodItem: FoodItem): EnrichedRecipe {
       carbs: foodItem.nutrients.carbs_g,
       fat: foodItem.nutrients.fat_g,
       fiber: foodItem.nutrients.fiber_g,
+      sugar: foodItem.nutrients.sugar_g ?? 0, // Add default value for sugar
       cost: foodItem.costPer100g || 0
     }
   };

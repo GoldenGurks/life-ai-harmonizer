@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { loadVegLibrary, getFoodItemById, convertFoodItemToRecipe, calculateNutritionAndCost, ensureNutritionAndCost } from '@/services/nutritionService';
 import { FoodItem, Recipe, EnrichedRecipe } from '@/types/recipes';
-import { getIngredientId, getIngredientAmount } from '@/utils/ingredientUtils';
+import { getIngredientId, getIngredientAmount, isRecipeIngredient } from '@/utils/ingredientUtils';
 
 describe('Nutrition Service', () => {
   let vegLibrary: FoodItem[];
@@ -197,6 +197,7 @@ describe('Nutrition Service', () => {
           carbs: 40,
           fat: 12,
           fiber: 5,
+          sugar: 3, // Add sugar value
           cost: 3.50
         }
       },
@@ -215,7 +216,8 @@ describe('Nutrition Service', () => {
         protein: 5,
         carbs: 35,
         fat: 10,
-        fiber: 2
+        fiber: 2,
+        sugar: 8 // Add sugar value
       }
     ];
     
@@ -234,6 +236,7 @@ describe('Nutrition Service', () => {
     // Third recipe should convert legacy fields to nutrition object
     expect(enriched[2].nutrition.calories).toBe(250);
     expect(enriched[2].nutrition.protein).toBe(5);
+    expect(enriched[2].nutrition.sugar).toBe(8); // Should include sugar value
     expect(enriched[2].nutrition.cost).toBeGreaterThan(0);
   });
 });
