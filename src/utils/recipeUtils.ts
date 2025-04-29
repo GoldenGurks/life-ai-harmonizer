@@ -1,3 +1,4 @@
+
 import { Recipe, EnrichedRecipe } from '@/types/recipes';
 
 /**
@@ -7,7 +8,8 @@ export function getRecipeSugar(recipe: Recipe): number {
   if (recipe.nutrition?.sugar !== undefined) {
     return recipe.nutrition.sugar;
   }
-  return recipe.sugar || 0;
+  // Use nullish coalescing to handle undefined sugar
+  return recipe.sugar ?? 0;
 }
 
 /**
@@ -26,7 +28,7 @@ export function getRecipeNutrition(recipe: Recipe) {
     carbs: recipe.carbs || 0, 
     fat: recipe.fat || 0,
     fiber: recipe.fiber || 0,
-    sugar: recipe.sugar || 0,
+    sugar: recipe.sugar ?? 0, // Use nullish coalescing for sugar
     cost: recipe.cost || 0
   };
 }
@@ -47,7 +49,7 @@ export function enrichRecipe(recipe: Recipe): EnrichedRecipe {
       carbs: recipe.carbs || 0,
       fat: recipe.fat || 0,
       fiber: recipe.fiber || 0,
-      sugar: recipe.sugar || 0,
+      sugar: recipe.sugar ?? 0, // Use nullish coalescing for sugar
       cost: recipe.cost || 0
     }
   };

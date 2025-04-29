@@ -1,4 +1,3 @@
-
 export interface Recipe {
   id: string;
   title: string;
@@ -26,7 +25,7 @@ export interface Recipe {
     carbs: number;
     fat: number;
     fiber: number;
-    sugar?: number;
+    sugar: number;
     cost: number;
   };
   // Legacy fields that will be removed after migration
@@ -35,6 +34,7 @@ export interface Recipe {
   carbs?: number;
   fat?: number;
   fiber?: number;
+  sugar?: number; // Add the sugar field
   cost?: number;
   nutrientScore?: number;
 }
@@ -149,7 +149,7 @@ export interface EnrichedRecipe extends Recipe {
     carbs: number;
     fat: number;
     fiber: number;
-    sugar?: number;
+    sugar: number;
     cost: number;
   };
 }

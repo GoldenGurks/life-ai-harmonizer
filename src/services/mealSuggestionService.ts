@@ -181,7 +181,7 @@ export const mealSuggestionService = {
         carbs: nutrition.carbs,
         fat: nutrition.fat,
         fiber: nutrition.fiber,
-        sugar: nutrition.sugar || 0,
+        sugar: nutrition.sugar ?? 0,
         type: mealItemType,
         tags: recipe.tags,
         preparationTime: 15, // Default values since these might not exist in Recipe

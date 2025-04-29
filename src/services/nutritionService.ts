@@ -1,4 +1,3 @@
-
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
 import { isRecipeIngredient, getIngredientId, getIngredientAmount } from '@/utils/ingredientUtils';
 
@@ -243,7 +242,7 @@ function estimateRecipeNutrition(recipe: Recipe): EnrichedRecipe {
       carbs: recipe.carbs || 50,
       fat: recipe.fat || 20,
       fiber: recipe.fiber || 5,
-      sugar: recipe.sugar || 10,
+      sugar: recipe.sugar ?? 10, // Use nullish coalescing for sugar
       cost: recipe.cost || calculateEstimatedCost(recipe)
     }
   };
