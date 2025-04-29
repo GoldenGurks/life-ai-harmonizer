@@ -102,8 +102,8 @@ describe('Nutrition Service', () => {
     expect(recipe.nutrition.calories).toBe(18);
     expect(recipe.nutrition.protein).toBe(0.9);
     expect(recipe.nutrition.carbs).toBe(3.9);
-    expect(recipe.ingredients[0].id).toBe(1);
-    expect(recipe.ingredients[0].amount).toBe(100);
+    expect(getIngredientId(recipe.ingredients[0])).toBe(1);
+    expect(getIngredientAmount(recipe.ingredients[0])).toBe(100);
   });
 
   it('should calculate nutrition and cost for a recipe', async () => {
@@ -175,7 +175,7 @@ describe('Nutrition Service', () => {
         tags: ['Test'],
         saved: false,
         ingredients: [
-          { id: 1, amount: 200, unit: 'g' } as RecipeIngredient,
+          { id: 1, amount: 100, unit: 'g' } as RecipeIngredient,
           { id: 2, amount: 100, unit: 'g' } as RecipeIngredient
         ],
         difficulty: 'Medium'
