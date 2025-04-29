@@ -41,6 +41,15 @@ export async function getFoodItemById(id: number): Promise<FoodItem | null> {
  * Convert a FoodItem to a Recipe format
  */
 export function convertFoodItemToRecipe(item: FoodItem): EnrichedRecipe {
+  // Convert the serving unit to one of the allowed types
+  let unitType: "g" | "ml" | "piece" = "g"; // Default to "g"
+  
+  if (item.servingUnit === "ml") {
+    unitType = "ml";
+  } else if (item.servingUnit === "piece") {
+    unitType = "piece";
+  }
+  
   return {
     id: `food-${item.id}`,
     title: item.name,
@@ -50,7 +59,7 @@ export function convertFoodItemToRecipe(item: FoodItem): EnrichedRecipe {
     tags: [item.category],
     saved: false,
     difficulty: 'Easy',
-    ingredients: [{ id: item.id, amount: 100, unit: item.servingUnit }],
+    ingredients: [{ id: item.id, amount: 100, unit: unitType }],
     nutrition: {
       calories: item.nutrients.calories,
       protein: item.nutrients.protein_g,
