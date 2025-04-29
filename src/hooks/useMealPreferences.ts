@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { UserPreferences } from '@/types/meal-planning';
 import { toast } from 'sonner';
 import { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
+import { DEFAULT_RECOMMENDATION_WEIGHTS } from '@/config/recommendationPresets';
 
 const defaultPreferences: UserPreferences = {
   mealCount: 3,
@@ -25,7 +26,12 @@ const defaultPreferences: UserPreferences = {
   },
   likedMeals: [],
   dislikedMeals: [],
-  pantry: []
+  pantry: [],
+  dietaryRestrictions: [], // Add missing properties
+  goals: [],
+  recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS,
+  profileComplete: false,
+  authorStyle: '',
 };
 
 export const useMealPreferences = () => {

@@ -19,7 +19,7 @@ export const usePantry = () => {
       ...item,
       id: Date.now().toString(),
       addedAt: new Date().toISOString(),
-      quantity: item.amount || item.quantity || 0,
+      quantity: item.quantity || item.amount || 0,
     };
     setPantryItems([...pantryItems, newItem]);
     toast.success(`${item.name} added to pantry`);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Recipe, ScoringPreferences } from '@/types/recipes';
 import { useUserProfileContext } from '@/context/UserProfileContext';
@@ -9,7 +8,7 @@ interface UseRecipeRecommendationsProps {
   recipes?: Recipe[];
   count?: number;
   mealType?: string;
-  authorStyle?: string; // Add option to specify author style
+  authorStyle?: string;
 }
 
 export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) => {
@@ -32,16 +31,15 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
     }
   }, [recommendations]);
 
-  const scoringPrefs: ScoringPreferences = useMemo(() => {
+  const scoringPrefs = useMemo(() => {
     if (!profile) {
       return {
         likedMeals: [],
         pantry: [],
-        recommendationPreset: 'Healthy',
+        recommendationPreset: 'Healthy' as 'Healthy' | 'WeightLoss' | 'MuscleGain',
         recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS,
-        // Use authorStyle if provided as prop
         ...(authorStyle ? { authorStyle } : {})
-      };
+      } as ScoringPreferences;
     }
 
     return {
@@ -55,11 +53,10 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
       proteinTarget: profile.proteinTarget,
       carbTarget: profile.carbTarget,
       fatTarget: profile.fatTarget,
-      recommendationPreset: profile.recommendationPreset || 'Healthy',
+      recommendationPreset: (profile.recommendationPreset || 'Healthy') as 'Healthy' | 'WeightLoss' | 'MuscleGain',
       recommendationWeights: profile.recommendationWeights || DEFAULT_RECOMMENDATION_WEIGHTS,
-      // Use prop authorStyle, or profile.authorStyle if available
       authorStyle: authorStyle || profile.authorStyle
-    };
+    } as ScoringPreferences;
   }, [profile, recentlyViewed, authorStyle]);
 
   useEffect(() => {

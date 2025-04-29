@@ -25,7 +25,7 @@ export interface MealItem {
   instructions?: string[];
   image?: string;
   nutritionScore?: number;
-  authorStyle?: string; // Add authorStyle field
+  authorStyle?: string;
 }
 
 export interface UserPreferences {
@@ -55,7 +55,8 @@ export interface UserPreferences {
   recommendationPreset: string;
   recommendationWeights: RecommendationWeights;
   profileComplete: boolean;
-  authorStyle?: string; // Add authorStyle field
+  authorStyle?: string;
+  currentWeekPlan?: WeeklyPlan; // Add currentWeekPlan property
 }
 
 export interface MealSuggestion {
@@ -108,6 +109,10 @@ export interface PantryItem {
   unit: string;
   category: string;
   expiryDate?: string;
+  expirationDate?: string; // Additional field to match code usage
+  expiry?: string; // Additional field to match code usage
+  amount?: number; // Additional field to match code usage
+  addedAt?: string; // Additional field to match code usage
 }
 
 export interface MealPlan {
@@ -117,4 +122,45 @@ export interface MealPlan {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
+}
+
+// Add WeeklyPlan interface
+export interface WeeklyPlan {
+  selectedRecipes: MealItem[];
+  assignedDays: {
+    [day: string]: {
+      [mealType: string]: MealItem | undefined;
+    };
+  };
+  createdAt: string;
+}
+
+// Add ShoppingList interface
+export interface ShoppingList {
+  items: Array<{
+    id: string;
+    name: string;
+    category: string;
+    amount: number;
+    unit: string;
+    inPantry: boolean;
+    checked: boolean;
+  }>;
+}
+
+// Add NutrientData interface
+export interface NutrientData {
+  day: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+// Add NutrientGoal interface
+export interface NutrientGoal {
+  name: string;
+  current: number;
+  target: number;
+  unit: string;
 }
