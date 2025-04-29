@@ -83,10 +83,7 @@ export const useMealManager = (currentDay: string, days: string[]) => {
       return;
     }
 
-    toast({
-      title: t('mealPlanning.mealOptions'),
-      description: t('mealPlanning.showingAlternatives'),
-    });
+    toast.success(t('mealPlanning.mealOptions'));
     
     // Find the current plan and meal to replace
     const currentPlan = mealPlans.find(plan => plan.day === currentDay);

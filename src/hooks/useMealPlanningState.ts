@@ -4,6 +4,7 @@ import { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal
 import { toast } from 'sonner';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useMealPreferences } from '@/hooks/useMealPreferences';
 
 /**
  * Custom hook to manage meal planning state
@@ -11,6 +12,8 @@ import { useLanguage } from '@/hooks/useLanguage';
 export const useMealPlanningState = () => {
   const { toast: toastNotification } = useToast();
   const { t } = useLanguage();
+  const { weeklySettings, updateWeeklySettings } = useMealPreferences();
+  
   const [activeTab, setActiveTab] = useState('weekly');
   const [currentDay, setCurrentDay] = useState('Monday');
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -20,27 +23,14 @@ export const useMealPlanningState = () => {
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
   const [showWeeklySetupModal, setShowWeeklySetupModal] = useState(false);
-  
-  // Weekly meal setup settings
-  const [weeklySettings, setWeeklySettings] = useState<WeeklySetupSettings>(() => {
-    const savedSettings = localStorage.getItem('weeklyMealSettings');
-    return savedSettings 
-      ? JSON.parse(savedSettings) 
-      : { dishCount: 7, includeBreakfast: true };
-  });
-
-  // Save weekly settings to local storage
-  useEffect(() => {
-    localStorage.setItem('weeklyMealSettings', JSON.stringify(weeklySettings));
-  }, [weeklySettings]);
 
   /**
    * Handle weekly setup settings
    * @param settings Weekly setup settings
    */
   const handleWeeklySetup = (settings: WeeklySetupSettings) => {
-    setWeeklySettings(settings);
-    localStorage.setItem('weeklyMealSettings', JSON.stringify(settings));
+    // Update the weekly settings using our central preferences hook
+    updateWeeklySettings(settings);
     
     toastNotification({
       title: t('mealPlanning.aiPlanGenerated'),
@@ -76,7 +66,6 @@ export const useMealPlanningState = () => {
     showWeeklySetupModal,
     setShowWeeklySetupModal,
     weeklySettings,
-    setWeeklySettings,
     handleWeeklySetup,
     handleSetupChoice
   };

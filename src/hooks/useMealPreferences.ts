@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserPreferences } from '@/types/meal-planning';
 import { toast } from 'sonner';
+import { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
 
 const defaultPreferences: UserPreferences = {
   mealCount: 3,
@@ -42,6 +43,14 @@ export const useMealPreferences = () => {
     return savedCount ? parseInt(savedCount) : 7;
   });
 
+  // Add weekly settings state
+  const [weeklySettings, setWeeklySettings] = useState<WeeklySetupSettings>(() => {
+    const savedSettings = localStorage.getItem('weeklyMealSettings');
+    return savedSettings 
+      ? JSON.parse(savedSettings) 
+      : { dishCount: weeklyMealCount, includeBreakfast: true };
+  });
+
   useEffect(() => {
     localStorage.setItem('mealPreferences', JSON.stringify(preferences));
   }, [preferences]);
@@ -49,6 +58,11 @@ export const useMealPreferences = () => {
   useEffect(() => {
     localStorage.setItem('weeklyMealCount', weeklyMealCount.toString());
   }, [weeklyMealCount]);
+
+  // Save weekly settings when changed
+  useEffect(() => {
+    localStorage.setItem('weeklyMealSettings', JSON.stringify(weeklySettings));
+  }, [weeklySettings]);
 
   useEffect(() => {
     const lastResetDate = localStorage.getItem('lastWeeklyCountReset');
@@ -86,6 +100,17 @@ export const useMealPreferences = () => {
 
   const updateWeeklyMealCount = (count: number) => {
     setWeeklyMealCount(count);
+    // Also update weekly settings to keep them in sync
+    setWeeklySettings(prev => ({
+      ...prev,
+      dishCount: count
+    }));
+  };
+
+  const updateWeeklySettings = (settings: WeeklySetupSettings) => {
+    setWeeklySettings(settings);
+    // Update meal count to keep it in sync with dish count
+    setWeeklyMealCount(settings.dishCount);
   };
 
   const addLikedFood = (foodId: string) => {
@@ -166,8 +191,10 @@ export const useMealPreferences = () => {
     preferences,
     isSetupComplete,
     weeklyMealCount,
+    weeklySettings,
     updatePreferences,
     updateWeeklyMealCount,
+    updateWeeklySettings,
     addLikedFood,
     addDislikedFood,
     setQuickSetupProfile,
