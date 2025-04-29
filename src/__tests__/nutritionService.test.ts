@@ -1,7 +1,7 @@
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { loadVegLibrary, getFoodItemById, convertFoodItemToRecipe, calculateNutritionAndCost, ensureNutritionAndCost } from '@/services/nutritionService';
-import { FoodItem, Recipe, EnrichedRecipe } from '@/types/recipes';
+import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from '@/types/recipes';
 import { getIngredientId, getIngredientAmount, isRecipeIngredient } from '@/utils/ingredientUtils';
 
 describe('Nutrition Service', () => {
@@ -117,8 +117,8 @@ describe('Nutrition Service', () => {
       tags: ['Simple', 'Vegetarian'],
       saved: false,
       ingredients: [
-        { id: 2, amount: 200, unit: 'g' }, // 200g rice
-        { id: 3, amount: 15, unit: 'ml' }  // 15ml olive oil
+        { id: 2, amount: 200, unit: 'g' } as RecipeIngredient, // 200g rice
+        { id: 3, amount: 15, unit: 'ml' } as RecipeIngredient  // 15ml olive oil
       ],
       difficulty: 'Easy'
     };
@@ -143,8 +143,8 @@ describe('Nutrition Service', () => {
       tags: ['Test'],
       saved: false,
       ingredients: [
-        { id: 1, amount: 100, unit: 'g' }, // Valid
-        { id: 999, amount: 50, unit: 'g' }  // Invalid ID
+        { id: 1, amount: 100, unit: 'g' } as RecipeIngredient, // Valid
+        { id: 999, amount: 50, unit: 'g' } as RecipeIngredient  // Invalid ID
       ],
       difficulty: 'Easy'
     };
