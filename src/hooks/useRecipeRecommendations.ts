@@ -9,10 +9,11 @@ interface UseRecipeRecommendationsProps {
   recipes?: Recipe[];
   count?: number;
   mealType?: string;
+  authorStyle?: string; // Add option to specify author style
 }
 
 export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) => {
-  const { recipes = [], count = 5, mealType } = props || {};
+  const { recipes = [], count = 5, mealType, authorStyle } = props || {};
   const { profile } = useUserProfileContext();
   const [recommendations, setRecommendations] = useState<Recipe[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
@@ -37,7 +38,9 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
         likedMeals: [],
         pantry: [],
         recommendationPreset: 'Healthy',
-        recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS
+        recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS,
+        // Use authorStyle if provided as prop
+        ...(authorStyle ? { authorStyle } : {})
       };
     }
 
@@ -53,9 +56,11 @@ export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) 
       carbTarget: profile.carbTarget,
       fatTarget: profile.fatTarget,
       recommendationPreset: profile.recommendationPreset || 'Healthy',
-      recommendationWeights: profile.recommendationWeights || DEFAULT_RECOMMENDATION_WEIGHTS
+      recommendationWeights: profile.recommendationWeights || DEFAULT_RECOMMENDATION_WEIGHTS,
+      // Use prop authorStyle, or profile.authorStyle if available
+      authorStyle: authorStyle || profile.authorStyle
     };
-  }, [profile, recentlyViewed]);
+  }, [profile, recentlyViewed, authorStyle]);
 
   useEffect(() => {
     if (recipes.length === 0) return;

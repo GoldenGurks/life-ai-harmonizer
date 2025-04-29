@@ -89,6 +89,7 @@ export interface ScoringPreferences {
   fatTarget?: number;
   recommendationPreset: 'Healthy' | 'WeightLoss' | 'MuscleGain';
   recommendationWeights?: RecommendationWeights;
+  authorStyle?: string; // New field for LLM-based recipe generation
 }
 
 // New type for recommendation service filters

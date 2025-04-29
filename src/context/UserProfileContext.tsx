@@ -29,6 +29,7 @@ const defaultProfile: UserPreferences = {
   recommendationPreset: 'Healthy',
   recommendationWeights: DEFAULT_RECOMMENDATION_WEIGHTS,
   profileComplete: false,
+  authorStyle: '', // Add default authorStyle as empty string
 };
 
 interface UserProfileContextValue {
