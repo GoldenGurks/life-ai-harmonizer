@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +11,7 @@ import QuickSetupModal from '@/components/meal-planning/QuickSetupModal';
 import DetailedPlanningModal from '@/components/meal-planning/DetailedPlanningModal';
 import WeeklySetupModal, { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
 import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
+import LanguageSelector from '@/components/meal-planning/LanguageSelector';
 
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
 import TinderDishTab from '@/components/meal-planning/TinderDishTab';
@@ -18,6 +20,7 @@ import { useMealPreferences } from '@/hooks/useMealPreferences';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { convertRecipeToMealItem } from '@/components/meal-planning/WeeklyPlanTab';
 import { toast } from 'sonner';
+import { useLanguage } from '@/hooks/useLanguage';
 
 /**
  * Interface for displaying the weekly meal plan
@@ -42,6 +45,7 @@ interface WeeklyPlanDisplay {
  */
 const MealPlanning = () => {
   const { toast: toastNotification } = useToast();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('weekly');
   const [currentDay, setCurrentDay] = useState('Monday');
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -110,7 +114,7 @@ const MealPlanning = () => {
     localStorage.setItem('weeklyMealSettings', JSON.stringify(weeklySettings));
   }, [weeklySettings]);
 
-  // Show welcome modal for new users or weekly setup for returning users
+  // Show welcome modal for new users
   useEffect(() => {
     if (isNewUser) {
       const timer = setTimeout(() => {
@@ -118,24 +122,15 @@ const MealPlanning = () => {
       }, 500);
       
       return () => clearTimeout(timer);
-    } else if (isSetupComplete) {
-      const hasGeneratedBefore = localStorage.getItem('hasGeneratedMealPlan');
-      if (!hasGeneratedBefore) {
-        setShowWeeklySetupModal(true);
-      } else {
-        // Generate meal plans without the meal suggestions functionality
-        // We'll keep this function placeholder for future implementation
-        generateAIMealPlan();
-      }
     }
-  }, [isNewUser, isSetupComplete]);
+  }, [isNewUser]);
 
   /**
-   * Generate AI meal plan based on user preferences
+   * Generate meal plan based on user preferences
    */
-  const generateAIMealPlan = () => {
+  const generateMealPlan = () => {
     if (!isSetupComplete) {
-      toast.error("Please complete your meal preferences setup first");
+      toast.error(t('mealPlanning.completeSetupFirst'));
       setShowWelcomeModal(true);
       return;
     }
@@ -152,17 +147,9 @@ const MealPlanning = () => {
     localStorage.setItem('weeklyMealSettings', JSON.stringify(settings));
     
     toastNotification({
-      title: "AI-Generated Plan",
-      description: "Your personalized meal plan is being created based on your preferences.",
+      title: t('mealPlanning.aiPlanGenerated'),
+      description: t('mealPlanning.personalizedPlanCreated'),
     });
-    
-    // Simulate plan generation (future implementation)
-    setTimeout(() => {
-      toastNotification({
-        title: "Meal Plan Ready!",
-        description: "Your new meal plan has been created and is ready to review.",
-      });
-    }, 1000);
   };
 
   /**
@@ -171,13 +158,13 @@ const MealPlanning = () => {
    */
   const handleMealChange = (mealId: string) => {
     if (!isSetupComplete) {
-      toast.error("Please complete your meal preferences setup first");
+      toast.error(t('mealPlanning.completeSetupFirst'));
       return;
     }
 
     toastNotification({
-      title: "Meal Options",
-      description: "Showing alternative meals based on your preferences and nutritional goals.",
+      title: t('mealPlanning.mealOptions'),
+      description: t('mealPlanning.showingAlternatives'),
     });
     
     // Find the current plan and meal to replace
@@ -193,7 +180,7 @@ const MealPlanning = () => {
     );
     
     if (!replacementMeal) {
-      toast.error("No alternative meals available");
+      toast.error(t('mealPlanning.noAlternativesAvailable'));
       return;
     }
     
@@ -224,7 +211,7 @@ const MealPlanning = () => {
     });
     
     setMealPlans(updatedPlans);
-    toast.success(`Meal updated successfully!`);
+    toast.success(t('mealPlanning.mealUpdated'));
   };
 
   /**
@@ -264,7 +251,7 @@ const MealPlanning = () => {
     });
     
     setMealPlans(updatedPlans);
-    toast.success(`Added ${meal.name} to ${day}`);
+    toast.success(t('mealPlanning.mealAdded', { name: meal.name, day }));
   };
 
   /**
@@ -300,16 +287,16 @@ const MealPlanning = () => {
    * @param meal Meal to reject
    */
   const handleRejectMeal = (meal: MealItem) => {
-    toast.info(`Removed ${meal.name} from suggestions`);
+    toast.info(t('mealPlanning.removedFromSuggestions', { name: meal.name }));
   };
 
   return (
     <Layout>
       {/* Header section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 uppercase">Meal Planning</h1>
+        <h1 className="text-3xl font-bold mb-2 uppercase">{t('mealPlanning.title')}</h1>
         <p className="text-muted-foreground">
-          Create and manage your personalized meal plans with AI assistance.
+          {t('mealPlanning.subtitle')}
         </p>
       </div>
 
@@ -319,22 +306,23 @@ const MealPlanning = () => {
           <TabsList className="h-auto flex-wrap">
             <TabsTrigger value="weekly" className="uppercase flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Weekly Plan
+              {t('mealPlanning.weeklyPlan')}
             </TabsTrigger>
             <TabsTrigger value="tinder-dish" className="uppercase flex items-center gap-2">
               <List className="h-4 w-4" />
-              Meal Discovery
+              {t('mealPlanning.mealDiscovery')}
             </TabsTrigger>
-            <TabsTrigger value="saved" className="uppercase">Saved Plans</TabsTrigger>
+            <TabsTrigger value="saved" className="uppercase">{t('mealPlanning.savedPlans')}</TabsTrigger>
           </TabsList>
           <div className="flex gap-2 flex-wrap">
+            <LanguageSelector />
             <Button variant="outline" onClick={handleOpenPreferences} className="gap-2">
               <Settings className="h-4 w-4" />
-              Preferences
+              {t('mealPlanning.preferences')}
             </Button>
-            <Button onClick={generateAIMealPlan} className="gap-2 bg-primary hover:bg-primary/90">
+            <Button onClick={generateMealPlan} className="gap-2 bg-primary hover:bg-primary/90">
               <RefreshCw className="h-4 w-4" />
-              Generate AI Plan
+              {t('mealPlanning.generateAIPlan')}
             </Button>
           </div>
         </div>
@@ -355,7 +343,7 @@ const MealPlanning = () => {
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={() => setShowWeeklySetupModal(true)} className="gap-2">
               <Edit className="h-4 w-4" />
-              Edit Plan Settings
+              {t('mealPlanning.editPlanSettings')}
             </Button>
           </div>
         </TabsContent>

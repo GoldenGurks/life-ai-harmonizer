@@ -8,6 +8,7 @@ import { UserProfileProvider } from "@/context/UserProfileContext";
 import { UIPreferencesProvider } from "@/context/UIPreferencesContext";
 import OnboardingModal from "@/components/profile/OnboardingModal";
 import React, { useState } from "react";
+import { LanguageProvider } from "@/hooks/useLanguage";
 
 // Import all the page components
 import Index from "@/pages/Index";
@@ -55,25 +56,27 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <UserProfileProvider>
         <UIPreferencesProvider>
-          <TooltipProvider>
-            {/* Toast notifications for user feedback */}
-            <Toaster />
-            <Sonner />
-            {/* Onboarding modal for first-time users */}
-            <OnboardingModal open={showOnboard} />
-            <BrowserRouter>
-              <Routes>
-                {/* Main application routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/recipes" element={<Recipes />} />
-                <Route path="/meal-planning" element={<MealPlanning />} />
-                <Route path="/nutrition" element={<Nutrition />} />
-                <Route path="/shopping" element={<Shopping />} />
-                {/* Fallback for non-existent routes */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+          <LanguageProvider>
+            <TooltipProvider>
+              {/* Toast notifications for user feedback */}
+              <Toaster />
+              <Sonner />
+              {/* Onboarding modal for first-time users */}
+              <OnboardingModal open={showOnboard} />
+              <BrowserRouter>
+                <Routes>
+                  {/* Main application routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/recipes" element={<Recipes />} />
+                  <Route path="/meal-planning" element={<MealPlanning />} />
+                  <Route path="/nutrition" element={<Nutrition />} />
+                  <Route path="/shopping" element={<Shopping />} />
+                  {/* Fallback for non-existent routes */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </LanguageProvider>
         </UIPreferencesProvider>
       </UserProfileProvider>
     </QueryClientProvider>
