@@ -21,7 +21,8 @@ describe('Nutrition Service', () => {
         protein_g: 0.9,
         carbs_g: 3.9,
         fat_g: 0.2,
-        fiber_g: 1.2
+        fiber_g: 1.2,
+        sugar_g: 2.6 // Added sugar value
       }
     },
     {
@@ -52,7 +53,8 @@ describe('Nutrition Service', () => {
         protein_g: 0,
         carbs_g: 0,
         fat_g: 100,
-        fiber_g: 0
+        fiber_g: 0,
+        sugar_g: 0 // Added sugar value
       }
     }
   ];
@@ -84,11 +86,13 @@ describe('Nutrition Service', () => {
     if (tomato) {
       expect(tomato.name).toBe('Tomato');
       expect(tomato.nutrients.calories).toBe(18);
+      expect(tomato.nutrients.sugar_g).toBe(2.6); // Test sugar value
     }
     
     if (rice) {
       expect(rice.name).toBe('Rice, white');
       expect(rice.nutrients.calories).toBe(130);
+      expect(rice.nutrients.sugar_g).toBe(0.1); // Test sugar value
     }
   });
   
@@ -102,6 +106,7 @@ describe('Nutrition Service', () => {
     expect(recipe.nutrition.calories).toBe(18);
     expect(recipe.nutrition.protein).toBe(0.9);
     expect(recipe.nutrition.carbs).toBe(3.9);
+    expect(recipe.nutrition.sugar).toBe(2.6); // Test sugar value conversion
     expect(getIngredientId(recipe.ingredients[0])).toBe(1);
     expect(getIngredientAmount(recipe.ingredients[0])).toBe(100);
   });
@@ -130,6 +135,7 @@ describe('Nutrition Service', () => {
     expect(enriched.nutrition.protein).toBe(5.4); // 2.7 * 2
     expect(enriched.nutrition.carbs).toBe(56.4); // 28.2 * 2
     expect(enriched.nutrition.fat).toBe(Math.round((0.3 * 2 + 15) * 10) / 10); // (0.3*2 + 15) rounded
+    expect(enriched.nutrition.sugar).toBe(0.2); // 0.1 * 2 (from rice)
     expect(enriched.nutrition.cost).toBeGreaterThan(0);
   });
 
@@ -157,6 +163,7 @@ describe('Nutrition Service', () => {
     expect(enriched.nutrition).toBeDefined();
     // Should only include nutrients from tomato
     expect(enriched.nutrition.calories).toBe(18);
+    expect(enriched.nutrition.sugar).toBe(2.6); // Should include sugar from tomato
     expect(consoleSpy).toHaveBeenCalled();
     expect(consoleSpy.mock.calls[0][0]).toContain('missing ingredients');
     
@@ -197,7 +204,7 @@ describe('Nutrition Service', () => {
           carbs: 40,
           fat: 12,
           fiber: 5,
-          sugar: 3, // Add sugar value
+          sugar: 3,
           cost: 3.50
         }
       },
@@ -217,7 +224,7 @@ describe('Nutrition Service', () => {
         carbs: 35,
         fat: 10,
         fiber: 2,
-        sugar: 8 // Add sugar value
+        sugar: 8
       }
     ];
     
@@ -228,15 +235,17 @@ describe('Nutrition Service', () => {
     // First recipe should have calculated nutrition
     expect(enriched[0].nutrition).toBeDefined();
     expect(enriched[0].nutrition.calories).toBeGreaterThan(0);
+    expect(enriched[0].nutrition.sugar).toBeDefined(); // Sugar should be calculated
     
     // Second recipe should preserve existing nutrition
     expect(enriched[1].nutrition.calories).toBe(300);
     expect(enriched[1].nutrition.cost).toBe(3.50);
+    expect(enriched[1].nutrition.sugar).toBe(3); // Sugar should be preserved
     
     // Third recipe should convert legacy fields to nutrition object
     expect(enriched[2].nutrition.calories).toBe(250);
     expect(enriched[2].nutrition.protein).toBe(5);
-    expect(enriched[2].nutrition.sugar).toBe(8); // Should include sugar value
+    expect(enriched[2].nutrition.sugar).toBe(8); // Legacy sugar should be preserved
     expect(enriched[2].nutrition.cost).toBeGreaterThan(0);
   });
 });
