@@ -32,7 +32,7 @@ const MiniPickerModal: React.FC<MiniPickerModalProps> = ({
 
   // Filter recipes based on meal type or show all if no matching types
   const filteredRecipes = availableRecipes.filter(recipe => 
-    !recipe.type || recipe.type === mealType || recipe.type === 'any'
+    !recipe.type || recipe.type === mealType || recipe.type === 'breakfast' || recipe.type === 'lunch' || recipe.type === 'dinner'
   );
 
   /**
