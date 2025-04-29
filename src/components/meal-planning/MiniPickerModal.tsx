@@ -26,9 +26,9 @@ const MiniPickerModal: React.FC<MiniPickerModalProps> = ({
 }) => {
   const [selectedRecipe, setSelectedRecipe] = useState<MealItem | null>(null);
 
-  // Filter recipes based on meal type
+  // Filter recipes based on meal type - fixed comparison with MealType
   const filteredRecipes = availableRecipes.filter(recipe => 
-    (mealType === 'any' || recipe.type === mealType || !recipe.type)
+    !recipe.type || recipe.type === mealType
   );
 
   const handleSelection = (recipe: MealItem) => {

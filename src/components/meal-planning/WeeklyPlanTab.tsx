@@ -395,7 +395,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     
     // Initialize the day if it doesn't exist
     if (!updatedPlan.assignedDays[currentPickerDay]) {
-      updatedPlan.assignedDays[currentPickerDay] = {} as any;
+      updatedPlan.assignedDays[currentPickerDay] = {};
     }
     
     // Add the meal to the specific meal type for the day
