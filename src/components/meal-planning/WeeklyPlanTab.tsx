@@ -8,8 +8,10 @@ import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import RecipeSelectionGrid from './RecipeSelectionGrid';
 import WeekOverview from './WeekOverview';
 import ShoppingListModal from './ShoppingListModal';
+import MiniPickerModal from './MiniPickerModal';
 import { toast } from 'sonner';
 import { Recipe } from '@/types/recipes';
+import { MealType } from './DaySlot';
 
 const convertRecipeToMealItem = (recipe: Recipe): MealItem => {
   return {
@@ -71,6 +73,11 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [mealCount, setMealCount] = useState(5); // Default number of meals to plan for
+  
+  // New state for the mini picker modal
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [currentMealType, setCurrentMealType] = useState<MealType>('lunch');
+  const [currentPickerDay, setCurrentPickerDay] = useState<string>('');
   
   // Initialize available recipes from recommendations
   useEffect(() => {
@@ -162,7 +169,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
             { name: 'Avocado', amount: '1', unit: 'medium' }
           ],
           instructions: ['Toast bread', 'Smash avocado and spread on toast'],
-          image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93',
+          image: 'https://images.unsplash.com/photo-1528207776546-c4da40fba323',
           nutritionScore: 7
         },
         {
@@ -182,7 +189,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
             { name: 'Mixed vegetables', amount: '200', unit: 'g' }
           ],
           instructions: ['Cook quinoa', 'Sauté vegetables', 'Combine in bowl'],
-          image: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2',
+          image: 'https://images.unsplash.com/photo-1511690656646-c4342bb7c2f2',
           nutritionScore: 9
         },
         {
@@ -373,6 +380,43 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     setIsShoppingListOpen(true);
   }, [selectedRecipes, mealCount, days, profile, updateProfile]);
 
+  // New function to handle adding a meal to a specific day and meal type
+  const handleAddMeal = useCallback((day: string, mealType: MealType) => {
+    setCurrentPickerDay(day);
+    setCurrentMealType(mealType);
+    setIsPickerOpen(true);
+  }, []);
+
+  // New function to select recipe from mini picker
+  const handleSelectFromPicker = useCallback((recipe: MealItem) => {
+    if (!profile?.currentWeekPlan) return;
+    
+    const updatedPlan = { ...profile.currentWeekPlan };
+    
+    // Initialize the day if it doesn't exist
+    if (!updatedPlan.assignedDays[currentPickerDay]) {
+      updatedPlan.assignedDays[currentPickerDay] = {} as any;
+    }
+    
+    // Add the meal to the specific meal type for the day
+    updatedPlan.assignedDays[currentPickerDay] = {
+      ...updatedPlan.assignedDays[currentPickerDay],
+      [currentMealType]: recipe
+    };
+    
+    // Make sure the recipe is in the selectedRecipes array
+    if (!updatedPlan.selectedRecipes.some(r => r.id === recipe.id)) {
+      updatedPlan.selectedRecipes = [...updatedPlan.selectedRecipes, recipe];
+    }
+    
+    updateProfile({
+      ...profile,
+      currentWeekPlan: updatedPlan
+    });
+    
+    toast.success(`${recipe.name} added to ${currentPickerDay}'s ${currentMealType}`);
+  }, [profile, updateProfile, currentPickerDay, currentMealType]);
+
   // If no plan exists, show the recipe selection grid
   if (!profile?.currentWeekPlan) {
     return (
@@ -424,7 +468,10 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   // If plan exists, show the week overview
   return (
     <>
-      <WeekOverview plan={profile.currentWeekPlan} />
+      <WeekOverview 
+        plan={profile.currentWeekPlan} 
+        onAddMeal={handleAddMeal} 
+      />
       <div className="flex justify-between mt-4">
         <Button 
           variant="outline" 
@@ -453,6 +500,14 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
         isOpen={isShoppingListOpen}
         onClose={() => setIsShoppingListOpen(false)}
         selectedMeals={profile.currentWeekPlan.selectedRecipes}
+      />
+
+      <MiniPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        mealType={currentMealType}
+        availableRecipes={availableRecipes.length > 0 ? availableRecipes : recommendations.map(convertRecipeToMealItem)}
+        onSelectRecipe={handleSelectFromPicker}
       />
     </>
   );

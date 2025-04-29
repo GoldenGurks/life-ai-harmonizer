@@ -166,7 +166,12 @@ export interface ShoppingList {
 export interface WeeklyPlan {
   selectedRecipes: MealItem[];
   assignedDays: {
-    [key: string]: MealItem;
+    [day: string]: {
+      breakfast?: MealItem;
+      lunch?: MealItem;
+      dinner?: MealItem;
+      [key: string]: MealItem | undefined;
+    };
   };
   createdAt: string;
 }
