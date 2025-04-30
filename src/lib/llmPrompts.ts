@@ -97,7 +97,8 @@ function generateMockRecipes(style: string, ingredients: string[]): Recipe[] {
         sugar: 8,
         cost: 3.50
       },
-      authorStyle: style
+      authorStyle: style,
+      servings: 2  // Added servings
     },
     {
       id: `llm-${style.toLowerCase()}-2`,
@@ -127,7 +128,8 @@ function generateMockRecipes(style: string, ingredients: string[]): Recipe[] {
         sugar: 5,
         cost: 4.20
       },
-      authorStyle: style
+      authorStyle: style,
+      servings: 2  // Added servings
     },
     {
       id: `llm-${style.toLowerCase()}-3`,
@@ -157,7 +159,8 @@ function generateMockRecipes(style: string, ingredients: string[]): Recipe[] {
         sugar: 4,
         cost: 5.90
       },
-      authorStyle: style
+      authorStyle: style,
+      servings: 2  // Added servings
     },
     {
       id: `llm-${style.toLowerCase()}-4`,
@@ -187,7 +190,8 @@ function generateMockRecipes(style: string, ingredients: string[]): Recipe[] {
         sugar: 6,
         cost: 3.10
       },
-      authorStyle: style
+      authorStyle: style,
+      servings: 1  // Added servings
     },
     {
       id: `llm-${style.toLowerCase()}-5`,
@@ -217,7 +221,8 @@ function generateMockRecipes(style: string, ingredients: string[]): Recipe[] {
         sugar: 7,
         cost: 4.80
       },
-      authorStyle: style
+      authorStyle: style,
+      servings: 2  // Added servings
     }
   ];
 }

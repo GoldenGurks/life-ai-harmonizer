@@ -1,7 +1,8 @@
+
 import { Recipe, FoodItem } from '@/types/recipes';
 import { ensureNutrientScore } from '@/lib/recipeEnrichment';
 import { loadVegLibrary, convertFoodItemToRecipe } from '@/services/nutritionService';
-import { convertStringToRecipeIngredient } from '@/utils/ingredientUtils';
+import { convertStringToRecipeIngredient, isRecipeIngredient } from '@/utils/ingredientUtils';
 
 // Helper function to ensure all recipes have a servings property
 function ensureServingsProperty(recipe: any): Recipe {
@@ -953,7 +954,7 @@ export async function getRecipeById(id: string): Promise<Recipe | undefined> {
  */
 export function migrateRecipeIngredients(recipe: Recipe): Recipe {
   // Skip if already migrated
-  if (recipe.ingredients.every(isRecipeIngredient)) {
+  if (recipe.ingredients.every(ing => isRecipeIngredient(ing))) {
     return recipe;
   }
   
