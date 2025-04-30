@@ -1,5 +1,5 @@
 
-import { FoodItem, Recipe, EnrichedRecipe } from "@/types/recipes";
+import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from "@/types/recipes";
 import { getIngredientId, getIngredientAmount, isRecipeIngredient } from "@/utils/ingredientUtils";
 
 // Cache for the library data to avoid multiple network requests
@@ -59,13 +59,14 @@ export function convertFoodItemToRecipe(item: FoodItem): EnrichedRecipe {
     tags: [item.category],
     saved: false,
     difficulty: 'Easy',
-    ingredients: [{ id: item.id, amount: 100, unit: unitType }],
+    servings: 1,
+    ingredients: [{ id: item.id, amount: 100, unit: unitType, name: item.name }],
     nutrition: {
       calories: item.nutrients.calories,
       protein: item.nutrients.protein_g,
       carbs: item.nutrients.carbs_g,
       fat: item.nutrients.fat_g,
-      fiber: item.nutrients.fiber_g,
+      fiber: item.nutrients.fiber_g || 0,
       sugar: item.nutrients.sugar_g || 0, // Added sugar with fallback to 0
       cost: item.costPer100g || 0
     }
@@ -84,18 +85,23 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
   let totalCarbs = 0;
   let totalFat = 0;
   let totalFiber = 0;
-  let totalSugar = 0; // Added sugar tracking
+  let totalSugar = 0;
   let totalCost = 0;
   let missingIngredients = false;
   
   // Calculate nutrition for each ingredient
   for (const ingredient of recipe.ingredients) {
-    // Skip if not a RecipeIngredient
-    if (!isRecipeIngredient(ingredient)) continue;
-
+    // Skip if not a RecipeIngredient object and we can't get an ID
     const ingredientId = getIngredientId(ingredient);
+    if (ingredientId === null) {
+      missingIngredients = true;
+      continue;
+    }
+    
+    // Get the amount in the appropriate unit
     const amount = getIngredientAmount(ingredient);
     
+    // Find the food item in the library
     const foodItem = library.find(item => item.id === ingredientId);
     
     if (foodItem) {
@@ -107,7 +113,7 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
       totalCarbs += foodItem.nutrients.carbs_g * ratio;
       totalFat += foodItem.nutrients.fat_g * ratio;
       totalFiber += (foodItem.nutrients.fiber_g || 0) * ratio;
-      totalSugar += (foodItem.nutrients.sugar_g || 0) * ratio; // Added sugar calculation
+      totalSugar += (foodItem.nutrients.sugar_g || 0) * ratio;
       
       // Add cost if available
       if (foodItem.costPer100g) {
@@ -118,19 +124,29 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
     }
   }
   
+  // Adjust for servings
+  const servings = recipe.servings || 1;
+  const caloriesPerServing = totalCalories / servings;
+  const proteinPerServing = totalProtein / servings;
+  const carbsPerServing = totalCarbs / servings;
+  const fatPerServing = totalFat / servings;
+  const fiberPerServing = totalFiber / servings;
+  const sugarPerServing = totalSugar / servings;
+  const costPerServing = totalCost / servings;
+  
   // Log warning if ingredients are missing
   if (missingIngredients) {
     console.warn(`Recipe ${recipe.id} has missing ingredients. Nutrition values may be incomplete.`);
   }
   
   // Round values for better display
-  const roundedCalories = Math.round(totalCalories);
-  const roundedProtein = Math.round(totalProtein * 10) / 10;
-  const roundedCarbs = Math.round(totalCarbs * 10) / 10;
-  const roundedFat = Math.round(totalFat * 10) / 10;
-  const roundedFiber = Math.round(totalFiber * 10) / 10;
-  const roundedSugar = Math.round(totalSugar * 10) / 10; // Added rounded sugar
-  const roundedCost = Math.round(totalCost * 100) / 100;
+  const roundedCalories = Math.round(caloriesPerServing);
+  const roundedProtein = Math.round(proteinPerServing * 10) / 10;
+  const roundedCarbs = Math.round(carbsPerServing * 10) / 10;
+  const roundedFat = Math.round(fatPerServing * 10) / 10;
+  const roundedFiber = Math.round(fiberPerServing * 10) / 10;
+  const roundedSugar = Math.round(sugarPerServing * 10) / 10;
+  const roundedCost = Math.round(costPerServing * 100) / 100;
   
   return {
     ...recipe,
@@ -140,7 +156,7 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
       carbs: roundedCarbs,
       fat: roundedFat,
       fiber: roundedFiber,
-      sugar: roundedSugar, // Added sugar to nutrition object
+      sugar: roundedSugar,
       cost: roundedCost
     }
   };
@@ -164,7 +180,7 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
           carbs: recipe.nutrition.carbs,
           fat: recipe.nutrition.fat,
           fiber: recipe.nutrition.fiber || 0,
-          sugar: recipe.nutrition.sugar || 0, // Added sugar with fallback
+          sugar: recipe.nutrition.sugar || 0,
           cost: recipe.nutrition.cost || 0
         }
       });
@@ -179,7 +195,7 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
           carbs: recipe.carbs || 0,
           fat: recipe.fat || 0,
           fiber: recipe.fiber || 0,
-          sugar: recipe.sugar || 0, // Added sugar with fallback
+          sugar: recipe.sugar || 0,
           cost: recipe.cost || 1.99 // Default cost if not specified
         }
       });
@@ -199,7 +215,7 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
           carbs: 0,
           fat: 0,
           fiber: 0,
-          sugar: 0, // Added sugar with default
+          sugar: 0,
           cost: 0
         }
       });
@@ -207,4 +223,11 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
   }
   
   return enrichedRecipes;
+}
+
+/**
+ * Calculate cost per serving for a recipe
+ */
+export function calculateCostPerServing(recipe: EnrichedRecipe): number {
+  return recipe.nutrition.cost;
 }

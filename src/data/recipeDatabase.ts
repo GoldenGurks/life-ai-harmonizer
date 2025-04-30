@@ -1,6 +1,7 @@
 import { Recipe, FoodItem } from '@/types/recipes';
 import { ensureNutrientScore } from '@/lib/recipeEnrichment';
 import { loadVegLibrary, convertFoodItemToRecipe } from '@/services/nutritionService';
+import { convertStringToRecipeIngredient } from '@/utils/ingredientUtils';
 
 // Add nutrientScore to all recipes (was missing and causing type errors)
 export const recipeData: Recipe[] = [
@@ -12,15 +13,33 @@ export const recipeData: Recipe[] = [
     category: 'Lunch',
     tags: ['Vegan', 'High Protein', 'Mediterranean'],
     saved: true,
+    servings: 2,
+    ingredients: [
+      { id: 301, amount: 150, unit: 'g', name: 'Quinoa' },
+      { id: 105, amount: 200, unit: 'g', name: 'Chickpeas' },
+      { id: 205, amount: 1, unit: 'piece', name: 'Cucumber' },
+      { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
+      { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
+      { id: 401, amount: 50, unit: 'g', name: 'Feta' },
+      { id: 601, amount: 15, unit: 'ml', name: 'Olive oil' },
+      { id: 701, amount: 15, unit: 'ml', name: 'Lemon juice' }
+    ],
+    instructions: [
+      'Cook quinoa according to package instructions.',
+      'Dice cucumber, red onion, and halve cherry tomatoes.',
+      'Drain and rinse chickpeas.',
+      'Combine all ingredients in a bowl.',
+      'Drizzle with olive oil and lemon juice.',
+      'Crumble feta cheese on top and serve.'
+    ],
+    difficulty: 'Easy',
+    alternativeIds: ['5', '3'],
+    nutrientScore: 0.55,
     calories: 420,
     protein: 18,
     carbs: 62,
     fat: 12,
-    fiber: 8,
-    ingredients: ['Quinoa', 'Chickpeas', 'Cucumber', 'Red onion', 'Cherry tomatoes', 'Feta', 'Olive oil', 'Lemon juice'],
-    difficulty: 'Easy',
-    alternativeIds: ['5', '3'],
-    nutrientScore: 0.55
+    fiber: 8
   },
   {
     id: '2',
@@ -30,15 +49,29 @@ export const recipeData: Recipe[] = [
     category: 'Breakfast',
     tags: ['Vegan', 'Quick', 'Superfood'],
     saved: false,
+    servings: 1,
+    ingredients: [
+      { id: 202, amount: 50, unit: 'g', name: 'Kale' },
+      { id: 208, amount: 0.5, unit: 'piece', name: 'Avocado' },
+      { id: 501, amount: 1, unit: 'piece', name: 'Banana' },
+      { id: 403, amount: 250, unit: 'ml', name: 'Almond milk' },
+      { id: 707, amount: 10, unit: 'g', name: 'Chia seeds' },
+      { id: 706, amount: 15, unit: 'ml', name: 'Honey' }
+    ],
+    instructions: [
+      'Wash and roughly chop the kale, removing tough stems.',
+      'Add all ingredients to a blender.',
+      'Blend until smooth, adding more almond milk if needed for desired consistency.',
+      'Pour into a glass and serve immediately.'
+    ],
+    difficulty: 'Easy',
+    alternativeIds: ['8', '10'],
+    nutrientScore: 0.48,
     calories: 310,
     protein: 8,
     carbs: 34,
     fat: 16,
-    fiber: 6,
-    ingredients: ['Kale', 'Avocado', 'Banana', 'Almond milk', 'Chia seeds', 'Honey'],
-    difficulty: 'Easy',
-    alternativeIds: ['8', '10'],
-    nutrientScore: 0.48
+    fiber: 6
   },
   {
     id: '3',
@@ -48,15 +81,34 @@ export const recipeData: Recipe[] = [
     category: 'Lunch',
     tags: ['High Protein', 'Low Carb'],
     saved: true,
+    servings: 2,
+    ingredients: [
+      { id: 101, amount: 200, unit: 'g', name: 'Chicken breast' },
+      { id: 201, amount: 100, unit: 'g', name: 'Mixed greens' },
+      { id: 205, amount: 1, unit: 'piece', name: 'Cucumber' },
+      { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
+      { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
+      { id: 401, amount: 30, unit: 'g', name: 'Feta cheese' },
+      { id: 601, amount: 15, unit: 'ml', name: 'Olive oil' },
+      { id: 702, amount: 10, unit: 'ml', name: 'Balsamic vinegar' }
+    ],
+    instructions: [
+      'Season chicken breast with salt and pepper.',
+      'Grill chicken for 6-7 minutes on each side until cooked through.',
+      'Let chicken rest for 5 minutes, then slice.',
+      'In a large bowl, combine mixed greens, diced cucumber, halved cherry tomatoes, and sliced red onion.',
+      'Top with grilled chicken slices and crumbled feta cheese.',
+      'Drizzle with olive oil and balsamic vinegar.',
+      'Toss gently and serve.'
+    ],
+    difficulty: 'Medium',
+    alternativeIds: ['1', '9'],
+    nutrientScore: 0.52,
     calories: 380,
     protein: 32,
     carbs: 12,
     fat: 18,
-    fiber: 4,
-    ingredients: ['Chicken breast', 'Mixed greens', 'Cucumber', 'Cherry tomatoes', 'Red onion', 'Feta cheese', 'Olive oil', 'Balsamic vinegar'],
-    difficulty: 'Medium',
-    alternativeIds: ['1', '9'],
-    nutrientScore: 0.52
+    fiber: 4
   },
   {
     id: '4',
@@ -882,4 +934,36 @@ export async function getRecipeById(id: string): Promise<Recipe | undefined> {
   }
   
   return undefined;
+}
+
+/**
+ * Helper function to migrate string ingredients to RecipeIngredient objects
+ * This is a temporary function to assist with migration
+ */
+export function migrateRecipeIngredients(recipe: Recipe): Recipe {
+  // Skip if already migrated
+  if (recipe.ingredients.every(isRecipeIngredient)) {
+    return recipe;
+  }
+  
+  const migratedIngredients = recipe.ingredients.map(ingredient => {
+    if (typeof ingredient === 'string') {
+      return convertStringToRecipeIngredient(ingredient);
+    }
+    return ingredient;
+  });
+  
+  return {
+    ...recipe,
+    ingredients: migratedIngredients,
+    // Add default servings if not present
+    servings: recipe.servings || 2
+  };
+}
+
+/**
+ * Migrate all recipes to use RecipeIngredient objects
+ */
+export function migrateAllRecipes(): Recipe[] {
+  return recipeData.map(migrateRecipeIngredients);
 }

@@ -1,3 +1,4 @@
+
 export interface Recipe {
   id: string;
   title: string;
@@ -13,6 +14,7 @@ export interface Recipe {
   score?: number;
   useLeftovers?: boolean;
   isQuick?: boolean;
+  servings: number; // New field for number of servings
   // New fields for recommendation engine
   vector?: number[];  // For embedding-based similarity
   cuisine?: string;   // For cuisine-based filtering
@@ -34,7 +36,7 @@ export interface Recipe {
   carbs?: number;
   fat?: number;
   fiber?: number;
-  sugar?: number; // Add the sugar field
+  sugar?: number;
   cost?: number;
   nutrientScore?: number;
 }
