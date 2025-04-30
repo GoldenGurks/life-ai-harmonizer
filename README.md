@@ -1,52 +1,92 @@
 
-# Meal Planning Application
+# NutriPlan - Meal Planning Application
 
-A React-based meal planning application that helps users organize their meals, track nutrition, and manage shopping lists.
+A comprehensive React-based meal planning application that helps users organize meals, track nutrition, manage shopping lists, and receive personalized recipe recommendations.
+
+## Features
+
+### 🍽️ Personalized Meal Planning
+- Weekly meal planning with drag-and-drop interface
+- AI-assisted meal recommendations based on preferences
+- Author style-based recipe suggestions
+- Customizable recommendation weights
+- Multiple planning modes (quick setup, detailed planning)
+
+### 📊 Nutrition Tracking
+- Comprehensive macronutrient tracking
+- Visual nutrition charts and progress indicators
+- Personalized nutritional goals
+- Daily and weekly nutrition summaries
+
+### 🛒 Shopping & Pantry Management
+- Automated shopping list generation
+- Pantry inventory tracking with expiration dates
+- Smart ingredient suggestions based on planned meals
+- Category-based organization
+
+### 👤 User Profile Management
+- Dietary preferences and restrictions
+- Fitness goals tracking
+- Food preferences (likes/dislikes)
+- Cooking experience and time availability settings
+
+## Technology Stack
+
+- **Frontend**: React 18 with TypeScript
+- **State Management**: React Context API with custom hooks
+- **UI Components**: Shadcn UI with Tailwind CSS
+- **Data Visualization**: Recharts for nutrition charts
+- **Form Handling**: React Hook Form with Zod validation
+- **Animations**: Motion library for smooth transitions
+- **Notifications**: Sonner toast notifications
 
 ## Project Structure
 
 ```
 src/
-├── components/         # Reusable UI components
-│   ├── ui/            # Base UI components from shadcn
-│   ├── profile/       # User profile related components
-│   └── meal-planning/ # Meal planning specific components
-├── context/           # React context providers
-├── hooks/             # Custom React hooks
-├── pages/             # Route-based page components
-├── services/          # Business logic and API services
-└── types/             # TypeScript type definitions
+├── components/          # Reusable UI components
+│   ├── ui/              # Base UI components from shadcn
+│   ├── profile/         # User profile related components
+│   ├── meal-planning/   # Meal planning specific components
+│   ├── nutrition/       # Nutrition tracking components
+│   └── shopping/        # Shopping list and pantry components
+├── context/             # React context providers
+├── hooks/               # Custom React hooks
+├── pages/               # Route-based page components
+├── services/            # Business logic and API services
+├── types/               # TypeScript type definitions
+├── utils/               # Utility functions
+├── data/                # Static data and mock databases
+└── lib/                 # Third-party library wrappers
 ```
 
-## Core Features
+## Core Services
 
-### User Profile Management (`/context/UserProfileContext.tsx`)
-- Handles user preferences storage and retrieval
-- Manages dietary restrictions, goals, and meal preferences
-- Provides functions for updating and resetting profiles
-- Persists data in localStorage (backend-ready)
+### Recommendation Engine
 
-### Meal Planning (`/pages/MealPlanning.tsx`)
-- Weekly meal planning interface
-- AI-assisted meal suggestions
-- Meal preference tracking (liked/disliked)
-- Drag-and-drop meal organization
+The application features a sophisticated recommendation engine that considers:
 
-### Nutrition Tracking (`/pages/Nutrition.tsx`)
-- Macronutrient tracking
-- Nutritional goals management
-- Visual progress indicators
+- User dietary preferences
+- Fitness goals and nutritional targets
+- Food likes and dislikes
+- Pantry contents
+- Previously viewed recipes
+- Cooking skill and available time
 
-### Shopping Management (`/pages/Shopping.tsx`)
-- Shopping list creation
-- Pantry inventory tracking
-- Smart ingredient suggestions
+The recommendation system uses customizable weights for different factors:
 
-## Key Hooks
+- Nutritional value
+- Ingredient similarity
+- Pantry usage optimization
+- Recipe variety
 
-- `useUserProfile`: Access and modify user profile data
-- `useMealPreferences`: Handle meal-specific preferences
-- `usePantry`: Manage pantry inventory
+### LLM Integration
+
+For cold-start scenarios or author-style specifications, the system can leverage LLM-based suggestions to:
+
+- Generate recipes in specific culinary styles
+- Provide cooking tips based on user preferences
+- Suggest meal combinations that match nutritional goals
 
 ## Getting Started
 
@@ -65,82 +105,42 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Development Guidelines
 
-### Code Quality
-- TypeScript for type safety
-- ESLint + Prettier for consistent formatting
-- Component-based architecture with clear separation of concerns
+### Code Organization
+- Focused, small components (~50-100 lines)
+- Clear separation of concerns
+- Custom hooks for reusable logic
+- Context providers for global state
+
+### Styling
+- Tailwind CSS for styling
+- Consistent design system via shadcn/ui
+- Responsive layouts for all screen sizes
 
 ### Testing
-- Unit tests for business logic
-- Component tests with React Testing Library
-- E2E tests with Playwright
+- Component testing with React Testing Library
+- Service unit tests
+- End-to-end testing with Playwright
 
-### State Management
-- React Context for global state
-- Local state for component-specific data
-- Persisted state in localStorage
+## Key Features Implementation
 
-## Contributing
+### Meal Planning Workflow:
+1. User completes preference profile
+2. System generates personalized recommendations
+3. User selects recipes for the week
+4. Recipes are assigned to specific days
+5. Shopping list is automatically generated
 
-1. Follow the established project structure
-2. Keep components small and focused
-3. Document complex logic with inline comments
-4. Write tests for new features
-5. Use TypeScript strictly - no `any` types
+### Recommendation System:
+- Initial recommendations based on user profile
+- Feedback loop through likes/dislikes
+- Adjustable recommendation weights
+- Author-style based recommendations
 
-## Key Interfaces
-
-```typescript
-// User Profile Types
-interface UserPreferences {
-  dietaryRestrictions: string[];
-  goals: string[];
-  likedMeals: string[];
-  dislikedMeals: string[];
-  pantry: string[];
-  profileComplete: boolean;
-}
-
-// Meal Planning Types
-interface MealPlan {
-  id: string;
-  name: string;
-  day: string;
-  meals: MealItem[];
-  totalNutrition?: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-  };
-}
-```
-
-## Code Style
-
-- Consistent naming conventions:
-  - Components: PascalCase
-  - Functions: camelCase
-  - Files: component files match component names
-- Clear component hierarchy
-- Single responsibility principle
-- Proper TypeScript usage
-
-## Performance Considerations
-
-- Lazy loading for routes
-- Memoization where beneficial
-- Efficient state management
-- Optimized re-renders
-
-## Next Steps
-
-1. Implement backend integration
-2. Add user authentication
-3. Enable social sharing
-4. Add meal history tracking
-5. Implement advanced nutrition analytics
+### Nutrition Tracking:
+- Automatic calculation of nutritional values
+- Visual representation of macro/micronutrients
+- Goal tracking with daily/weekly summaries
+- Nutritional balance insights
 
 ## License
 
