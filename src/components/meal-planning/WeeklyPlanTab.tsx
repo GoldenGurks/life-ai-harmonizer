@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -457,6 +456,18 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     toast.success(`${recipe.name} added to ${currentPickerDay}'s ${currentMealType}`);
   }, [profile, updateProfile, currentPickerDay, currentMealType]);
 
+  // Handle updating the weekly plan when meals are moved via drag and drop
+  const handleUpdatePlan = useCallback((updatedPlan: WeeklyPlan) => {
+    if (!profile) return;
+    
+    updateProfile({
+      ...profile,
+      currentWeekPlan: updatedPlan
+    });
+    
+    toast.success("Meal moved successfully");
+  }, [profile, updateProfile]);
+
   // If no plan exists, show the recipe selection grid
   if (!profile?.currentWeekPlan) {
     return (
@@ -496,7 +507,8 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     <>
       <WeekOverview 
         plan={profile.currentWeekPlan} 
-        onAddMeal={handleAddMeal} 
+        onAddMeal={handleAddMeal}
+        onUpdatePlan={handleUpdatePlan}
       />
       <div className="flex justify-between mt-4">
         <Button 
