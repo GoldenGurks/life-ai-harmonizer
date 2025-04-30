@@ -36,7 +36,8 @@ describe('Recommendation Service LLM Integration', () => {
       tags: ['Test', 'Main'],
       saved: false,
       ingredients: [{ id: 1, amount: 100, unit: 'g' }],
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      servings: 2 // Added servings
     },
     {
       id: 'recipe2',
@@ -47,7 +48,8 @@ describe('Recommendation Service LLM Integration', () => {
       tags: ['Test', 'Side'],
       saved: false,
       ingredients: [{ id: 2, amount: 200, unit: 'g' }],
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      servings: 1 // Added servings
     }
   ];
 
@@ -62,7 +64,8 @@ describe('Recommendation Service LLM Integration', () => {
       saved: false,
       ingredients: [{ id: 101, amount: 100, unit: 'g' }],
       difficulty: 'Medium',
-      authorStyle: 'Italian'
+      authorStyle: 'Italian',
+      servings: 2 // Added servings
     },
     {
       id: 'llm-italian-2',
@@ -74,7 +77,8 @@ describe('Recommendation Service LLM Integration', () => {
       saved: false,
       ingredients: [{ id: 102, amount: 150, unit: 'g' }],
       difficulty: 'Medium',
-      authorStyle: 'Italian'
+      authorStyle: 'Italian',
+      servings: 2 // Added servings
     }
   ];
 

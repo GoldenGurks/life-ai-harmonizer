@@ -3,8 +3,18 @@ import { ensureNutrientScore } from '@/lib/recipeEnrichment';
 import { loadVegLibrary, convertFoodItemToRecipe } from '@/services/nutritionService';
 import { convertStringToRecipeIngredient } from '@/utils/ingredientUtils';
 
+// Helper function to ensure all recipes have a servings property
+function ensureServingsProperty(recipe: any): Recipe {
+  return {
+    ...recipe,
+    // Default to 2 servings if not specified
+    servings: recipe.servings || 2
+  };
+}
+
 // Add nutrientScore to all recipes (was missing and causing type errors)
 export const recipeData: Recipe[] = [
+  // First three recipes already migrated to new format
   {
     id: '1',
     title: 'Mediterranean Quinoa Bowl',
@@ -110,7 +120,8 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 4
   },
-  {
+  // For all remaining recipes, ensure they have servings property
+  ensureServingsProperty({
     id: '4',
     title: 'Baked Salmon with Asparagus',
     image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd',
@@ -127,8 +138,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['7', '11'],
     nutrientScore: 0.50
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '5',
     title: 'Buddha Bowl with Sweet Potato',
     image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
@@ -145,8 +156,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['1', '10'],
     nutrientScore: 0.54
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '6',
     title: 'Spicy Black Bean Bowl',
     image: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6',
@@ -163,8 +174,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['1', '5'],
     nutrientScore: 0.49
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '7',
     title: 'Berry Protein Smoothie',
     image: 'https://images.unsplash.com/photo-1553530979-7ee52a2670c4',
@@ -181,8 +192,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['2', '12'],
     nutrientScore: 0.47
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '8',
     title: 'Teriyaki Chicken Stir-Fry',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
@@ -199,8 +210,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['4', '15'],
     nutrientScore: 0.51
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '9',
     title: 'Mediterranean Hummus Platter',
     image: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71',
@@ -217,8 +228,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['3', '6'],
     nutrientScore: 0.46
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '10',
     title: 'Grilled Steak with Sweet Potato',
     image: 'https://images.unsplash.com/photo-1544025162-d76694265947',
@@ -235,8 +246,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['4', '8'],
     nutrientScore: 0.53
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '11',
     title: 'Peanut Butter Energy Balls',
     image: 'https://images.unsplash.com/photo-1505253716362-afaea1d3d1af',
@@ -252,8 +263,8 @@ export const recipeData: Recipe[] = [
     ingredients: ['Oats', 'Peanut butter', 'Honey', 'Chia seeds', 'Dark chocolate chips'],
     difficulty: 'Easy',
     nutrientScore: 0.45
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '12',
     title: 'Spinach and Feta Omelette',
     image: 'https://images.unsplash.com/photo-1510693206972-df098062cb71',
@@ -270,8 +281,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['7', '2'],
     nutrientScore: 0.44
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '13',
     title: 'Lentil Soup',
     image: 'https://images.unsplash.com/photo-1547592180-85f173990554',
@@ -288,8 +299,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['6', '1'],
     nutrientScore: 0.43
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '14',
     title: 'Coconut Curry Chicken',
     image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641',
@@ -306,8 +317,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['8', '4'],
     nutrientScore: 0.42
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '15',
     title: 'Beef and Broccoli Stir-Fry',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
@@ -324,8 +335,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['8', '10'],
     nutrientScore: 0.41
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '16',
     title: 'Greek Yogurt Parfait',
     image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777',
@@ -342,8 +353,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['2', '7'],
     nutrientScore: 0.40
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '17',
     title: 'Stuffed Bell Peppers',
     image: 'https://images.unsplash.com/photo-1600335895229-6e75511892c8',
@@ -360,8 +371,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['14', '15'],
     nutrientScore: 0.39
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '18',
     title: 'Chickpea Salad Sandwich',
     image: 'https://images.unsplash.com/photo-1554433607-66b5efe9d304',
@@ -378,8 +389,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['3', '9'],
     nutrientScore: 0.38
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '19',
     title: 'Banana Oatmeal Pancakes',
     image: 'https://images.unsplash.com/photo-1575853121743-60c24dbe7ad6',
@@ -396,8 +407,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['16', '2'],
     nutrientScore: 0.37
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '20',
     title: 'Shrimp and Avocado Salad',
     image: 'https://images.unsplash.com/photo-1551248429-40975aa4de74',
@@ -414,8 +425,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['3', '9'],
     nutrientScore: 0.36
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '21',
     title: 'Vegetable Frittata',
     image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543',
@@ -432,8 +443,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['12', '16'],
     nutrientScore: 0.35
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '22',
     title: 'Turkey and Avocado Wrap',
     image: 'https://images.unsplash.com/photo-1509722747041-616f39b57569',
@@ -450,8 +461,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['18', '3'],
     nutrientScore: 0.34
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '23',
     title: 'Mushroom Risotto',
     image: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371',
@@ -468,8 +479,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Hard',
     alternativeIds: ['14', '17'],
     nutrientScore: 0.33
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '24',
     title: 'Chocolate Protein Mug Cake',
     image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb',
@@ -486,8 +497,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['11', '7'],
     nutrientScore: 0.32
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '25',
     title: 'Caprese Salad',
     image: 'https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5',
@@ -504,8 +515,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['9', '20'],
     nutrientScore: 0.31
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '26',
     title: 'Pesto Zucchini Noodles',
     image: 'https://images.unsplash.com/photo-1556761223-4c4282c73f77',
@@ -522,8 +533,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['23', '17'],
     nutrientScore: 0.30
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '27',
     title: 'Tuna Salad Stuffed Avocado',
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
@@ -540,8 +551,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['20', '3'],
     nutrientScore: 0.29
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '28',
     title: 'Sweet Potato and Black Bean Chili',
     image: 'https://images.unsplash.com/photo-1547592180-85f173990554',
@@ -558,8 +569,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['13', '6'],
     nutrientScore: 0.28
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '29',
     title: 'Almond Butter Toast with Banana',
     image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929',
@@ -576,8 +587,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['19', '16'],
     nutrientScore: 0.27
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '30',
     title: 'Roasted Vegetable Quinoa Bowl',
     image: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71',
@@ -594,8 +605,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['1', '5'],
     nutrientScore: 0.26
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '31',
     title: 'Chicken and Vegetable Soup',
     image: 'https://images.unsplash.com/photo-1547592180-85f173990554',
@@ -612,8 +623,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['13', '14'],
     nutrientScore: 0.25
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '32',
     title: 'Cottage Cheese with Berries',
     image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777',
@@ -630,8 +641,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['16', '11'],
     nutrientScore: 0.24
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '33',
     title: 'Tofu Stir-Fry',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
@@ -648,8 +659,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['8', '15'],
     nutrientScore: 0.23
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '34',
     title: 'Overnight Oats',
     image: 'https://images.unsplash.com/photo-1505253716362-afaea1d3d1af',
@@ -666,8 +677,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['19', '29'],
     nutrientScore: 0.22
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '35',
     title: 'Cauliflower Fried Rice',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
@@ -684,8 +695,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['33', '8'],
     nutrientScore: 0.21
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '36',
     title: 'Turkey and Sweet Potato Chili',
     image: 'https://images.unsplash.com/photo-1547592180-85f173990554',
@@ -702,8 +713,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['28', '31'],
     nutrientScore: 0.20
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '37',
     title: 'Mango and Spinach Smoothie',
     image: 'https://images.unsplash.com/photo-1553530979-7ee52a2670c4',
@@ -720,8 +731,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['2', '7'],
     nutrientScore: 0.19
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '38',
     title: 'Baked Falafel Bowl',
     image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
@@ -738,8 +749,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['1', '9'],
     nutrientScore: 0.18
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '39',
     title: 'Egg and Avocado Toast',
     image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543',
@@ -756,8 +767,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['29', '12'],
     nutrientScore: 0.17
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '40',
     title: 'Lemon Garlic Shrimp Pasta',
     image: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601',
@@ -774,8 +785,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['20', '23'],
     nutrientScore: 0.16
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '41',
     title: 'Peanut Butter Banana Smoothie',
     image: 'https://images.unsplash.com/photo-1553530979-7ee52a2670c4',
@@ -792,8 +803,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['7', '37'],
     nutrientScore: 0.15
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '42',
     title: 'Roasted Brussels Sprouts with Bacon',
     image: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f',
@@ -810,8 +821,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['26', '35'],
     nutrientScore: 0.14
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '43',
     title: 'Chicken Caesar Wrap',
     image: 'https://images.unsplash.com/photo-1509722747041-616f39b57569',
@@ -828,8 +839,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['22', '3'],
     nutrientScore: 0.13
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '44',
     title: 'Vegetable Curry with Coconut Rice',
     image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641',
@@ -846,8 +857,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Medium',
     alternativeIds: ['14', '33'],
     nutrientScore: 0.12
-  },
-  {
+  }),
+  ensureServingsProperty({
     id: '45',
     title: 'Cauliflower Rice Stir-Fry',
     image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19',
@@ -864,8 +875,8 @@ export const recipeData: Recipe[] = [
     difficulty: 'Easy',
     alternativeIds: ['8', '10'],
     nutrientScore: 0.11
-  }
-];
+  })
+].map(recipe => ensureServingsProperty(recipe)); // Make sure all recipes have servings
 
 // Function to find recipe by ID
 export const findRecipeById = (id: string): Recipe | undefined => {

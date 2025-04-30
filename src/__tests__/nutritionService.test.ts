@@ -125,7 +125,8 @@ describe('Nutrition Service', () => {
         { id: 2, amount: 200, unit: 'g' } as RecipeIngredient, // 200g rice
         { id: 3, amount: 15, unit: 'ml' } as RecipeIngredient  // 15ml olive oil
       ],
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      servings: 2 // Added servings
     };
     
     const enriched = await calculateNutritionAndCost(recipe, mockLibrary);
@@ -152,7 +153,8 @@ describe('Nutrition Service', () => {
         { id: 1, amount: 100, unit: 'g' } as RecipeIngredient, // Valid
         { id: 999, amount: 50, unit: 'g' } as RecipeIngredient  // Invalid ID
       ],
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      servings: 1 // Added servings
     };
     
     // Mock console.warn to verify warnings are logged
@@ -185,7 +187,8 @@ describe('Nutrition Service', () => {
           { id: 1, amount: 100, unit: 'g' } as RecipeIngredient,
           { id: 2, amount: 100, unit: 'g' } as RecipeIngredient
         ],
-        difficulty: 'Medium'
+        difficulty: 'Medium',
+        servings: 2 // Added servings
       },
       // Recipe with existing nutrition (should be preserved)
       {
@@ -206,7 +209,8 @@ describe('Nutrition Service', () => {
           fiber: 5,
           sugar: 3,
           cost: 3.50
-        }
+        },
+        servings: 1 // Added servings
       },
       // Recipe with legacy nutrition fields
       {
@@ -224,7 +228,8 @@ describe('Nutrition Service', () => {
         carbs: 35,
         fat: 10,
         fiber: 2,
-        sugar: 8
+        sugar: 8,
+        servings: 1 // Added servings
       }
     ];
     
