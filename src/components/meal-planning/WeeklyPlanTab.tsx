@@ -15,6 +15,7 @@ import { MealType } from './DaySlot';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
+import { recipeData } from '@/data/recipeDatabase';
 
 /**
  * Converts a Recipe object to a MealItem for use in the meal planner
@@ -87,6 +88,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   const [availableRecipes, setAvailableRecipes] = useState<MealItem[]>([]);
   const [selectedRecipes, setSelectedRecipes] = useState<MealItem[]>([]);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [dislikedRecipeIds, setDislikedRecipeIds] = useState<string[]>([]);
   
   // Get mealCount from weekly settings
   const mealCount = weeklySettings.dishCount;
@@ -99,10 +101,12 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   // Initialize available recipes from recommendations
   useEffect(() => {
     if (recommendations.length > 0 && availableRecipes.length === 0) {
-      const initialRecipes = getTopN(10).map(convertRecipeToMealItem);
+      const initialRecipes = getTopN(10)
+        .filter(recipe => !dislikedRecipeIds.includes(recipe.id))
+        .map(convertRecipeToMealItem);
       setAvailableRecipes(initialRecipes);
     }
-  }, [recommendations, getTopN, availableRecipes.length]);
+  }, [recommendations, getTopN, availableRecipes.length, dislikedRecipeIds]);
 
   // Create mock data when recommendations are empty
   useEffect(() => {
@@ -311,9 +315,10 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
         }
       ];
       
-      setAvailableRecipes(mockRecipes);
+      const filteredMockRecipes = mockRecipes.filter(recipe => !dislikedRecipeIds.includes(recipe.id));
+      setAvailableRecipes(filteredMockRecipes);
     }
-  }, [recommendations, availableRecipes.length]);
+  }, [recommendations, availableRecipes.length, dislikedRecipeIds]);
   
   // Handle recipe selection
   const handleRecipeSelect = useCallback((recipe: MealItem) => {
@@ -333,33 +338,36 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     });
   }, [mealCount]);
   
-  // Handle recipe dislike/replacement
+  // Enhanced recipe dislike/replacement handler
   const handleDislikeRecipe = useCallback((recipeId: string) => {
-    // Remove the disliked recipe
+    // Add to disliked list
+    setDislikedRecipeIds(current => [...current, recipeId]);
+    
+    // Remove the disliked recipe from available recipes
     setAvailableRecipes(current => current.filter(r => r.id !== recipeId));
     
     // Remove from selected recipes if it was selected
     setSelectedRecipes(current => current.filter(r => r.id !== recipeId));
     
-    // Get a new recipe to replace the disliked one
-    const dislikedIndex = recommendations.findIndex(r => r.id === recipeId);
+    // Find a replacement recipe from the full recipe database
+    const allAvailableRecipes = [...recommendations, ...recipeData];
+    const replacementCandidates = allAvailableRecipes.filter(recipe => 
+      !dislikedRecipeIds.includes(recipe.id) && 
+      recipe.id !== recipeId &&
+      !availableRecipes.some(ar => ar.id === recipe.id)
+    );
     
-    if (dislikedIndex !== -1) {
-      // Find a recipe that's not already in available recipes
-      const remainingRecommendations = recommendations.filter(r => 
-        !availableRecipes.some(ar => ar.id === r.id) || r.id === recipeId
-      );
+    if (replacementCandidates.length > 0) {
+      // Pick a random replacement to add variety
+      const randomIndex = Math.floor(Math.random() * Math.min(3, replacementCandidates.length));
+      const newRecipe = convertRecipeToMealItem(replacementCandidates[randomIndex]);
       
-      if (remainingRecommendations.length > 0) {
-        // Add a new recipe to replace the disliked one
-        const newRecipe = convertRecipeToMealItem(remainingRecommendations[0]);
-        setAvailableRecipes(current => [...current, newRecipe]);
-        toast.success("Recipe replaced with a new suggestion");
-      } else {
-        toast.info("No more recipe alternatives available");
-      }
+      setAvailableRecipes(current => [...current, newRecipe]);
+      toast.success("Recipe replaced with a new suggestion!");
+    } else {
+      toast.info("No more recipe alternatives available at the moment.");
     }
-  }, [availableRecipes, recommendations]);
+  }, [availableRecipes, recommendations, dislikedRecipeIds]);
 
   // Handle saving the weekly plan
   const handleSavePlan = useCallback(() => {
@@ -477,7 +485,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
             <CardTitle>Create Your Weekly Plan</CardTitle>
             <CardDescription>
               Select {mealCount} recipes to create your weekly meal plan. 
-              Dislike any recipe to see a new suggestion.
+              Dislike any recipe to see a new suggestion from our recipe library.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -519,6 +527,7 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
               currentWeekPlan: undefined
             });
             setSelectedRecipes([]);
+            setDislikedRecipeIds([]);
             toast.success("Weekly plan cleared. You can now create a new plan.");
           }}
         >
