@@ -14,6 +14,7 @@ import { useMealManager } from './useMealManager';
 import { MealItem } from '@/types/meal-planning';
 import { convertRecipeToMealItem } from './WeeklyPlanTab';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
+import { recipeData } from '@/data/recipeDatabase';
 
 interface MealPlanContentProps {
   activeTab: string;
@@ -36,7 +37,7 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
   const { t } = useLanguage();
   const { isSetupComplete } = useMealPreferences();
   const { mealPlans, handleMealChange, handleAddMealToDay } = useMealManager(currentDay, days);
-  const { recommendations } = useRecipeRecommendations({ count: 10 });
+  const { recommendations } = useRecipeRecommendations({ recipes: recipeData, count: 20 });
 
   const handleAcceptMeal = (meal: MealItem) => {
     handleAddMealToDay(meal, currentDay);
@@ -45,6 +46,11 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
   const handleRejectMeal = (meal: MealItem) => {
     toast.info(t('mealPlanning.removedFromSuggestions', { name: meal.name }));
   };
+
+  // Get suggestions for Tinder Dish - prioritize recommendations but fallback to recipe database
+  const tinderSuggestions = recommendations.length > 0 
+    ? recommendations.map(convertRecipeToMealItem)
+    : recipeData.slice(0, 20).map(convertRecipeToMealItem);
 
   return (
     <>
@@ -72,7 +78,7 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
       {/* Meal discovery tab content */}
       <TabsContent value="tinder-dish" className="space-y-4">
         <TinderDishTab 
-          suggestions={recommendations.map(convertRecipeToMealItem)}
+          suggestions={tinderSuggestions}
           onAccept={handleAcceptMeal}
           onReject={handleRejectMeal}
         />

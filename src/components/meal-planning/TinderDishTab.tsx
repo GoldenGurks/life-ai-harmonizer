@@ -8,6 +8,8 @@ import { MealItem } from '@/types/meal-planning';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
+import { recipeData } from '@/data/recipeDatabase';
+import { convertRecipeToMealItem } from './WeeklyPlanTab';
 
 interface TinderDishTabProps {
   suggestions: MealItem[];
@@ -25,11 +27,23 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
   const [animation, setAnimation] = useState<'right' | 'left' | null>(null);
   const [showingAlternatives, setShowingAlternatives] = useState(false);
   const [alternativeIndex, setAlternativeIndex] = useState(0);
+  const [allSuggestions, setAllSuggestions] = useState<MealItem[]>([]);
   const { addLikedFood, addDislikedFood } = useMealPreferences();
+
+  // Initialize suggestions from props or recipe database
+  useEffect(() => {
+    if (suggestions && suggestions.length > 0) {
+      setAllSuggestions(suggestions);
+    } else {
+      // Use recipe database as fallback
+      const fallbackSuggestions = recipeData.slice(0, 20).map(convertRecipeToMealItem);
+      setAllSuggestions(fallbackSuggestions);
+    }
+  }, [suggestions]);
 
   const currentMeal = showingAlternatives 
     ? alternatives[alternativeIndex]
-    : suggestions[currentIndex];
+    : allSuggestions[currentIndex];
 
   const handleSwipeRight = () => {
     if (!currentMeal) return;
@@ -51,7 +65,7 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
     } else {
       setAnimation('right');
       setTimeout(() => {
-        const meal = suggestions[currentIndex];
+        const meal = allSuggestions[currentIndex];
         onAccept(meal);
         // Store preference in permanent storage
         addLikedFood(meal.id);
@@ -83,11 +97,12 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
       setAnimation('left');
       
       // Track dislike for original suggestion
-      addDislikedFood(suggestions[currentIndex].id);
+      addDislikedFood(allSuggestions[currentIndex].id);
+      onReject(allSuggestions[currentIndex]);
       
       setTimeout(() => {
         // Generate alternatives (normally would come from API)
-        const newAlternatives = generateAlternatives(suggestions[currentIndex]);
+        const newAlternatives = generateAlternatives(allSuggestions[currentIndex]);
         setAlternatives(newAlternatives);
         setShowingAlternatives(true);
         setAlternativeIndex(0);
@@ -99,7 +114,7 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
   };
 
   const nextMeal = () => {
-    if (currentIndex < suggestions.length - 1) {
+    if (currentIndex < allSuggestions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
       toast.info("You've gone through all suggestions!");
@@ -110,30 +125,17 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
 
   // This would normally come from an API or service
   const generateAlternatives = (meal: MealItem): MealItem[] => {
-    // In a real app, this would use a service to get real alternatives
-    return [
-      {
-        ...meal,
-        id: `alt-1-${meal.id}`,
-        name: `Alternative 1: ${meal.name.split(':')[0]}`,
-        calories: Math.round(meal.calories * 0.9),
-        protein: Math.round(meal.protein * 1.1),
-        carbs: Math.round((meal.carbs || 0) * 0.9),
-        fat: Math.round((meal.fat || 0) * 0.9)
-      },
-      {
-        ...meal,
-        id: `alt-2-${meal.id}`,
-        name: `Alternative 2: ${meal.name.split(':')[0]}`,
-        calories: Math.round(meal.calories * 1.1),
-        protein: Math.round(meal.protein * 0.9),
-        carbs: Math.round((meal.carbs || 0) * 1.1),
-        fat: Math.round((meal.fat || 0) * 1.1)
-      }
-    ];
+    // Find similar recipes from the database
+    const similarRecipes = recipeData.filter(recipe => 
+      recipe.id !== meal.id && 
+      (recipe.tags.some(tag => meal.tags.includes(tag)) ||
+       recipe.category === meal.description)
+    ).slice(0, 2);
+
+    return similarRecipes.map(convertRecipeToMealItem);
   };
 
-  if (!currentMeal) {
+  if (!currentMeal || allSuggestions.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -141,7 +143,7 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
         </CardHeader>
         <CardContent className="flex items-center justify-center py-16">
           <p className="text-muted-foreground text-center">
-            No meal suggestions available. Generate a new meal plan to see suggestions!
+            Loading meal suggestions...
           </p>
         </CardContent>
       </Card>
@@ -269,10 +271,13 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
             <ChevronLeft className="h-4 w-4 mr-2" />
             Previous
           </Button>
+          <span className="text-sm text-muted-foreground self-center">
+            {currentIndex + 1} / {allSuggestions.length}
+          </span>
           <Button
             onClick={nextMeal}
             variant="ghost"
-            disabled={showingAlternatives || currentIndex === suggestions.length - 1}
+            disabled={showingAlternatives || currentIndex === allSuggestions.length - 1}
           >
             Next
             <ChevronRight className="h-4 w-4 ml-2" />

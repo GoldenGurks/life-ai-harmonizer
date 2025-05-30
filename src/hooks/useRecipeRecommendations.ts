@@ -1,8 +1,10 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { Recipe, ScoringPreferences } from '@/types/recipes';
 import { useUserProfileContext } from '@/context/UserProfileContext';
 import { recommendationService } from '@/services/recommendationService';
 import { DEFAULT_RECOMMENDATION_WEIGHTS } from '@/config/recommendationPresets';
+import { recipeData } from '@/data/recipeDatabase';
 
 interface UseRecipeRecommendationsProps {
   recipes?: Recipe[];
@@ -12,7 +14,7 @@ interface UseRecipeRecommendationsProps {
 }
 
 export const useRecipeRecommendations = (props?: UseRecipeRecommendationsProps) => {
-  const { recipes = [], count = 5, mealType, authorStyle } = props || {};
+  const { recipes = recipeData, count = 5, mealType, authorStyle } = props || {};
   const { profile } = useUserProfileContext();
   const [recommendations, setRecommendations] = useState<Recipe[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
