@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Filter, Plus, BookmarkPlus, ChefHat, Heart, Tag, Clock, Bookmark, Upload, TrendingUp, Flame, Leaf, X } from 'lucide-react';
+import { Search, Filter, Plus, BookmarkPlus, ChefHat, Heart, Tag, Clock, Bookmark, Upload, TrendingUp, Flame, Leaf, X, Camera, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
@@ -14,6 +14,8 @@ import { Recipe, RecipeFilters } from '@/types/recipes';
 import { recipeData, findRecipeById, getAlternativeRecipes } from '@/data/recipeDatabase';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getIngredientAsString, ingredientContains } from '@/utils/ingredientUtils';
+import PhotoRecipeExtractor from '@/components/recipes/PhotoRecipeExtractor';
+import UserProfile from '@/components/profile/UserProfile';
 
 const mealTypeFilters = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
 const timeFilters = ['All', 'Under 15 mins', 'Under 30 mins', 'Under 45 mins', 'Under 60 mins'];
@@ -24,7 +26,10 @@ const Recipes = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
   const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState(false);
+  const [isPhotoExtractorOpen, setIsPhotoExtractorOpen] = useState(false);
+  const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [extractedRecipes, setExtractedRecipes] = useState<Recipe[]>([]);
   
   const [activeFilters, setActiveFilters] = useState<RecipeFilters>({
     dietary: [],
@@ -183,11 +188,26 @@ const Recipes = () => {
     setSearchResults(results);
   };
 
+  const handleExtractedRecipe = (recipe: Recipe) => {
+    setExtractedRecipes(prev => [recipe, ...prev]);
+    toast.success(`Recipe "${recipe.title}" added to your collection!`);
+  };
+
+  const getAllRecipes = () => {
+    return [...extractedRecipes, ...recipeData];
+  };
+
   const getDisplayRecipes = () => {
+    const allRecipes = getAllRecipes();
     if (searchQuery.trim()) {
       return searchResults;
     }
-    return filteredRecipes;
+    return allRecipes.filter(recipe => {
+      if (recipe.title.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+      if (recipe.ingredients.some(ingredient => ingredientContains(ingredient, searchQuery))) return true;
+      if (recipe.tags.some(tag => tag.toLowerCase().includes(searchQuery))) return true;
+      return false;
+    });
   };
 
   return (
@@ -195,6 +215,14 @@ const Recipes = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Recipes</h1>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsUserProfileOpen(true)}>
+            <User className="h-4 w-4 mr-2" />
+            Profile
+          </Button>
+          <Button variant="outline" onClick={() => setIsPhotoExtractorOpen(true)}>
+            <Camera className="h-4 w-4 mr-2" />
+            Extract from Photo
+          </Button>
           <Button variant="outline" onClick={() => setIsUploadDrawerOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Import Recipe
@@ -605,6 +633,46 @@ const Recipes = () => {
               <Button onClick={handleUploadRecipe}>Import Recipe</Button>
               <Button variant="outline" onClick={() => setIsUploadDrawerOpen(false)}>
                 Cancel
+              </Button>
+            </DrawerFooter>
+          </div>
+        </DrawerContent>
+      </Drawer>
+      
+      <Drawer open={isPhotoExtractorOpen} onOpenChange={setIsPhotoExtractorOpen}>
+        <DrawerContent className="max-h-[90vh]">
+          <div className="mx-auto w-full max-w-2xl">
+            <DrawerHeader>
+              <DrawerTitle>Extract Recipe from Photo</DrawerTitle>
+              <DrawerDescription>
+                Upload a photo of a recipe and let AI extract the ingredients and instructions.
+              </DrawerDescription>
+            </DrawerHeader>
+            <div className="p-4 pb-0 overflow-y-auto">
+              <PhotoRecipeExtractor
+                onRecipeExtracted={handleExtractedRecipe}
+                onClose={() => setIsPhotoExtractorOpen(false)}
+              />
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+      
+      <Drawer open={isUserProfileOpen} onOpenChange={setIsUserProfileOpen}>
+        <DrawerContent className="max-h-[90vh]">
+          <div className="mx-auto w-full max-w-4xl">
+            <DrawerHeader>
+              <DrawerTitle>User Profile</DrawerTitle>
+              <DrawerDescription>
+                Manage your profile and connect with other users to share recipes.
+              </DrawerDescription>
+            </DrawerHeader>
+            <div className="p-4 pb-0 overflow-y-auto max-h-[calc(90vh-12rem)]">
+              <UserProfile />
+            </div>
+            <DrawerFooter>
+              <Button variant="outline" onClick={() => setIsUserProfileOpen(false)}>
+                Close
               </Button>
             </DrawerFooter>
           </div>
