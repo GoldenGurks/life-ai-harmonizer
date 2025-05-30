@@ -485,6 +485,52 @@ const Recipes = () => {
         </TabsContent>
       </Tabs>
       
+      {/* Photo Extractor Drawer */}
+      {isPhotoExtractorOpen && (
+        <Drawer open={isPhotoExtractorOpen} onOpenChange={setIsPhotoExtractorOpen}>
+          <DrawerContent className="max-h-[90vh]">
+            <div className="mx-auto w-full max-w-2xl">
+              <DrawerHeader>
+                <DrawerTitle>Extract Recipe from Photo</DrawerTitle>
+                <DrawerDescription>
+                  Upload a photo of a recipe and let AI extract the ingredients and instructions.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="p-4 pb-0 overflow-y-auto">
+                <PhotoRecipeExtractor
+                  onRecipeExtracted={handleExtractedRecipe}
+                  onClose={() => setIsPhotoExtractorOpen(false)}
+                />
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+      
+      {/* User Profile Drawer */}
+      {isUserProfileOpen && (
+        <Drawer open={isUserProfileOpen} onOpenChange={setIsUserProfileOpen}>
+          <DrawerContent className="max-h-[90vh]">
+            <div className="mx-auto w-full max-w-4xl">
+              <DrawerHeader>
+                <DrawerTitle>User Profile</DrawerTitle>
+                <DrawerDescription>
+                  Manage your profile and connect with other users to share recipes.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="p-4 pb-0 overflow-y-auto max-h-[calc(90vh-12rem)]">
+                <UserProfile />
+              </div>
+              <DrawerFooter>
+                <Button variant="outline" onClick={() => setIsUserProfileOpen(false)}>
+                  Close
+                </Button>
+              </DrawerFooter>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+      
       <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-md">
@@ -633,46 +679,6 @@ const Recipes = () => {
               <Button onClick={handleUploadRecipe}>Import Recipe</Button>
               <Button variant="outline" onClick={() => setIsUploadDrawerOpen(false)}>
                 Cancel
-              </Button>
-            </DrawerFooter>
-          </div>
-        </DrawerContent>
-      </Drawer>
-      
-      <Drawer open={isPhotoExtractorOpen} onOpenChange={setIsPhotoExtractorOpen}>
-        <DrawerContent className="max-h-[90vh]">
-          <div className="mx-auto w-full max-w-2xl">
-            <DrawerHeader>
-              <DrawerTitle>Extract Recipe from Photo</DrawerTitle>
-              <DrawerDescription>
-                Upload a photo of a recipe and let AI extract the ingredients and instructions.
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="p-4 pb-0 overflow-y-auto">
-              <PhotoRecipeExtractor
-                onRecipeExtracted={handleExtractedRecipe}
-                onClose={() => setIsPhotoExtractorOpen(false)}
-              />
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-      
-      <Drawer open={isUserProfileOpen} onOpenChange={setIsUserProfileOpen}>
-        <DrawerContent className="max-h-[90vh]">
-          <div className="mx-auto w-full max-w-4xl">
-            <DrawerHeader>
-              <DrawerTitle>User Profile</DrawerTitle>
-              <DrawerDescription>
-                Manage your profile and connect with other users to share recipes.
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="p-4 pb-0 overflow-y-auto max-h-[calc(90vh-12rem)]">
-              <UserProfile />
-            </div>
-            <DrawerFooter>
-              <Button variant="outline" onClick={() => setIsUserProfileOpen(false)}>
-                Close
               </Button>
             </DrawerFooter>
           </div>

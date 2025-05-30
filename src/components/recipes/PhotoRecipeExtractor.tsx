@@ -17,7 +17,7 @@ const PhotoRecipeExtractor: React.FC<PhotoRecipeExtractorProps> = ({
   onRecipeExtracted,
   onClose
 }) => {
-  const [apiKey, setApiKey] = useState(openaiService.getApiKey() || '');
+  const [apiKey, setApiKey] = useState(() => openaiService.getApiKey() || '');
   const [isExtracting, setIsExtracting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
