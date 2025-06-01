@@ -12,11 +12,21 @@ function ensureServingsProperty(recipe: any): Recipe {
   };
 }
 
-// Helper function to convert string ingredients to proper ingredient objects
+// Helper function to convert string ingredients to proper ingredient objects with sensible defaults
 function convertIngredientsToObjects(ingredients: (string | any)[]): any[] {
   return ingredients.map((ingredient, index) => {
     if (typeof ingredient === 'string') {
-      return convertStringToRecipeIngredient(ingredient);
+      const converted = convertStringToRecipeIngredient(ingredient);
+      // If conversion failed (returned string), create a default object
+      if (typeof converted === 'string') {
+        return {
+          id: -1, // Unknown ingredient
+          amount: 100,
+          unit: 'g',
+          name: ingredient
+        };
+      }
+      return converted;
     }
     return ingredient;
   });
@@ -40,7 +50,7 @@ export const recipeData: Recipe[] = [
       { id: 205, amount: 1, unit: 'piece', name: 'Cucumber' },
       { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
       { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
-      { id: 401, amount: 50, unit: 'g', name: 'Feta' },
+      { id: 401, amount: 50, unit: 'g', name: 'Feta cheese' },
       { id: 601, amount: 15, unit: 'ml', name: 'Olive oil' },
       { id: 701, amount: 15, unit: 'ml', name: 'Lemon juice' }
     ],
@@ -130,7 +140,7 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 4
   },
-  // Convert all remaining recipes to have proper ingredient objects
+  // Now migrating all remaining recipes to proper ingredient objects
   {
     id: '4',
     title: 'Baked Salmon with Asparagus',
@@ -146,14 +156,14 @@ export const recipeData: Recipe[] = [
     fat: 28,
     fiber: 4,
     ingredients: [
-      { id: 301, amount: 200, unit: 'g', name: 'Salmon fillet' },
-      { id: 302, amount: 300, unit: 'g', name: 'Asparagus' },
-      { id: 303, amount: 1, unit: 'piece', name: 'Lemon' },
+      { id: 102, amount: 200, unit: 'g', name: 'Salmon fillet' },
+      { id: 210, amount: 300, unit: 'g', name: 'Asparagus' },
+      { id: 503, amount: 1, unit: 'piece', name: 'Lemon' },
       { id: 601, amount: 20, unit: 'ml', name: 'Olive oil' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 305, amount: 5, unit: 'g', name: 'Fresh dill' },
-      { id: 306, amount: 2, unit: 'g', name: 'Salt' },
-      { id: 307, amount: 1, unit: 'g', name: 'Black pepper' }
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 718, amount: 5, unit: 'g', name: 'Dill' },
+      { id: 716, amount: 2, unit: 'g', name: 'Salt' },
+      { id: 717, amount: 1, unit: 'g', name: 'Pepper' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['7', '11'],
@@ -174,14 +184,14 @@ export const recipeData: Recipe[] = [
     fat: 16,
     fiber: 12,
     ingredients: [
-      { id: 308, amount: 200, unit: 'g', name: 'Sweet potato' },
+      { id: 212, amount: 200, unit: 'g', name: 'Sweet potato' },
       { id: 301, amount: 100, unit: 'g', name: 'Quinoa' },
       { id: 105, amount: 150, unit: 'g', name: 'Chickpeas' },
       { id: 208, amount: 1, unit: 'piece', name: 'Avocado' },
-      { id: 202, amount: 50, unit: 'g', name: 'Spinach' },
-      { id: 309, amount: 30, unit: 'ml', name: 'Tahini' },
+      { id: 203, amount: 50, unit: 'g', name: 'Spinach' },
+      { id: 603, amount: 30, unit: 'ml', name: 'Tahini' },
       { id: 701, amount: 15, unit: 'ml', name: 'Lemon juice' },
-      { id: 310, amount: 20, unit: 'g', name: 'Pumpkin seeds' }
+      { id: 708, amount: 20, unit: 'g', name: 'Pumpkin seeds' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['1', '10'],
@@ -202,14 +212,14 @@ export const recipeData: Recipe[] = [
     fat: 8,
     fiber: 12,
     ingredients: [
-      { id: 311, amount: 150, unit: 'g', name: 'Black beans' },
-      { id: 312, amount: 150, unit: 'g', name: 'Brown rice' },
-      { id: 313, amount: 100, unit: 'g', name: 'Corn' },
+      { id: 106, amount: 150, unit: 'g', name: 'Black beans' },
+      { id: 302, amount: 150, unit: 'g', name: 'Brown rice' },
+      { id: 218, amount: 100, unit: 'g', name: 'Corn' },
       { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
       { id: 208, amount: 1, unit: 'piece', name: 'Avocado' },
-      { id: 314, amount: 1, unit: 'piece', name: 'Lime' },
-      { id: 315, amount: 10, unit: 'g', name: 'Cilantro' },
-      { id: 316, amount: 5, unit: 'ml', name: 'Hot sauce' }
+      { id: 504, amount: 1, unit: 'piece', name: 'Lime' },
+      { id: 721, amount: 10, unit: 'g', name: 'Cilantro' },
+      { id: 705, amount: 5, unit: 'ml', name: 'Hot sauce' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['1', '5'],
@@ -230,10 +240,10 @@ export const recipeData: Recipe[] = [
     fat: 5,
     fiber: 8,
     ingredients: [
-      { id: 317, amount: 30, unit: 'g', name: 'Whey protein' },
-      { id: 318, amount: 100, unit: 'g', name: 'Mixed berries' },
+      { id: 408, amount: 30, unit: 'g', name: 'Whey protein' },
+      { id: 502, amount: 100, unit: 'g', name: 'Mixed berries' },
       { id: 501, amount: 1, unit: 'piece', name: 'Banana' },
-      { id: 319, amount: 100, unit: 'g', name: 'Greek yogurt' },
+      { id: 402, amount: 100, unit: 'g', name: 'Greek yogurt' },
       { id: 403, amount: 200, unit: 'ml', name: 'Almond milk' },
       { id: 706, amount: 15, unit: 'ml', name: 'Honey' }
     ],
@@ -257,11 +267,11 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: [
       { id: 101, amount: 200, unit: 'g', name: 'Chicken breast' },
-      { id: 320, amount: 150, unit: 'g', name: 'Broccoli' },
-      { id: 321, amount: 100, unit: 'g', name: 'Carrots' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell peppers' },
-      { id: 323, amount: 50, unit: 'ml', name: 'Teriyaki sauce' },
-      { id: 312, amount: 150, unit: 'g', name: 'Brown rice' }
+      { id: 204, amount: 150, unit: 'g', name: 'Broccoli' },
+      { id: 211, amount: 100, unit: 'g', name: 'Carrots' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 704, amount: 50, unit: 'ml', name: 'Teriyaki sauce' },
+      { id: 302, amount: 150, unit: 'g', name: 'Brown rice' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['4', '15'],
@@ -282,11 +292,11 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 10,
     ingredients: [
-      { id: 324, amount: 150, unit: 'g', name: 'Hummus' },
-      { id: 325, amount: 2, unit: 'piece', name: 'Pita bread' },
+      { id: 731, amount: 150, unit: 'g', name: 'Hummus' },
+      { id: 305, amount: 2, unit: 'piece', name: 'Pita bread' },
       { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
       { id: 205, amount: 1, unit: 'piece', name: 'Cucumber' },
-      { id: 326, amount: 50, unit: 'g', name: 'Olives' },
+      { id: 732, amount: 50, unit: 'g', name: 'Olives' },
       { id: 401, amount: 50, unit: 'g', name: 'Feta cheese' }
     ],
     difficulty: 'Easy',
@@ -308,12 +318,12 @@ export const recipeData: Recipe[] = [
     fat: 22,
     fiber: 6,
     ingredients: [
-      { id: 327, amount: 250, unit: 'g', name: 'Ribeye steak' },
-      { id: 308, amount: 200, unit: 'g', name: 'Sweet potato' },
-      { id: 302, amount: 150, unit: 'g', name: 'Asparagus' },
+      { id: 108, amount: 250, unit: 'g', name: 'Ribeye steak' },
+      { id: 212, amount: 200, unit: 'g', name: 'Sweet potato' },
+      { id: 210, amount: 150, unit: 'g', name: 'Asparagus' },
       { id: 601, amount: 20, unit: 'ml', name: 'Olive oil' },
-      { id: 304, amount: 3, unit: 'piece', name: 'Garlic cloves' },
-      { id: 328, amount: 5, unit: 'g', name: 'Herbs' }
+      { id: 213, amount: 3, unit: 'piece', name: 'Garlic' },
+      { id: 722, amount: 5, unit: 'g', name: 'Herbs' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['4', '8'],
@@ -334,11 +344,11 @@ export const recipeData: Recipe[] = [
     fat: 10,
     fiber: 4,
     ingredients: [
-      { id: 329, amount: 100, unit: 'g', name: 'Oats' },
-      { id: 330, amount: 100, unit: 'g', name: 'Peanut butter' },
+      { id: 303, amount: 100, unit: 'g', name: 'Oats' },
+      { id: 604, amount: 100, unit: 'g', name: 'Peanut butter' },
       { id: 706, amount: 30, unit: 'ml', name: 'Honey' },
       { id: 707, amount: 20, unit: 'g', name: 'Chia seeds' },
-      { id: 331, amount: 50, unit: 'g', name: 'Dark chocolate chips' }
+      { id: 710, amount: 50, unit: 'g', name: 'Dark chocolate chips' }
     ],
     difficulty: 'Easy',
     nutrientScore: 0.45
@@ -358,13 +368,13 @@ export const recipeData: Recipe[] = [
     fat: 24,
     fiber: 2,
     ingredients: [
-      { id: 332, amount: 3, unit: 'piece', name: 'Eggs' },
-      { id: 202, amount: 50, unit: 'g', name: 'Spinach' },
+      { id: 104, amount: 3, unit: 'piece', name: 'Eggs' },
+      { id: 203, amount: 50, unit: 'g', name: 'Spinach' },
       { id: 401, amount: 40, unit: 'g', name: 'Feta cheese' },
       { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
       { id: 601, amount: 10, unit: 'ml', name: 'Olive oil' },
-      { id: 306, amount: 1, unit: 'g', name: 'Salt' },
-      { id: 307, amount: 1, unit: 'g', name: 'Pepper' }
+      { id: 716, amount: 1, unit: 'g', name: 'Salt' },
+      { id: 717, amount: 1, unit: 'g', name: 'Pepper' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['7', '2'],
@@ -385,14 +395,14 @@ export const recipeData: Recipe[] = [
     fat: 4,
     fiber: 14,
     ingredients: [
-      { id: 333, amount: 200, unit: 'g', name: 'Lentils' },
-      { id: 321, amount: 100, unit: 'g', name: 'Carrots' },
-      { id: 334, amount: 100, unit: 'g', name: 'Celery' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 336, amount: 1000, unit: 'ml', name: 'Vegetable broth' },
-      { id: 337, amount: 150, unit: 'g', name: 'Tomatoes' },
-      { id: 338, amount: 5, unit: 'g', name: 'Cumin' }
+      { id: -1, amount: 200, unit: 'g', name: 'Lentils' },
+      { id: 211, amount: 100, unit: 'g', name: 'Carrots' },
+      { id: 214, amount: 100, unit: 'g', name: 'Celery' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 726, amount: 1000, unit: 'ml', name: 'Vegetable broth' },
+      { id: 217, amount: 150, unit: 'g', name: 'Tomatoes' },
+      { id: 714, amount: 5, unit: 'g', name: 'Cumin' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['6', '1'],
@@ -413,14 +423,14 @@ export const recipeData: Recipe[] = [
     fat: 24,
     fiber: 6,
     ingredients: [
-      { id: 339, amount: 200, unit: 'g', name: 'Chicken thighs' },
-      { id: 340, amount: 400, unit: 'ml', name: 'Coconut milk' },
-      { id: 341, amount: 50, unit: 'g', name: 'Curry paste' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell peppers' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 342, amount: 10, unit: 'g', name: 'Ginger' },
-      { id: 343, amount: 150, unit: 'g', name: 'Rice' }
+      { id: 101, amount: 200, unit: 'g', name: 'Chicken breast' },
+      { id: 602, amount: 400, unit: 'ml', name: 'Coconut milk' },
+      { id: 724, amount: 50, unit: 'g', name: 'Curry paste' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 723, amount: 10, unit: 'g', name: 'Ginger' },
+      { id: 310, amount: 150, unit: 'g', name: 'Jasmine rice' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['8', '4'],
@@ -441,13 +451,13 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 5,
     ingredients: [
-      { id: 344, amount: 200, unit: 'g', name: 'Beef sirloin' },
-      { id: 320, amount: 150, unit: 'g', name: 'Broccoli' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 342, amount: 10, unit: 'g', name: 'Ginger' },
-      { id: 345, amount: 30, unit: 'ml', name: 'Soy sauce' },
-      { id: 346, amount: 10, unit: 'ml', name: 'Sesame oil' },
-      { id: 312, amount: 150, unit: 'g', name: 'Brown rice' }
+      { id: -1, amount: 200, unit: 'g', name: 'Beef sirloin' },
+      { id: 204, amount: 150, unit: 'g', name: 'Broccoli' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 723, amount: 10, unit: 'g', name: 'Ginger' },
+      { id: 703, amount: 30, unit: 'ml', name: 'Soy sauce' },
+      { id: 606, amount: 10, unit: 'ml', name: 'Sesame oil' },
+      { id: 302, amount: 150, unit: 'g', name: 'Brown rice' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['8', '10'],
@@ -468,9 +478,9 @@ export const recipeData: Recipe[] = [
     fat: 8,
     fiber: 5,
     ingredients: [
-      { id: 319, amount: 150, unit: 'g', name: 'Greek yogurt' },
-      { id: 347, amount: 50, unit: 'g', name: 'Granola' },
-      { id: 318, amount: 100, unit: 'g', name: 'Mixed berries' },
+      { id: 402, amount: 150, unit: 'g', name: 'Greek yogurt' },
+      { id: 307, amount: 50, unit: 'g', name: 'Granola' },
+      { id: 502, amount: 100, unit: 'g', name: 'Mixed berries' },
       { id: 706, amount: 15, unit: 'ml', name: 'Honey' },
       { id: 707, amount: 20, unit: 'g', name: 'Chia seeds' }
     ],
@@ -493,13 +503,13 @@ export const recipeData: Recipe[] = [
     fat: 12,
     fiber: 8,
     ingredients: [
-      { id: 322, amount: 4, unit: 'piece', name: 'Bell peppers' },
-      { id: 348, amount: 200, unit: 'g', name: 'Ground turkey' },
-      { id: 312, amount: 150, unit: 'g', name: 'Brown rice' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 349, amount: 150, unit: 'ml', name: 'Tomato sauce' },
-      { id: 350, amount: 50, unit: 'g', name: 'Cheese' }
+      { id: 209, amount: 4, unit: 'piece', name: 'Bell peppers' },
+      { id: 107, amount: 200, unit: 'g', name: 'Ground turkey' },
+      { id: 302, amount: 150, unit: 'g', name: 'Brown rice' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 725, amount: 150, unit: 'ml', name: 'Tomato sauce' },
+      { id: 405, amount: 50, unit: 'g', name: 'Parmesan cheese' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['14', '15'],
@@ -521,12 +531,12 @@ export const recipeData: Recipe[] = [
     fiber: 10,
     ingredients: [
       { id: 105, amount: 200, unit: 'g', name: 'Chickpeas' },
-      { id: 334, amount: 50, unit: 'g', name: 'Celery' },
+      { id: 214, amount: 50, unit: 'g', name: 'Celery' },
       { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
-      { id: 351, amount: 30, unit: 'g', name: 'Mayo' },
-      { id: 352, amount: 10, unit: 'g', name: 'Mustard' },
-      { id: 353, amount: 4, unit: 'slice', name: 'Whole grain bread' },
-      { id: 354, amount: 20, unit: 'g', name: 'Lettuce' }
+      { id: 734, amount: 30, unit: 'g', name: 'Mayo' },
+      { id: 735, amount: 10, unit: 'g', name: 'Mustard' },
+      { id: 304, amount: 4, unit: 'piece', name: 'Whole grain bread' },
+      { id: 736, amount: 20, unit: 'g', name: 'Lettuce' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['3', '9'],
@@ -547,13 +557,13 @@ export const recipeData: Recipe[] = [
     fat: 6,
     fiber: 8,
     ingredients: [
-      { id: 329, amount: 100, unit: 'g', name: 'Oats' },
+      { id: 303, amount: 100, unit: 'g', name: 'Oats' },
       { id: 501, amount: 1, unit: 'piece', name: 'Banana' },
-      { id: 332, amount: 2, unit: 'piece', name: 'Eggs' },
-      { id: 355, amount: 100, unit: 'ml', name: 'Milk' },
-      { id: 356, amount: 5, unit: 'g', name: 'Cinnamon' },
-      { id: 357, amount: 5, unit: 'ml', name: 'Vanilla extract' },
-      { id: 358, amount: 30, unit: 'ml', name: 'Maple syrup' }
+      { id: 104, amount: 2, unit: 'piece', name: 'Eggs' },
+      { id: 404, amount: 100, unit: 'ml', name: 'Milk' },
+      { id: 713, amount: 5, unit: 'g', name: 'Cinnamon' },
+      { id: 712, amount: 5, unit: 'ml', name: 'Vanilla extract' },
+      { id: 711, amount: 30, unit: 'ml', name: 'Maple syrup' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['16', '2'],
@@ -574,12 +584,12 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 6,
     ingredients: [
-      { id: 359, amount: 200, unit: 'g', name: 'Shrimp' },
+      { id: 109, amount: 200, unit: 'g', name: 'Shrimp' },
       { id: 208, amount: 1, unit: 'piece', name: 'Avocado' },
       { id: 201, amount: 100, unit: 'g', name: 'Mixed greens' },
       { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
       { id: 205, amount: 1, unit: 'piece', name: 'Cucumber' },
-      { id: 314, amount: 1, unit: 'piece', name: 'Lime juice' },
+      { id: 504, amount: 1, unit: 'piece', name: 'Lime' },
       { id: 601, amount: 15, unit: 'ml', name: 'Olive oil' }
     ],
     difficulty: 'Easy',
@@ -601,13 +611,13 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 3,
     ingredients: [
-      { id: 332, amount: 6, unit: 'piece', name: 'Eggs' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell peppers' },
-      { id: 202, amount: 50, unit: 'g', name: 'Spinach' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
+      { id: 104, amount: 6, unit: 'piece', name: 'Eggs' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 203, amount: 50, unit: 'g', name: 'Spinach' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
       { id: 401, amount: 50, unit: 'g', name: 'Feta cheese' },
       { id: 601, amount: 15, unit: 'ml', name: 'Olive oil' },
-      { id: 328, amount: 5, unit: 'g', name: 'Herbs' }
+      { id: 722, amount: 5, unit: 'g', name: 'Herbs' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['12', '16'],
@@ -628,13 +638,13 @@ export const recipeData: Recipe[] = [
     fat: 20,
     fiber: 8,
     ingredients: [
-      { id: 360, amount: 150, unit: 'g', name: 'Turkey breast' },
+      { id: 107, amount: 150, unit: 'g', name: 'Ground turkey' },
       { id: 208, amount: 1, unit: 'piece', name: 'Avocado' },
-      { id: 361, amount: 1, unit: 'piece', name: 'Whole wheat wrap' },
-      { id: 354, amount: 20, unit: 'g', name: 'Lettuce' },
-      { id: 362, amount: 50, unit: 'g', name: 'Tomato' },
-      { id: 319, amount: 30, unit: 'g', name: 'Greek yogurt' },
-      { id: 352, amount: 10, unit: 'g', name: 'Mustard' }
+      { id: 308, amount: 1, unit: 'piece', name: 'Whole wheat wrap' },
+      { id: 736, amount: 20, unit: 'g', name: 'Lettuce' },
+      { id: 737, amount: 50, unit: 'g', name: 'Tomato' },
+      { id: 402, amount: 30, unit: 'g', name: 'Greek yogurt' },
+      { id: 735, amount: 10, unit: 'g', name: 'Mustard' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['18', '3'],
@@ -655,13 +665,13 @@ export const recipeData: Recipe[] = [
     fat: 14,
     fiber: 4,
     ingredients: [
-      { id: 363, amount: 200, unit: 'g', name: 'Arborio rice' },
-      { id: 364, amount: 150, unit: 'g', name: 'Mushrooms' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 365, amount: 100, unit: 'ml', name: 'White wine' },
-      { id: 336, amount: 1000, unit: 'ml', name: 'Vegetable broth' },
-      { id: 366, amount: 50, unit: 'g', name: 'Parmesan cheese' }
+      { id: 309, amount: 200, unit: 'g', name: 'Arborio rice' },
+      { id: 215, amount: 150, unit: 'g', name: 'Mushrooms' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 728, amount: 100, unit: 'ml', name: 'White wine' },
+      { id: 726, amount: 1000, unit: 'ml', name: 'Vegetable broth' },
+      { id: 405, amount: 50, unit: 'g', name: 'Parmesan cheese' }
     ],
     difficulty: 'Hard',
     alternativeIds: ['14', '17'],
@@ -682,12 +692,12 @@ export const recipeData: Recipe[] = [
     fat: 6,
     fiber: 5,
     ingredients: [
-      { id: 317, amount: 30, unit: 'g', name: 'Protein powder' },
-      { id: 367, amount: 15, unit: 'g', name: 'Cocoa powder' },
-      { id: 368, amount: 30, unit: 'g', name: 'Almond flour' },
+      { id: 408, amount: 30, unit: 'g', name: 'Whey protein' },
+      { id: -1, amount: 15, unit: 'g', name: 'Cocoa powder' },
+      { id: -1, amount: 30, unit: 'g', name: 'Almond flour' },
       { id: 403, amount: 100, unit: 'ml', name: 'Almond milk' },
-      { id: 332, amount: 1, unit: 'piece', name: 'Egg' },
-      { id: 369, amount: 5, unit: 'g', name: 'Baking powder' }
+      { id: 104, amount: 1, unit: 'piece', name: 'Eggs' },
+      { id: 739, amount: 5, unit: 'g', name: 'Baking powder' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['11', '7'],
@@ -708,13 +718,13 @@ export const recipeData: Recipe[] = [
     fat: 22,
     fiber: 2,
     ingredients: [
-      { id: 370, amount: 150, unit: 'g', name: 'Tomatoes' },
-      { id: 371, amount: 100, unit: 'g', name: 'Fresh mozzarella' },
-      { id: 372, amount: 10, unit: 'g', name: 'Basil' },
-      { id: 373, amount: 20, unit: 'ml', name: 'Balsamic glaze' },
+      { id: 217, amount: 150, unit: 'g', name: 'Tomatoes' },
+      { id: 406, amount: 100, unit: 'g', name: 'Fresh mozzarella' },
+      { id: 719, amount: 10, unit: 'g', name: 'Basil' },
+      { id: 702, amount: 20, unit: 'ml', name: 'Balsamic vinegar' },
       { id: 601, amount: 15, unit: 'ml', name: 'Olive oil' },
-      { id: 306, amount: 1, unit: 'g', name: 'Salt' },
-      { id: 307, amount: 1, unit: 'g', name: 'Pepper' }
+      { id: 716, amount: 1, unit: 'g', name: 'Salt' },
+      { id: 717, amount: 1, unit: 'g', name: 'Pepper' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['9', '20'],
@@ -735,12 +745,12 @@ export const recipeData: Recipe[] = [
     fat: 20,
     fiber: 4,
     ingredients: [
-      { id: 374, amount: 200, unit: 'g', name: 'Zucchini' },
-      { id: 375, amount: 50, unit: 'g', name: 'Basil pesto' },
+      { id: 216, amount: 200, unit: 'g', name: 'Zucchini' },
+      { id: 733, amount: 50, unit: 'g', name: 'Basil pesto' },
       { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
-      { id: 310, amount: 20, unit: 'g', name: 'Pine nuts' },
-      { id: 366, amount: 30, unit: 'g', name: 'Parmesan cheese' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' }
+      { id: 709, amount: 20, unit: 'g', name: 'Pine nuts' },
+      { id: 405, amount: 30, unit: 'g', name: 'Parmesan cheese' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['23', '17'],
@@ -761,13 +771,13 @@ export const recipeData: Recipe[] = [
     fat: 22,
     fiber: 8,
     ingredients: [
-      { id: 376, amount: 150, unit: 'g', name: 'Tuna' },
+      { id: 110, amount: 150, unit: 'g', name: 'Tuna' },
       { id: 208, amount: 1, unit: 'piece', name: 'Avocado' },
-      { id: 319, amount: 50, unit: 'g', name: 'Greek yogurt' },
-      { id: 334, amount: 30, unit: 'g', name: 'Celery' },
+      { id: 402, amount: 50, unit: 'g', name: 'Greek yogurt' },
+      { id: 214, amount: 30, unit: 'g', name: 'Celery' },
       { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
       { id: 701, amount: 15, unit: 'ml', name: 'Lemon juice' },
-      { id: 305, amount: 5, unit: 'g', name: 'Dill' }
+      { id: 718, amount: 5, unit: 'g', name: 'Dill' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['20', '3'],
@@ -788,13 +798,13 @@ export const recipeData: Recipe[] = [
     fat: 6,
     fiber: 16,
     ingredients: [
-      { id: 308, amount: 200, unit: 'g', name: 'Sweet potato' },
-      { id: 311, amount: 150, unit: 'g', name: 'Black beans' },
-      { id: 337, amount: 150, unit: 'g', name: 'Tomatoes' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell pepper' },
-      { id: 338, amount: 10, unit: 'g', name: 'Chili powder' },
-      { id: 338, amount: 5, unit: 'g', name: 'Cumin' }
+      { id: 212, amount: 200, unit: 'g', name: 'Sweet potato' },
+      { id: 106, amount: 150, unit: 'g', name: 'Black beans' },
+      { id: 217, amount: 150, unit: 'g', name: 'Tomatoes' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 715, amount: 10, unit: 'g', name: 'Chili powder' },
+      { id: 714, amount: 5, unit: 'g', name: 'Cumin' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['13', '6'],
@@ -815,10 +825,10 @@ export const recipeData: Recipe[] = [
     fat: 16,
     fiber: 6,
     ingredients: [
-      { id: 353, amount: 2, unit: 'slice', name: 'Whole grain bread' },
-      { id: 377, amount: 30, unit: 'g', name: 'Almond butter' },
+      { id: 304, amount: 2, unit: 'piece', name: 'Whole grain bread' },
+      { id: 605, amount: 30, unit: 'g', name: 'Almond butter' },
       { id: 501, amount: 1, unit: 'piece', name: 'Banana' },
-      { id: 356, amount: 5, unit: 'g', name: 'Cinnamon' },
+      { id: 713, amount: 5, unit: 'g', name: 'Cinnamon' },
       { id: 706, amount: 15, unit: 'ml', name: 'Honey' }
     ],
     difficulty: 'Easy',
@@ -841,11 +851,11 @@ export const recipeData: Recipe[] = [
     fiber: 12,
     ingredients: [
       { id: 301, amount: 150, unit: 'g', name: 'Quinoa' },
-      { id: 308, amount: 150, unit: 'g', name: 'Sweet potato' },
-      { id: 320, amount: 100, unit: 'g', name: 'Broccoli' },
+      { id: 212, amount: 150, unit: 'g', name: 'Sweet potato' },
+      { id: 204, amount: 100, unit: 'g', name: 'Broccoli' },
       { id: 105, amount: 150, unit: 'g', name: 'Chickpeas' },
       { id: 207, amount: 0.5, unit: 'piece', name: 'Red onion' },
-      { id: 309, amount: 30, unit: 'ml', name: 'Tahini' },
+      { id: 603, amount: 30, unit: 'ml', name: 'Tahini' },
       { id: 701, amount: 15, unit: 'ml', name: 'Lemon juice' }
     ],
     difficulty: 'Medium',
@@ -868,12 +878,12 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: [
       { id: 101, amount: 200, unit: 'g', name: 'Chicken breast' },
-      { id: 321, amount: 100, unit: 'g', name: 'Carrots' },
-      { id: 334, amount: 100, unit: 'g', name: 'Celery' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 378, amount: 1000, unit: 'ml', name: 'Chicken broth' },
-      { id: 328, amount: 5, unit: 'g', name: 'Herbs' }
+      { id: 211, amount: 100, unit: 'g', name: 'Carrots' },
+      { id: 214, amount: 100, unit: 'g', name: 'Celery' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 727, amount: 1000, unit: 'ml', name: 'Chicken broth' },
+      { id: 722, amount: 5, unit: 'g', name: 'Herbs' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['13', '14'],
@@ -894,11 +904,11 @@ export const recipeData: Recipe[] = [
     fat: 4,
     fiber: 3,
     ingredients: [
-      { id: 379, amount: 150, unit: 'g', name: 'Cottage cheese' },
-      { id: 318, amount: 100, unit: 'g', name: 'Mixed berries' },
+      { id: 407, amount: 150, unit: 'g', name: 'Cottage cheese' },
+      { id: 502, amount: 100, unit: 'g', name: 'Mixed berries' },
       { id: 706, amount: 10, unit: 'ml', name: 'Honey' },
-      { id: 356, amount: 5, unit: 'g', name: 'Cinnamon' },
-      { id: 380, amount: 20, unit: 'g', name: 'Almonds' }
+      { id: 713, amount: 5, unit: 'g', name: 'Cinnamon' },
+      { id: 740, amount: 20, unit: 'g', name: 'Almonds' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['16', '11'],
@@ -919,13 +929,13 @@ export const recipeData: Recipe[] = [
     fat: 16,
     fiber: 8,
     ingredients: [
-      { id: 381, amount: 200, unit: 'g', name: 'Tofu' },
-      { id: 320, amount: 150, unit: 'g', name: 'Broccoli' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell peppers' },
-      { id: 321, amount: 100, unit: 'g', name: 'Carrots' },
-      { id: 345, amount: 30, unit: 'ml', name: 'Soy sauce' },
-      { id: 342, amount: 10, unit: 'g', name: 'Ginger' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' }
+      { id: 103, amount: 200, unit: 'g', name: 'Tofu' },
+      { id: 204, amount: 150, unit: 'g', name: 'Broccoli' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 211, amount: 100, unit: 'g', name: 'Carrots' },
+      { id: 703, amount: 30, unit: 'ml', name: 'Soy sauce' },
+      { id: 723, amount: 10, unit: 'g', name: 'Ginger' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['8', '15'],
@@ -946,13 +956,13 @@ export const recipeData: Recipe[] = [
     fat: 8,
     fiber: 10,
     ingredients: [
-      { id: 329, amount: 100, unit: 'g', name: 'Rolled oats' },
-      { id: 355, amount: 150, unit: 'ml', name: 'Milk' },
-      { id: 319, amount: 50, unit: 'g', name: 'Greek yogurt' },
+      { id: 303, amount: 100, unit: 'g', name: 'Oats' },
+      { id: 404, amount: 150, unit: 'ml', name: 'Milk' },
+      { id: 402, amount: 50, unit: 'g', name: 'Greek yogurt' },
       { id: 707, amount: 20, unit: 'g', name: 'Chia seeds' },
       { id: 706, amount: 15, unit: 'ml', name: 'Honey' },
-      { id: 318, amount: 100, unit: 'g', name: 'Berries' },
-      { id: 380, amount: 20, unit: 'g', name: 'Nuts' }
+      { id: 506, amount: 100, unit: 'g', name: 'Berries' },
+      { id: 741, amount: 20, unit: 'g', name: 'Nuts' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['19', '29'],
@@ -973,14 +983,14 @@ export const recipeData: Recipe[] = [
     fat: 14,
     fiber: 6,
     ingredients: [
-      { id: 382, amount: 200, unit: 'g', name: 'Cauliflower' },
-      { id: 332, amount: 2, unit: 'piece', name: 'Eggs' },
-      { id: 321, amount: 100, unit: 'g', name: 'Carrots' },
-      { id: 383, amount: 50, unit: 'g', name: 'Peas' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 342, amount: 10, unit: 'g', name: 'Ginger' },
-      { id: 345, amount: 30, unit: 'ml', name: 'Soy sauce' },
-      { id: 346, amount: 10, unit: 'ml', name: 'Sesame oil' }
+      { id: -1, amount: 200, unit: 'g', name: 'Cauliflower' },
+      { id: 104, amount: 2, unit: 'piece', name: 'Eggs' },
+      { id: 211, amount: 100, unit: 'g', name: 'Carrots' },
+      { id: 219, amount: 50, unit: 'g', name: 'Peas' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 723, amount: 10, unit: 'g', name: 'Ginger' },
+      { id: 703, amount: 30, unit: 'ml', name: 'Soy sauce' },
+      { id: 606, amount: 10, unit: 'ml', name: 'Sesame oil' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['33', '8'],
@@ -1001,13 +1011,13 @@ export const recipeData: Recipe[] = [
     fat: 10,
     fiber: 10,
     ingredients: [
-      { id: 348, amount: 200, unit: 'g', name: 'Ground turkey' },
-      { id: 308, amount: 200, unit: 'g', name: 'Sweet potato' },
-      { id: 384, amount: 150, unit: 'g', name: 'Kidney beans' },
-      { id: 337, amount: 150, unit: 'g', name: 'Tomatoes' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell pepper' },
-      { id: 338, amount: 10, unit: 'g', name: 'Chili powder' }
+      { id: 107, amount: 200, unit: 'g', name: 'Ground turkey' },
+      { id: 212, amount: 200, unit: 'g', name: 'Sweet potato' },
+      { id: -1, amount: 150, unit: 'g', name: 'Kidney beans' },
+      { id: 217, amount: 150, unit: 'g', name: 'Tomatoes' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 715, amount: 10, unit: 'g', name: 'Chili powder' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['28', '31'],
@@ -1028,12 +1038,12 @@ export const recipeData: Recipe[] = [
     fat: 4,
     fiber: 6,
     ingredients: [
-      { id: 385, amount: 150, unit: 'g', name: 'Mango' },
-      { id: 202, amount: 50, unit: 'g', name: 'Spinach' },
+      { id: 505, amount: 150, unit: 'g', name: 'Mango' },
+      { id: 203, amount: 50, unit: 'g', name: 'Spinach' },
       { id: 501, amount: 1, unit: 'piece', name: 'Banana' },
       { id: 403, amount: 200, unit: 'ml', name: 'Almond milk' },
       { id: 707, amount: 20, unit: 'g', name: 'Chia seeds' },
-      { id: 314, amount: 1, unit: 'piece', name: 'Lime juice' }
+      { id: 504, amount: 1, unit: 'piece', name: 'Lime' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['2', '7'],
@@ -1055,13 +1065,13 @@ export const recipeData: Recipe[] = [
     fiber: 14,
     ingredients: [
       { id: 105, amount: 200, unit: 'g', name: 'Chickpeas' },
-      { id: 386, amount: 20, unit: 'g', name: 'Parsley' },
-      { id: 315, amount: 20, unit: 'g', name: 'Cilantro' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 338, amount: 5, unit: 'g', name: 'Cumin' },
-      { id: 309, amount: 30, unit: 'ml', name: 'Tahini' },
+      { id: 720, amount: 20, unit: 'g', name: 'Parsley' },
+      { id: 721, amount: 20, unit: 'g', name: 'Cilantro' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 714, amount: 5, unit: 'g', name: 'Cumin' },
+      { id: 603, amount: 30, unit: 'ml', name: 'Tahini' },
       { id: 205, amount: 1, unit: 'piece', name: 'Cucumber' },
-      { id: 337, amount: 150, unit: 'g', name: 'Tomato' }
+      { id: 217, amount: 150, unit: 'g', name: 'Tomatoes' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['1', '9'],
@@ -1082,13 +1092,13 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 6,
     ingredients: [
-      { id: 353, amount: 2, unit: 'slice', name: 'Whole grain bread' },
-      { id: 332, amount: 2, unit: 'piece', name: 'Eggs' },
+      { id: 304, amount: 2, unit: 'piece', name: 'Whole grain bread' },
+      { id: 104, amount: 2, unit: 'piece', name: 'Eggs' },
       { id: 208, amount: 1, unit: 'piece', name: 'Avocado' },
       { id: 206, amount: 100, unit: 'g', name: 'Cherry tomatoes' },
-      { id: 387, amount: 10, unit: 'g', name: 'Microgreens' },
-      { id: 306, amount: 1, unit: 'g', name: 'Salt' },
-      { id: 307, amount: 1, unit: 'g', name: 'Pepper' }
+      { id: 742, amount: 10, unit: 'g', name: 'Microgreens' },
+      { id: 716, amount: 1, unit: 'g', name: 'Salt' },
+      { id: 717, amount: 1, unit: 'g', name: 'Pepper' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['29', '12'],
@@ -1109,13 +1119,13 @@ export const recipeData: Recipe[] = [
     fat: 14,
     fiber: 4,
     ingredients: [
-      { id: 359, amount: 200, unit: 'g', name: 'Shrimp' },
-      { id: 388, amount: 150, unit: 'g', name: 'Whole wheat pasta' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 303, amount: 1, unit: 'piece', name: 'Lemon' },
+      { id: 109, amount: 200, unit: 'g', name: 'Shrimp' },
+      { id: 306, amount: 150, unit: 'g', name: 'Whole wheat pasta' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 503, amount: 1, unit: 'piece', name: 'Lemon' },
       { id: 601, amount: 20, unit: 'ml', name: 'Olive oil' },
-      { id: 389, amount: 10, unit: 'g', name: 'Parsley' },
-      { id: 390, amount: 1, unit: 'g', name: 'Red pepper flakes' }
+      { id: 720, amount: 10, unit: 'g', name: 'Parsley' },
+      { id: 738, amount: 1, unit: 'g', name: 'Red pepper flakes' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['20', '23'],
@@ -1137,11 +1147,11 @@ export const recipeData: Recipe[] = [
     fiber: 6,
     ingredients: [
       { id: 501, amount: 1, unit: 'piece', name: 'Banana' },
-      { id: 330, amount: 30, unit: 'g', name: 'Peanut butter' },
-      { id: 319, amount: 100, unit: 'g', name: 'Greek yogurt' },
-      { id: 355, amount: 150, unit: 'ml', name: 'Milk' },
+      { id: 604, amount: 30, unit: 'g', name: 'Peanut butter' },
+      { id: 402, amount: 100, unit: 'g', name: 'Greek yogurt' },
+      { id: 404, amount: 150, unit: 'ml', name: 'Milk' },
       { id: 706, amount: 15, unit: 'ml', name: 'Honey' },
-      { id: 391, amount: 100, unit: 'g', name: 'Ice' }
+      { id: -1, amount: 100, unit: 'g', name: 'Ice' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['7', '37'],
@@ -1162,13 +1172,13 @@ export const recipeData: Recipe[] = [
     fat: 16,
     fiber: 6,
     ingredients: [
-      { id: 392, amount: 200, unit: 'g', name: 'Brussels sprouts' },
-      { id: 393, amount: 100, unit: 'g', name: 'Bacon' },
+      { id: -1, amount: 200, unit: 'g', name: 'Brussels sprouts' },
+      { id: -1, amount: 100, unit: 'g', name: 'Bacon' },
       { id: 601, amount: 20, unit: 'ml', name: 'Olive oil' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 373, amount: 20, unit: 'ml', name: 'Balsamic vinegar' },
-      { id: 306, amount: 1, unit: 'g', name: 'Salt' },
-      { id: 307, amount: 1, unit: 'g', name: 'Pepper' }
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 702, amount: 20, unit: 'ml', name: 'Balsamic vinegar' },
+      { id: 716, amount: 1, unit: 'g', name: 'Salt' },
+      { id: 717, amount: 1, unit: 'g', name: 'Pepper' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['26', '35'],
@@ -1190,11 +1200,11 @@ export const recipeData: Recipe[] = [
     fiber: 4,
     ingredients: [
       { id: 101, amount: 150, unit: 'g', name: 'Chicken breast' },
-      { id: 361, amount: 1, unit: 'piece', name: 'Whole wheat wrap' },
-      { id: 354, amount: 20, unit: 'g', name: 'Romaine lettuce' },
-      { id: 366, amount: 30, unit: 'g', name: 'Parmesan cheese' },
-      { id: 394, amount: 30, unit: 'ml', name: 'Caesar dressing' },
-      { id: 395, amount: 20, unit: 'g', name: 'Croutons' }
+      { id: 308, amount: 1, unit: 'piece', name: 'Whole wheat wrap' },
+      { id: 736, amount: 20, unit: 'g', name: 'Lettuce' },
+      { id: 405, amount: 30, unit: 'g', name: 'Parmesan cheese' },
+      { id: 729, amount: 30, unit: 'ml', name: 'Caesar dressing' },
+      { id: 730, amount: 20, unit: 'g', name: 'Croutons' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['22', '3'],
@@ -1215,13 +1225,13 @@ export const recipeData: Recipe[] = [
     fat: 14,
     fiber: 10,
     ingredients: [
-      { id: 320, amount: 150, unit: 'g', name: 'Mixed vegetables' },
-      { id: 340, amount: 400, unit: 'ml', name: 'Coconut milk' },
-      { id: 341, amount: 50, unit: 'g', name: 'Curry paste' },
-      { id: 396, amount: 150, unit: 'g', name: 'Jasmine rice' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 342, amount: 10, unit: 'g', name: 'Ginger' },
-      { id: 315, amount: 20, unit: 'g', name: 'Cilantro' }
+      { id: 204, amount: 150, unit: 'g', name: 'Broccoli' },
+      { id: 602, amount: 400, unit: 'ml', name: 'Coconut milk' },
+      { id: 724, amount: 50, unit: 'g', name: 'Curry paste' },
+      { id: 310, amount: 150, unit: 'g', name: 'Jasmine rice' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 723, amount: 10, unit: 'g', name: 'Ginger' },
+      { id: 721, amount: 20, unit: 'g', name: 'Cilantro' }
     ],
     difficulty: 'Medium',
     alternativeIds: ['14', '33'],
@@ -1242,12 +1252,12 @@ export const recipeData: Recipe[] = [
     fat: 18,
     fiber: 8,
     ingredients: [
-      { id: 382, amount: 200, unit: 'g', name: 'Cauliflower' },
-      { id: 322, amount: 100, unit: 'g', name: 'Bell peppers' },
-      { id: 335, amount: 1, unit: 'piece', name: 'Onion' },
-      { id: 304, amount: 2, unit: 'piece', name: 'Garlic cloves' },
-      { id: 345, amount: 30, unit: 'ml', name: 'Soy sauce' },
-      { id: 346, amount: 10, unit: 'ml', name: 'Sesame oil' }
+      { id: -1, amount: 200, unit: 'g', name: 'Cauliflower' },
+      { id: 209, amount: 100, unit: 'g', name: 'Bell peppers' },
+      { id: 207, amount: 1, unit: 'piece', name: 'Red onion' },
+      { id: 213, amount: 2, unit: 'piece', name: 'Garlic' },
+      { id: 703, amount: 30, unit: 'ml', name: 'Soy sauce' },
+      { id: 606, amount: 10, unit: 'ml', name: 'Sesame oil' }
     ],
     difficulty: 'Easy',
     alternativeIds: ['8', '10'],
