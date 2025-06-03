@@ -11,6 +11,9 @@ import WeeklySetupModal from '@/components/meal-planning/WeeklySetupModal';
 import MealPlanHeader from '@/components/meal-planning/MealPlanHeader';
 import MealPlanTabs from '@/components/meal-planning/MealPlanTabs';
 import MealPlanContent from '@/components/meal-planning/MealPlanContent';
+import MealCountSelector from '@/components/meal-planning/MealCountSelector';
+import RecipeSelectionModal from '@/components/meal-planning/RecipeSelectionModal';
+import PlanSuccessModal from '@/components/meal-planning/PlanSuccessModal';
 
 // Import hooks
 import { useMealPreferences } from '@/hooks/useMealPreferences';
@@ -32,7 +35,14 @@ const MealPlanning = () => {
     showQuickSetupModal, setShowQuickSetupModal,
     showDetailedPlanningModal, setShowDetailedPlanningModal,
     showWeeklySetupModal, setShowWeeklySetupModal,
-    weeklySettings, handleWeeklySetup, handleSetupChoice
+    // New weekly planner states
+    showMealCountSelector, setShowMealCountSelector,
+    showRecipeSelectionModal, setShowRecipeSelectionModal,
+    showPlanSuccessModal, setShowPlanSuccessModal,
+    mealCount, setMealCount,
+    weeklySettings, handleWeeklySetup, handleSetupChoice,
+    startWeeklyPlanning, handleMealCountConfirm,
+    handleRecipeSelectionConfirm, handleViewGeneratedPlan
   } = useMealPlanningState();
   
   // Get user preferences
@@ -71,10 +81,22 @@ const MealPlanning = () => {
 
   return (
     <Layout>
+      {/* Meal Count Selector (Conditional Rendering) */}
+      {showMealCountSelector && (
+        <div className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4">
+          <MealCountSelector
+            mealCount={mealCount}
+            onMealCountChange={setMealCount}
+            onConfirm={handleMealCountConfirm}
+          />
+        </div>
+      )}
+
       {/* Header section */}
       <MealPlanHeader 
         onGeneratePlan={generateMealPlan}
         onOpenPreferences={handleOpenPreferences}
+        onStartWeeklyPlanning={startWeeklyPlanning}
       />
 
       {/* Tabs navigation */}
@@ -110,6 +132,20 @@ const MealPlanning = () => {
         onClose={() => setShowWeeklySetupModal(false)}
         onSetup={handleWeeklySetup}
         initialSettings={weeklySettings}
+      />
+
+      {/* New Weekly Planner Modals */}
+      <RecipeSelectionModal
+        isOpen={showRecipeSelectionModal}
+        onClose={() => setShowRecipeSelectionModal(false)}
+        mealCount={mealCount}
+        onConfirmSelection={handleRecipeSelectionConfirm}
+      />
+
+      <PlanSuccessModal
+        isOpen={showPlanSuccessModal}
+        onClose={() => setShowPlanSuccessModal(false)}
+        onViewPlan={handleViewGeneratedPlan}
       />
     </Layout>
   );

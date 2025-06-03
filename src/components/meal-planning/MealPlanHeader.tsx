@@ -1,41 +1,64 @@
 
 import React from 'react';
-import { RefreshCw, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PlusCircle, Settings, Wand2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
-import LanguageSelector from './LanguageSelector';
 
 interface MealPlanHeaderProps {
   onGeneratePlan: () => void;
   onOpenPreferences: () => void;
+  onStartWeeklyPlanning: () => void; // New prop
 }
 
 /**
  * Header component for the meal planning page
- * Contains title, subtitle, and action buttons
  */
 const MealPlanHeader: React.FC<MealPlanHeaderProps> = ({
   onGeneratePlan,
-  onOpenPreferences
+  onOpenPreferences,
+  onStartWeeklyPlanning
 }) => {
   const { t } = useLanguage();
 
   return (
-    <div className="mb-8">
-      <h1 className="text-3xl font-bold mb-2 uppercase">{t('mealPlanning.title')}</h1>
-      <p className="text-muted-foreground">
-        {t('mealPlanning.subtitle')}
-      </p>
-      <div className="flex justify-end gap-2 flex-wrap mt-4">
-        <LanguageSelector />
-        <Button variant="outline" onClick={onOpenPreferences} className="gap-2">
-          <Settings className="h-4 w-4" />
-          {t('mealPlanning.preferences')}
-        </Button>
-        <Button onClick={onGeneratePlan} className="gap-2 bg-primary hover:bg-primary/90">
-          <RefreshCw className="h-4 w-4" />
-          {t('mealPlanning.generateAIPlan')}
-        </Button>
+    <div className="flex flex-col space-y-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            {t('mealPlanning.title')}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {t('mealPlanning.subtitle')}
+          </p>
+        </div>
+        
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            onClick={onStartWeeklyPlanning}
+            className="flex items-center gap-2"
+            variant="default"
+          >
+            <Wand2 className="h-4 w-4" />
+            Wochenplan erstellen
+          </Button>
+          
+          <Button 
+            onClick={onGeneratePlan}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <PlusCircle className="h-4 w-4" />
+            {t('mealPlanning.generatePlan')}
+          </Button>
+          
+          <Button 
+            onClick={onOpenPreferences}
+            variant="outline"
+            size="icon"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

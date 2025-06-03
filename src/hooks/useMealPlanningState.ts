@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { WeeklySetupSettings } from '@/components/meal-planning/WeeklySetupModal';
+import { MealItem, WeeklyPlan } from '@/types/meal-planning';
 import { toast } from 'sonner';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 /**
  * Custom hook to manage meal planning state
@@ -13,6 +15,7 @@ export const useMealPlanningState = () => {
   const { toast: toastNotification } = useToast();
   const { t } = useLanguage();
   const { weeklySettings, updateWeeklySettings } = useMealPreferences();
+  const { profile, updateProfile } = useUserProfile();
   
   const [activeTab, setActiveTab] = useState('weekly');
   const [currentDay, setCurrentDay] = useState('Monday');
@@ -23,13 +26,18 @@ export const useMealPlanningState = () => {
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
   const [showWeeklySetupModal, setShowWeeklySetupModal] = useState(false);
+  
+  // New state for the weekly planner workflow
+  const [showMealCountSelector, setShowMealCountSelector] = useState(false);
+  const [showRecipeSelectionModal, setShowRecipeSelectionModal] = useState(false);
+  const [showPlanSuccessModal, setShowPlanSuccessModal] = useState(false);
+  const [mealCount, setMealCount] = useState(5);
 
   /**
    * Handle weekly setup settings
    * @param settings Weekly setup settings
    */
   const handleWeeklySetup = (settings: WeeklySetupSettings) => {
-    // Update the weekly settings using our central preferences hook
     updateWeeklySettings(settings);
     
     toastNotification({
@@ -51,6 +59,71 @@ export const useMealPlanningState = () => {
     setShowWelcomeModal(false);
   };
 
+  /**
+   * Start the new weekly planning workflow
+   */
+  const startWeeklyPlanning = () => {
+    setShowMealCountSelector(true);
+  };
+
+  /**
+   * Handle meal count confirmation and proceed to recipe selection
+   */
+  const handleMealCountConfirm = () => {
+    setShowMealCountSelector(false);
+    setShowRecipeSelectionModal(true);
+  };
+
+  /**
+   * Handle recipe selection confirmation and create the plan
+   * @param selectedRecipes Array of selected recipes
+   */
+  const handleRecipeSelectionConfirm = (selectedRecipes: MealItem[]) => {
+    // Randomly assign recipes to days
+    const shuffledDays = [...days].sort(() => Math.random() - 0.5);
+    const assignedDays: { [day: string]: { [key: string]: MealItem | undefined } } = {};
+    
+    // Initialize all days
+    days.forEach(day => {
+      assignedDays[day] = {
+        breakfast: undefined,
+        lunch: undefined,
+        dinner: undefined
+      };
+    });
+
+    // Assign recipes to random days (lunch slot by default)
+    selectedRecipes.forEach((recipe, index) => {
+      if (index < shuffledDays.length) {
+        const day = shuffledDays[index];
+        assignedDays[day].lunch = recipe;
+      }
+    });
+
+    const newPlan: WeeklyPlan = {
+      selectedRecipes,
+      assignedDays,
+      createdAt: new Date().toISOString()
+    };
+
+    if (profile) {
+      updateProfile({
+        ...profile,
+        currentWeekPlan: newPlan
+      });
+    }
+
+    setShowRecipeSelectionModal(false);
+    setShowPlanSuccessModal(true);
+  };
+
+  /**
+   * Handle viewing the generated plan
+   */
+  const handleViewGeneratedPlan = () => {
+    setActiveTab('weekly');
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -65,8 +138,21 @@ export const useMealPlanningState = () => {
     setShowDetailedPlanningModal,
     showWeeklySetupModal,
     setShowWeeklySetupModal,
+    // New weekly planner states
+    showMealCountSelector,
+    setShowMealCountSelector,
+    showRecipeSelectionModal,
+    setShowRecipeSelectionModal,
+    showPlanSuccessModal,
+    setShowPlanSuccessModal,
+    mealCount,
+    setMealCount,
     weeklySettings,
     handleWeeklySetup,
-    handleSetupChoice
+    handleSetupChoice,
+    startWeeklyPlanning,
+    handleMealCountConfirm,
+    handleRecipeSelectionConfirm,
+    handleViewGeneratedPlan
   };
 };
