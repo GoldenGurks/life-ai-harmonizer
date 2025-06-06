@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import PhotoRecipeExtractor from '@/components/recipes/PhotoRecipeExtractor';
 import UserProfile from '@/components/profile/UserProfile';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import PhotoImportModal from '@/components/recipes/PhotoImportModal';
 
 // New components
 import { useRecipeFilters } from '@/hooks/useRecipeFilters';
@@ -33,6 +33,7 @@ const Recipes = () => {
   const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState(false);
   const [isPhotoExtractorOpen, setIsPhotoExtractorOpen] = useState(false);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+  const [isPhotoImportOpen, setIsPhotoImportOpen] = useState(false);
   
   const {
     searchQuery,
@@ -138,6 +139,12 @@ const Recipes = () => {
     setSelectedRecipe(enriched);
   };
 
+  // Add recipe to library from photo import
+  const handlePhotoRecipeCreated = (recipe: Recipe) => {
+    handleExtractedRecipe(recipe);
+    toast.success(`Recipe "${recipe.title}" imported from photo successfully!`);
+  };
+
   return (
     <Layout>
       <div className="flex items-center justify-between mb-6">
@@ -150,6 +157,10 @@ const Recipes = () => {
           <Button variant="outline" onClick={() => setIsPhotoExtractorOpen(true)}>
             <Camera className="h-4 w-4 mr-2" />
             Extract from Photo
+          </Button>
+          <Button variant="outline" onClick={() => setIsPhotoImportOpen(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Photo
           </Button>
           <Button variant="outline" onClick={() => setIsUploadDrawerOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
@@ -266,6 +277,28 @@ const Recipes = () => {
                     toast.success(`Recipe "${recipe.title}" added to your collection!`);
                   }}
                   onClose={() => setIsPhotoExtractorOpen(false)}
+                />
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+      
+      {/* Photo Import Drawer */}
+      {isPhotoImportOpen && (
+        <Drawer open={isPhotoImportOpen} onOpenChange={setIsPhotoImportOpen}>
+          <DrawerContent className="max-h-[90vh]">
+            <div className="mx-auto w-full max-w-2xl">
+              <DrawerHeader>
+                <DrawerTitle>Import Recipe from Photo</DrawerTitle>
+                <DrawerDescription>
+                  Upload a photo of food and let SmartPlate extract the recipe details automatically.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="p-4 pb-0 overflow-y-auto">
+                <PhotoImportModal
+                  onRecipeCreated={handlePhotoRecipeCreated}
+                  onClose={() => setIsPhotoImportOpen(false)}
                 />
               </div>
             </div>

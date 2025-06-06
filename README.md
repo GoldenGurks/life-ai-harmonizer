@@ -12,6 +12,25 @@ A comprehensive React-based meal planning application that helps users organize 
 - Customizable recommendation weights
 - Multiple planning modes (quick setup, detailed planning)
 
+### 📸 Photo-to-Recipe Import
+- **SmartPlate Integration**: Upload food photos to automatically extract recipes
+- **AI-Powered Analysis**: Uses GPT-4 Vision to identify ingredients, measurements, and cooking instructions
+- **Seamless Library Integration**: Imported recipes are immediately available in your recipe collection
+- **Smart Data Mapping**: Converts extracted data into our structured Recipe format with proper ingredient typing
+
+#### How Photo-to-Recipe Works:
+1. **Upload Photo**: Click "Upload Photo" in the Import Recipe flow
+2. **SmartPlate Analysis**: Image is sent to our SmartPlate GPT endpoint for processing
+3. **Recipe Extraction**: AI analyzes the photo and returns structured JSON with:
+   - Recipe title and estimated servings
+   - Ingredient list with precise measurements
+   - Step-by-step cooking instructions
+   - Difficulty level and cooking time
+4. **Library Integration**: Extracted recipe is converted to our Recipe type and added to your collection
+5. **Immediate Access**: Recipe appears in your library and can be used in meal planning
+
+**API Integration**: The feature uses OpenAI's GPT-4 Vision model through our SmartPlate prompt engineering for optimal recipe extraction accuracy.
+
 ### 📊 Nutrition Tracking
 - Comprehensive macronutrient tracking
 - Visual nutrition charts and progress indicators
@@ -59,6 +78,7 @@ Example test recipe: "Mediterranean Quinoa Bowl" should show calculated nutritio
 - **Form Handling**: React Hook Form with Zod validation
 - **Animations**: Motion library for smooth transitions
 - **Notifications**: Sonner toast notifications
+- **AI Integration**: OpenAI GPT-4 Vision for photo-to-recipe extraction
 
 ## Project Structure
 
@@ -69,11 +89,12 @@ src/
 │   ├── profile/         # User profile related components
 │   ├── meal-planning/   # Meal planning specific components
 │   ├── nutrition/       # Nutrition tracking components
+│   ├── recipes/         # Recipe-related components including PhotoImportModal
 │   └── shopping/        # Shopping list and pantry components
 ├── context/             # React context providers
 ├── hooks/               # Custom React hooks
 ├── pages/               # Route-based page components
-├── services/            # Business logic and API services
+├── services/            # Business logic and API services including photoImportService
 ├── types/               # TypeScript type definitions
 ├── utils/               # Utility functions
 ├── data/                # Static data and mock databases
@@ -81,6 +102,20 @@ src/
 ```
 
 ## Core Services
+
+### Photo Import Service
+
+The `photoImportService.ts` handles communication with our SmartPlate GPT:
+
+- **Image Analysis**: Converts uploaded images to base64 and sends to GPT-4 Vision
+- **Recipe Extraction**: Uses specialized prompts to extract structured recipe data
+- **Error Handling**: Provides user-friendly error messages for failed analyses
+- **Data Transformation**: Maps SmartPlate response to our Recipe type system
+
+Key functions:
+- `analyzeRecipePhoto(file: File)`: Main analysis function
+- `setApiKey(key: string)`: Stores OpenAI API key locally
+- `getApiKey()`: Retrieves stored API key
 
 ### Recommendation Engine
 
@@ -107,6 +142,7 @@ For cold-start scenarios or author-style specifications, the system can leverage
 - Generate recipes in specific culinary styles
 - Provide cooking tips based on user preferences
 - Suggest meal combinations that match nutritional goals
+- Extract recipes from food photos using SmartPlate GPT
 
 ## Getting Started
 
@@ -122,6 +158,11 @@ npm run dev
 
 3. Access the application:
 Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+4. (Optional) Set up photo import:
+   - Get an OpenAI API key from https://platform.openai.com/
+   - In the app, go to Recipes → Upload Photo and enter your API key
+   - The key is stored locally for future use
 
 ## Development Guidelines
 
@@ -142,6 +183,16 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - End-to-end testing with Playwright
 
 ## Key Features Implementation
+
+### Photo-to-Recipe Workflow:
+1. User clicks "Upload Photo" in recipe import flow
+2. PhotoImportModal opens with file selection
+3. User selects food image and enters API key (if needed)
+4. Image is sent to SmartPlate GPT via photoImportService
+5. AI extracts recipe data and returns structured JSON
+6. Data is transformed into Recipe format with proper typing
+7. Recipe is added to library and user is notified
+8. New recipe appears immediately in recipe collection
 
 ### Meal Planning Workflow:
 1. User completes preference profile
