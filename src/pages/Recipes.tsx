@@ -123,8 +123,10 @@ const Recipes = () => {
       return;
     }
     
-    setSelectedRecipe(findRecipeById(recipeId));
-    setIsRecipeDetailOpen(true);
+    const recipe = findRecipeById(recipeId);
+    if (recipe) {
+      openRecipeDetail(recipe);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -885,8 +887,25 @@ const Recipes = () => {
                           <motion.div 
                             key={id}
                             className="min-w-[220px] rounded-lg overflow-hidden border cursor-pointer"
-                            onClick={() => {
-                              setSelectedRecipe(altRecipe);
+                            onClick={async () => {
+                              try {
+                                const enriched = await ensureNutritionAndCost([altRecipe]);
+                                setSelectedRecipe(enriched[0]);
+                              } catch (error) {
+                                console.error('Error enriching alternative recipe:', error);
+                                setSelectedRecipe({
+                                  ...altRecipe,
+                                  nutrition: altRecipe.nutrition || {
+                                    calories: altRecipe.calories || 0,
+                                    protein: altRecipe.protein || 0,
+                                    carbs: altRecipe.carbs || 0,
+                                    fat: altRecipe.fat || 0,
+                                    fiber: altRecipe.fiber || 0,
+                                    sugar: altRecipe.sugar || 0,
+                                    cost: altRecipe.cost || 0
+                                  }
+                                });
+                              }
                             }}
                             animate={{ opacity: 1, y: 0 }}
                           >
