@@ -1,12 +1,11 @@
-
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from "@/types/recipes";
-import { getIngredientId, getIngredientAmount, isRecipeIngredient } from "@/utils/ingredientUtils";
+import { calculateIngredientNutrition, loadVegLibraryWeights, isRecipeIngredient } from "@/utils/ingredientUtils";
 
 // Cache for the library data to avoid multiple network requests
 let vegLibraryCache: FoodItem[] = [];
 
 /**
- * Load the vegetable library data from the server
+ * Load the vegetable library data from the server (legacy support)
  */
 export async function loadVegLibrary(): Promise<FoodItem[]> {
   if (vegLibraryCache.length > 0) {
@@ -30,7 +29,7 @@ export async function loadVegLibrary(): Promise<FoodItem[]> {
 }
 
 /**
- * Find a food item by ID in the library
+ * Find a food item by ID in the library (legacy support)
  */
 export async function getFoodItemById(id: number): Promise<FoodItem | null> {
   const library = await loadVegLibrary();
@@ -38,7 +37,7 @@ export async function getFoodItemById(id: number): Promise<FoodItem | null> {
 }
 
 /**
- * Convert a FoodItem to a Recipe format
+ * Convert a FoodItem to a Recipe format (legacy support)
  */
 export function convertFoodItemToRecipe(item: FoodItem): EnrichedRecipe {
   // Convert the serving unit to one of the allowed types
@@ -75,11 +74,12 @@ export function convertFoodItemToRecipe(item: FoodItem): EnrichedRecipe {
 
 /**
  * Calculate nutrition and cost for a recipe
+ * Pull ingredient data from veg_library_with_weights.ndjson
+ * Calculate per-ingredient macros using averageWeightPerPiece when unit==="piece"
+ * Sum and divide by recipe.servings (4) to get per-serving nutrition + cost
  */
-export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: FoodItem[]): Promise<EnrichedRecipe> {
-  const library = foodLibrary || await loadVegLibrary();
-  
-  // Initialize nutrition values
+export async function calculateNutritionAndCost(recipe: Recipe): Promise<EnrichedRecipe> {
+  // Initialize nutrition totals for the entire recipe
   let totalCalories = 0;
   let totalProtein = 0;
   let totalCarbs = 0;
@@ -89,43 +89,34 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
   let totalCost = 0;
   let missingIngredients = false;
   
-  // Calculate nutrition for each ingredient
+  // Step A & B: For each ingredient, lookup nutrition data and calculate totals
   for (const ingredient of recipe.ingredients) {
-    // Skip if not a RecipeIngredient object and we can't get an ID
-    const ingredientId = getIngredientId(ingredient);
-    if (ingredientId === null) {
+    // Skip string ingredients that can't be processed
+    if (!isRecipeIngredient(ingredient)) {
+      console.warn(`Skipping string ingredient: ${ingredient}`);
       missingIngredients = true;
       continue;
     }
     
-    // Get the amount in the appropriate unit
-    const amount = getIngredientAmount(ingredient);
+    // Calculate nutrition for this ingredient using the new helper
+    const nutrition = await calculateIngredientNutrition(ingredient);
     
-    // Find the food item in the library
-    const foodItem = library.find(item => item.id === ingredientId);
-    
-    if (foodItem) {
-      // Calculate nutritional values based on amount
-      const ratio = amount / 100; // Amount relative to 100g/ml standard
-      
-      totalCalories += foodItem.nutrients.calories * ratio;
-      totalProtein += foodItem.nutrients.protein_g * ratio;
-      totalCarbs += foodItem.nutrients.carbs_g * ratio;
-      totalFat += foodItem.nutrients.fat_g * ratio;
-      totalFiber += (foodItem.nutrients.fiber_g || 0) * ratio;
-      totalSugar += (foodItem.nutrients.sugar_g || 0) * ratio;
-      
-      // Add cost if available
-      if (foodItem.costPer100g) {
-        totalCost += foodItem.costPer100g * ratio;
-      }
+    if (nutrition) {
+      // Step C: Sum across all ingredients
+      totalCalories += nutrition.totalCalories;
+      totalProtein += nutrition.totalProtein;
+      totalCarbs += nutrition.totalCarbs;
+      totalFat += nutrition.totalFat;
+      totalFiber += nutrition.totalFiber;
+      totalSugar += nutrition.totalSugar;
+      totalCost += nutrition.totalCost;
     } else {
       missingIngredients = true;
     }
   }
   
-  // Adjust for servings
-  const servings = recipe.servings || 1;
+  // Step D: Divide by recipe.servings (default 4) to get per-serving values
+  const servings = recipe.servings || 4;
   const caloriesPerServing = totalCalories / servings;
   const proteinPerServing = totalProtein / servings;
   const carbsPerServing = totalCarbs / servings;
@@ -136,7 +127,7 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
   
   // Log warning if ingredients are missing
   if (missingIngredients) {
-    console.warn(`Recipe ${recipe.id} has missing ingredients. Nutrition values may be incomplete.`);
+    console.warn(`Recipe ${recipe.id} has missing or invalid ingredients. Nutrition values may be incomplete.`);
   }
   
   // Round values for better display
@@ -148,6 +139,7 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
   const roundedSugar = Math.round(sugarPerServing * 10) / 10;
   const roundedCost = Math.round(costPerServing * 100) / 100;
   
+  // Step E: Attach the final object under recipe.nutrition
   return {
     ...recipe,
     nutrition: {
@@ -163,60 +155,45 @@ export async function calculateNutritionAndCost(recipe: Recipe, foodLibrary?: Fo
 }
 
 /**
- * Ensure all recipes have nutrition data
+ * Ensure all recipes have nutrition data calculated dynamically
  */
 export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<EnrichedRecipe[]> {
-  const library = await loadVegLibrary();
   const enrichedRecipes: EnrichedRecipe[] = [];
   
   for (const recipe of recipes) {
-    // Case 1: Recipe already has nutrition object
-    if (recipe.nutrition) {
+    // Always recalculate nutrition from ingredients if they exist
+    if (recipe.ingredients && recipe.ingredients.length > 0) {
+      try {
+        const enriched = await calculateNutritionAndCost(recipe);
+        enrichedRecipes.push(enriched);
+      } catch (error) {
+        console.error(`Error calculating nutrition for recipe ${recipe.id}:`, error);
+        // Fallback to existing nutrition data or defaults
+        enrichedRecipes.push({
+          ...recipe,
+          nutrition: recipe.nutrition || {
+            calories: recipe.calories || 0,
+            protein: recipe.protein || 0,
+            carbs: recipe.carbs || 0,
+            fat: recipe.fat || 0,
+            fiber: recipe.fiber || 0,
+            sugar: recipe.sugar || 0,
+            cost: recipe.cost || 0
+          }
+        });
+      }
+    } else {
+      // No ingredients available, use existing data or defaults
       enrichedRecipes.push({
         ...recipe,
-        nutrition: {
-          calories: recipe.nutrition.calories,
-          protein: recipe.nutrition.protein,
-          carbs: recipe.nutrition.carbs,
-          fat: recipe.nutrition.fat,
-          fiber: recipe.nutrition.fiber || 0,
-          sugar: recipe.nutrition.sugar || 0,
-          cost: recipe.nutrition.cost || 0
-        }
-      });
-    }
-    // Case 2: Legacy fields exist (calories, protein, etc. at root level)
-    else if (typeof recipe.calories === 'number') {
-      enrichedRecipes.push({
-        ...recipe,
-        nutrition: {
-          calories: recipe.calories,
+        nutrition: recipe.nutrition || {
+          calories: recipe.calories || 0,
           protein: recipe.protein || 0,
           carbs: recipe.carbs || 0,
           fat: recipe.fat || 0,
           fiber: recipe.fiber || 0,
           sugar: recipe.sugar || 0,
-          cost: recipe.cost || 1.99 // Default cost if not specified
-        }
-      });
-    }
-    // Case 3: Calculate nutrition from ingredients
-    else if (recipe.ingredients && recipe.ingredients.length > 0) {
-      const enriched = await calculateNutritionAndCost(recipe, library);
-      enrichedRecipes.push(enriched);
-    }
-    // Case 4: No data available, add placeholder
-    else {
-      enrichedRecipes.push({
-        ...recipe,
-        nutrition: {
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fat: 0,
-          fiber: 0,
-          sugar: 0,
-          cost: 0
+          cost: recipe.cost || 0
         }
       });
     }

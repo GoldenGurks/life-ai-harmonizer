@@ -30,6 +30,26 @@ A comprehensive React-based meal planning application that helps users organize 
 - Food preferences (likes/dislikes)
 - Cooking experience and time availability settings
 
+## Nutrition Calculation
+
+- Each `RecipeIngredient` uses its `id` to look up a `FoodItem` in `veg_library_with_weights.ndjson`.
+- `averageWeightPerPiece` converts "piece" units to grams for accurate nutrition calculation.
+- We compute `weightInGrams` for every ingredient, then multiply by per-gram nutrients & cost from the FoodItem.
+- Sum all ingredients, then divide by `recipe.servings` (default 4) for per-serving macros + cost.
+- All changes are commented directly in `ingredientUtils.ts` and `nutritionService.ts`.
+- We assume 1 ml = 1 g if unit === 'ml' for liquid ingredients.
+
+### Manual Testing
+
+To verify nutrition calculations work correctly:
+
+1. Open browser console
+2. Check any recipe's `recipe.nutrition.calories` value
+3. Verify it matches: `sum(ingredientWeightInGrams × FoodItem.caloriesPer100g / 100) ÷ 4`
+4. Similarly verify `nutrition.cost` using `FoodItem.costPer100g`
+
+Example test recipe: "Mediterranean Quinoa Bowl" should show calculated nutrition values in the meal planning interface.
+
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
@@ -137,10 +157,14 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - Author-style based recommendations
 
 ### Nutrition Tracking:
-- Automatic calculation of nutritional values
+- Automatic calculation of nutritional values from ingredient database
 - Visual representation of macro/micronutrients
 - Goal tracking with daily/weekly summaries
 - Nutritional balance insights
+
+## Removed Legacy Fields
+
+- Removed legacy `recipe.calories`, `recipe.protein`, etc. Now use `recipe.nutrition.*` for all nutrition data.
 
 ## License
 
