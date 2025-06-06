@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -95,7 +94,7 @@ const MealCard: React.FC<MealCardProps> = ({
           {description}
         </p>
         
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="grid grid-cols-4 gap-2 mb-3">
           <div className="bg-muted p-2 rounded text-center">
             <span className="block text-sm font-medium">{nutrition.calories}</span>
             <span className="text-xs text-muted-foreground">kcal</span>
@@ -107,6 +106,10 @@ const MealCard: React.FC<MealCardProps> = ({
           <div className="bg-muted p-2 rounded text-center">
             <span className="block text-sm font-medium">{nutrition.carbs || 0}g</span>
             <span className="text-xs text-muted-foreground">carbs</span>
+          </div>
+          <div className="bg-muted p-2 rounded text-center">
+            <span className="block text-sm font-medium">{nutrition.sugar || 0}g</span>
+            <span className="text-xs text-muted-foreground">sugar</span>
           </div>
         </div>
         
@@ -152,6 +155,13 @@ const MealCard: React.FC<MealCardProps> = ({
               max={25} 
               unit="g"
               color="bg-accent"
+            />
+            <NutrientProgressBar 
+              label="Sugar" 
+              value={nutrition.sugar || 0} 
+              max={50} 
+              unit="g"
+              color="bg-pink-500"
             />
             <NutrientProgressBar 
               label="Cost" 

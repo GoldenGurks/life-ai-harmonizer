@@ -10,12 +10,13 @@ import { toast } from 'sonner';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
 import { Slider } from '@/components/ui/slider';
 import { motion } from '@/lib/motion';
-import { Recipe, RecipeFilters } from '@/types/recipes';
+import { Recipe, RecipeFilters, EnrichedRecipe } from '@/types/recipes';
 import { recipeData, findRecipeById, getAlternativeRecipes } from '@/data/recipeDatabase';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getIngredientAsString, ingredientContains } from '@/utils/ingredientUtils';
 import PhotoRecipeExtractor from '@/components/recipes/PhotoRecipeExtractor';
 import UserProfile from '@/components/profile/UserProfile';
+import { ensureNutritionAndCost } from '@/services/nutritionService';
 
 const mealTypeFilters = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
 const timeFilters = ['All', 'Under 15 mins', 'Under 30 mins', 'Under 45 mins', 'Under 60 mins'];
@@ -23,14 +24,42 @@ const dietaryFilters = ['Vegan', 'Vegetarian', 'High Protein', 'Low Carb', 'Glut
 
 const Recipes = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<EnrichedRecipe | null>(null);
   const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
   const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState(false);
   const [isPhotoExtractorOpen, setIsPhotoExtractorOpen] = useState(false);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [extractedRecipes, setExtractedRecipes] = useState<Recipe[]>([]);
+  const [enrichedRecipes, setEnrichedRecipes] = useState<EnrichedRecipe[]>([]);
   
+  // Load and enrich recipes on component mount
+  useEffect(() => {
+    const loadEnrichedRecipes = async () => {
+      try {
+        const enriched = await ensureNutritionAndCost(recipeData);
+        setEnrichedRecipes(enriched);
+      } catch (error) {
+        console.error('Error enriching recipes:', error);
+        // Fallback to original recipes
+        setEnrichedRecipes(recipeData.map(recipe => ({
+          ...recipe,
+          nutrition: recipe.nutrition || {
+            calories: recipe.calories || 0,
+            protein: recipe.protein || 0,
+            carbs: recipe.carbs || 0,
+            fat: recipe.fat || 0,
+            fiber: recipe.fiber || 0,
+            sugar: recipe.sugar || 0,
+            cost: recipe.cost || 0
+          }
+        })));
+      }
+    };
+
+    loadEnrichedRecipes();
+  }, []);
+
   const [activeFilters, setActiveFilters] = useState<RecipeFilters>({
     dietary: [],
     mealType: 'All',
@@ -45,9 +74,27 @@ const Recipes = () => {
     applyFilters();
   }, [activeFilters, searchQuery]);
 
-  const openRecipeDetail = (recipe: Recipe) => {
-    setSelectedRecipe(recipe);
-    setIsRecipeDetailOpen(true);
+  const openRecipeDetail = async (recipe: Recipe) => {
+    try {
+      const enriched = await ensureNutritionAndCost([recipe]);
+      setSelectedRecipe(enriched[0]);
+      setIsRecipeDetailOpen(true);
+    } catch (error) {
+      console.error('Error enriching recipe:', error);
+      setSelectedRecipe({
+        ...recipe,
+        nutrition: recipe.nutrition || {
+          calories: recipe.calories || 0,
+          protein: recipe.protein || 0,
+          carbs: recipe.carbs || 0,
+          fat: recipe.fat || 0,
+          fiber: recipe.fiber || 0,
+          sugar: recipe.sugar || 0,
+          cost: recipe.cost || 0
+        }
+      });
+      setIsRecipeDetailOpen(true);
+    }
   };
 
   const saveRecipe = (id: string, event?: React.MouseEvent) => {
@@ -194,7 +241,7 @@ const Recipes = () => {
   };
 
   const getAllRecipes = () => {
-    return [...extractedRecipes, ...recipeData];
+    return [...extractedRecipes, ...enrichedRecipes];
   };
 
   const getDisplayRecipes = () => {
@@ -343,18 +390,22 @@ const Recipes = () => {
                     <Tag className="h-4 w-4 mr-1" />
                     <span>{recipe.tags.slice(0, 2).join(", ")}</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+                  <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.calories}</span>
+                      <span className="font-medium">{recipe.nutrition?.calories || recipe.calories || 0}</span>
                       <span className="text-muted-foreground">kcal</span>
                     </div>
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.protein}g</span>
+                      <span className="font-medium">{recipe.nutrition?.protein || recipe.protein || 0}g</span>
                       <span className="text-muted-foreground">Protein</span>
                     </div>
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.carbs}g</span>
+                      <span className="font-medium">{recipe.nutrition?.carbs || recipe.carbs || 0}g</span>
                       <span className="text-muted-foreground">Carbs</span>
+                    </div>
+                    <div className="flex flex-col items-center p-2 bg-muted rounded-md">
+                      <span className="font-medium">{recipe.nutrition?.sugar || recipe.sugar || 0}g</span>
+                      <span className="text-muted-foreground">Sugar</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -383,7 +434,7 @@ const Recipes = () => {
         </TabsContent>
         
         <TabsContent value="saved" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipeData.filter(r => r.saved).map(recipe => (
+          {enrichedRecipes.filter(r => r.saved).map(recipe => (
             <Card 
               key={recipe.id} 
               className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" 
@@ -424,18 +475,22 @@ const Recipes = () => {
                   <Tag className="h-4 w-4 mr-1" />
                   <span>{recipe.tags.slice(0, 2).join(", ")}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+                <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.calories}</span>
+                    <span className="font-medium">{recipe.nutrition?.calories || recipe.calories || 0}</span>
                     <span className="text-muted-foreground">kcal</span>
                   </div>
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.protein}g</span>
+                    <span className="font-medium">{recipe.nutrition?.protein || recipe.protein || 0}g</span>
                     <span className="text-muted-foreground">Protein</span>
                   </div>
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.carbs}g</span>
+                    <span className="font-medium">{recipe.nutrition?.carbs || recipe.carbs || 0}g</span>
                     <span className="text-muted-foreground">Carbs</span>
+                  </div>
+                  <div className="flex flex-col items-center p-2 bg-muted rounded-md">
+                    <span className="font-medium">{recipe.nutrition?.sugar || recipe.sugar || 0}g</span>
+                    <span className="text-muted-foreground">Sugar</span>
                   </div>
                 </div>
               </CardContent>
@@ -711,7 +766,7 @@ const Recipes = () => {
                       </div>
                       <div className="flex flex-col items-center">
                         <Flame className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium mt-1">{selectedRecipe.calories}</span>
+                        <span className="text-sm font-medium mt-1">{selectedRecipe.nutrition?.calories || selectedRecipe.calories || 0}</span>
                         <span className="text-xs text-muted-foreground">Calories</span>
                       </div>
                       <div className="flex flex-col items-center">
@@ -742,13 +797,13 @@ const Recipes = () => {
                   </div>
                   
                   <div className="p-4 bg-muted/50 rounded-lg">
-                    <h3 className="text-sm font-bold mb-3">Nutrition Facts</h3>
+                    <h3 className="text-sm font-bold mb-3">Nutrition Facts (per serving)</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div>
                           <div className="flex justify-between text-sm">
                             <span>Calories</span>
-                            <span className="font-medium">{selectedRecipe.calories} kcal</span>
+                            <span className="font-medium">{selectedRecipe.nutrition?.calories || selectedRecipe.calories || 0} kcal</span>
                           </div>
                           <div className="w-full bg-background rounded-full h-1.5 mt-1">
                             <div className="bg-primary h-1.5 rounded-full" style={{ width: '70%' }} />
@@ -757,10 +812,19 @@ const Recipes = () => {
                         <div>
                           <div className="flex justify-between text-sm">
                             <span>Protein</span>
-                            <span className="font-medium">{selectedRecipe.protein}g</span>
+                            <span className="font-medium">{selectedRecipe.nutrition?.protein || selectedRecipe.protein || 0}g</span>
                           </div>
                           <div className="w-full bg-background rounded-full h-1.5 mt-1">
                             <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '60%' }} />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-sm">
+                            <span>Fiber</span>
+                            <span className="font-medium">{selectedRecipe.nutrition?.fiber || selectedRecipe.fiber || 0}g</span>
+                          </div>
+                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
+                            <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '30%' }} />
                           </div>
                         </div>
                       </div>
@@ -768,7 +832,7 @@ const Recipes = () => {
                         <div>
                           <div className="flex justify-between text-sm">
                             <span>Carbs</span>
-                            <span className="font-medium">{selectedRecipe.carbs}g</span>
+                            <span className="font-medium">{selectedRecipe.nutrition?.carbs || selectedRecipe.carbs || 0}g</span>
                           </div>
                           <div className="w-full bg-background rounded-full h-1.5 mt-1">
                             <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '75%' }} />
@@ -777,10 +841,19 @@ const Recipes = () => {
                         <div>
                           <div className="flex justify-between text-sm">
                             <span>Fat</span>
-                            <span className="font-medium">{selectedRecipe.fat}g</span>
+                            <span className="font-medium">{selectedRecipe.nutrition?.fat || selectedRecipe.fat || 0}g</span>
                           </div>
                           <div className="w-full bg-background rounded-full h-1.5 mt-1">
                             <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: '40%' }} />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-sm">
+                            <span>Sugar</span>
+                            <span className="font-medium">{selectedRecipe.nutrition?.sugar || selectedRecipe.sugar || 0}g</span>
+                          </div>
+                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
+                            <div className="bg-pink-500 h-1.5 rounded-full" style={{ width: '25%' }} />
                           </div>
                         </div>
                       </div>

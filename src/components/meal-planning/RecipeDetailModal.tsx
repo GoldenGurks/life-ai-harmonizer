@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -65,7 +64,7 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
         </div>
 
         <div className="mt-4">
-          <h3 className="text-lg font-medium">Nutrition</h3>
+          <h3 className="text-lg font-medium">Nutrition (per serving)</h3>
           <div className="grid grid-cols-3 gap-4 mt-2">
             <div className="bg-muted p-2 rounded text-center">
               <span className="block text-sm font-medium">{recipe.protein}g</span>
@@ -78,6 +77,16 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             <div className="bg-muted p-2 rounded text-center">
               <span className="block text-sm font-medium">{recipe.fat || 0}g</span>
               <span className="text-xs text-muted-foreground">Fat</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div className="bg-muted p-2 rounded text-center">
+              <span className="block text-sm font-medium">{recipe.fiber || 0}g</span>
+              <span className="text-xs text-muted-foreground">Fiber</span>
+            </div>
+            <div className="bg-muted p-2 rounded text-center">
+              <span className="block text-sm font-medium">{recipe.sugar || 0}g</span>
+              <span className="text-xs text-muted-foreground">Sugar</span>
             </div>
           </div>
         </div>
