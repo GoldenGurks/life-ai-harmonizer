@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -31,35 +31,10 @@ const Recipes = () => {
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [extractedRecipes, setExtractedRecipes] = useState<Recipe[]>([]);
-  const [enrichedRecipes, setEnrichedRecipes] = useState<EnrichedRecipe[]>([]);
   
-  // Load and enrich recipes on component mount
-  useEffect(() => {
-    const loadEnrichedRecipes = async () => {
-      try {
-        const enriched = await ensureNutritionAndCost(recipeData);
-        setEnrichedRecipes(enriched);
-      } catch (error) {
-        console.error('Error enriching recipes:', error);
-        // Fallback to original recipes
-        setEnrichedRecipes(recipeData.map(recipe => ({
-          ...recipe,
-          nutrition: recipe.nutrition || {
-            calories: recipe.calories || 0,
-            protein: recipe.protein || 0,
-            carbs: recipe.carbs || 0,
-            fat: recipe.fat || 0,
-            fiber: recipe.fiber || 0,
-            sugar: recipe.sugar || 0,
-            cost: recipe.cost || 0
-          }
-        })));
-      }
-    };
-
-    loadEnrichedRecipes();
-  }, []);
-
+  // Cache for enriched recipes to avoid recalculation
+  const [enrichedCache, setEnrichedCache] = useState<Map<string, EnrichedRecipe>>(new Map());
+  
   const [activeFilters, setActiveFilters] = useState<RecipeFilters>({
     dietary: [],
     mealType: 'All',
@@ -74,14 +49,25 @@ const Recipes = () => {
     applyFilters();
   }, [activeFilters, searchQuery]);
 
-  const openRecipeDetail = async (recipe: Recipe) => {
+  // Function to get enriched recipe (with caching)
+  const getEnrichedRecipe = async (recipe: Recipe): Promise<EnrichedRecipe> => {
+    // Check cache first
+    if (enrichedCache.has(recipe.id)) {
+      return enrichedCache.get(recipe.id)!;
+    }
+
     try {
       const enriched = await ensureNutritionAndCost([recipe]);
-      setSelectedRecipe(enriched[0]);
-      setIsRecipeDetailOpen(true);
+      const enrichedRecipe = enriched[0];
+      
+      // Cache the result
+      setEnrichedCache(prev => new Map(prev).set(recipe.id, enrichedRecipe));
+      
+      return enrichedRecipe;
     } catch (error) {
       console.error('Error enriching recipe:', error);
-      setSelectedRecipe({
+      // Fallback to basic enriched recipe
+      const fallbackEnriched: EnrichedRecipe = {
         ...recipe,
         nutrition: recipe.nutrition || {
           calories: recipe.calories || 0,
@@ -92,9 +78,19 @@ const Recipes = () => {
           sugar: recipe.sugar || 0,
           cost: recipe.cost || 0
         }
-      });
-      setIsRecipeDetailOpen(true);
+      };
+      
+      // Cache the fallback
+      setEnrichedCache(prev => new Map(prev).set(recipe.id, fallbackEnriched));
+      
+      return fallbackEnriched;
     }
+  };
+
+  const openRecipeDetail = async (recipe: Recipe) => {
+    const enriched = await getEnrichedRecipe(recipe);
+    setSelectedRecipe(enriched);
+    setIsRecipeDetailOpen(true);
   };
 
   const saveRecipe = (id: string, event?: React.MouseEvent) => {
@@ -243,7 +239,7 @@ const Recipes = () => {
   };
 
   const getAllRecipes = () => {
-    return [...extractedRecipes, ...enrichedRecipes];
+    return [...extractedRecipes, ...recipeData];
   };
 
   const getDisplayRecipes = () => {
@@ -394,19 +390,19 @@ const Recipes = () => {
                   </div>
                   <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.nutrition?.calories || recipe.calories || 0}</span>
+                      <span className="font-medium">{recipe.calories || 0}</span>
                       <span className="text-muted-foreground">kcal</span>
                     </div>
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.nutrition?.protein || recipe.protein || 0}g</span>
+                      <span className="font-medium">{recipe.protein || 0}g</span>
                       <span className="text-muted-foreground">Protein</span>
                     </div>
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.nutrition?.carbs || recipe.carbs || 0}g</span>
+                      <span className="font-medium">{recipe.carbs || 0}g</span>
                       <span className="text-muted-foreground">Carbs</span>
                     </div>
                     <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.nutrition?.sugar || recipe.sugar || 0}g</span>
+                      <span className="font-medium">{recipe.sugar || 0}g</span>
                       <span className="text-muted-foreground">Sugar</span>
                     </div>
                   </div>
@@ -436,7 +432,7 @@ const Recipes = () => {
         </TabsContent>
         
         <TabsContent value="saved" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enrichedRecipes.filter(r => r.saved).map(recipe => (
+          {recipeData.filter(r => r.saved).map(recipe => (
             <Card 
               key={recipe.id} 
               className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" 
@@ -479,19 +475,19 @@ const Recipes = () => {
                 </div>
                 <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.nutrition?.calories || recipe.calories || 0}</span>
+                    <span className="font-medium">{recipe.calories || 0}</span>
                     <span className="text-muted-foreground">kcal</span>
                   </div>
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.nutrition?.protein || recipe.protein || 0}g</span>
+                    <span className="font-medium">{recipe.protein || 0}g</span>
                     <span className="text-muted-foreground">Protein</span>
                   </div>
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.nutrition?.carbs || recipe.carbs || 0}g</span>
+                    <span className="font-medium">{recipe.carbs || 0}g</span>
                     <span className="text-muted-foreground">Carbs</span>
                   </div>
                   <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.nutrition?.sugar || recipe.sugar || 0}g</span>
+                    <span className="font-medium">{recipe.sugar || 0}g</span>
                     <span className="text-muted-foreground">Sugar</span>
                   </div>
                 </div>
@@ -888,24 +884,8 @@ const Recipes = () => {
                             key={id}
                             className="min-w-[220px] rounded-lg overflow-hidden border cursor-pointer"
                             onClick={async () => {
-                              try {
-                                const enriched = await ensureNutritionAndCost([altRecipe]);
-                                setSelectedRecipe(enriched[0]);
-                              } catch (error) {
-                                console.error('Error enriching alternative recipe:', error);
-                                setSelectedRecipe({
-                                  ...altRecipe,
-                                  nutrition: altRecipe.nutrition || {
-                                    calories: altRecipe.calories || 0,
-                                    protein: altRecipe.protein || 0,
-                                    carbs: altRecipe.carbs || 0,
-                                    fat: altRecipe.fat || 0,
-                                    fiber: altRecipe.fiber || 0,
-                                    sugar: altRecipe.sugar || 0,
-                                    cost: altRecipe.cost || 0
-                                  }
-                                });
-                              }
+                              const enriched = await getEnrichedRecipe(altRecipe);
+                              setSelectedRecipe(enriched);
                             }}
                             animate={{ opacity: 1, y: 0 }}
                           >
