@@ -1,22 +1,28 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Filter, Plus, BookmarkPlus, ChefHat, Heart, Tag, Clock, Bookmark, Upload, TrendingUp, Flame, Leaf, X, Camera, User } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Plus, BookmarkPlus, ChefHat, Heart, Upload, Camera, User, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
 import { Slider } from '@/components/ui/slider';
-import { motion } from '@/lib/motion';
-import { Recipe, RecipeFilters, EnrichedRecipe } from '@/types/recipes';
+import { Recipe, RecipeFilters } from '@/types/recipes';
 import { recipeData, findRecipeById, getAlternativeRecipes } from '@/data/recipeDatabase';
 import { Checkbox } from '@/components/ui/checkbox';
-import { getIngredientAsString, ingredientContains } from '@/utils/ingredientUtils';
+import { ingredientContains } from '@/utils/ingredientUtils';
 import PhotoRecipeExtractor from '@/components/recipes/PhotoRecipeExtractor';
 import UserProfile from '@/components/profile/UserProfile';
-import { ensureNutritionAndCost } from '@/services/nutritionService';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+
+// New components
+import { useRecipeFilters } from '@/hooks/useRecipeFilters';
+import { useRecipeState } from '@/hooks/useRecipeState';
+import RecipeSearchBar from '@/components/recipes/RecipeSearchBar';
+import RecipeFilterTags from '@/components/recipes/RecipeFilterTags';
+import RecipeGrid from '@/components/recipes/RecipeGrid';
+import RecipeDetailDrawer from '@/components/recipes/RecipeDetailDrawer';
 
 const mealTypeFilters = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
 const timeFilters = ['All', 'Under 15 mins', 'Under 30 mins', 'Under 45 mins', 'Under 60 mins'];
@@ -24,74 +30,32 @@ const dietaryFilters = ['Vegan', 'Vegetarian', 'High Protein', 'Low Carb', 'Glut
 
 const Recipes = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState<EnrichedRecipe | null>(null);
-  const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
   const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState(false);
   const [isPhotoExtractorOpen, setIsPhotoExtractorOpen] = useState(false);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [extractedRecipes, setExtractedRecipes] = useState<Recipe[]>([]);
   
-  // Cache for enriched recipes to avoid recalculation
-  const [enrichedCache, setEnrichedCache] = useState<Map<string, EnrichedRecipe>>(new Map());
+  const {
+    searchQuery,
+    setSearchQuery,
+    activeFilters,
+    filteredRecipes,
+    searchResults,
+    handleDietaryFilterChange,
+    handleFilterChange,
+    clearFilters,
+    applyFilters
+  } = useRecipeFilters();
   
-  const [activeFilters, setActiveFilters] = useState<RecipeFilters>({
-    dietary: [],
-    mealType: 'All',
-    time: 'All',
-    calorieRange: [0, 800],
-  });
-  
-  const [filteredRecipes, setFilteredRecipes] = useState(recipeData);
-  const [searchResults, setSearchResults] = useState<Recipe[]>([]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [activeFilters, searchQuery]);
-
-  // Function to get enriched recipe (with caching)
-  const getEnrichedRecipe = async (recipe: Recipe): Promise<EnrichedRecipe> => {
-    // Check cache first
-    if (enrichedCache.has(recipe.id)) {
-      return enrichedCache.get(recipe.id)!;
-    }
-
-    try {
-      const enriched = await ensureNutritionAndCost([recipe]);
-      const enrichedRecipe = enriched[0];
-      
-      // Cache the result
-      setEnrichedCache(prev => new Map(prev).set(recipe.id, enrichedRecipe));
-      
-      return enrichedRecipe;
-    } catch (error) {
-      console.error('Error enriching recipe:', error);
-      // Fallback to basic enriched recipe
-      const fallbackEnriched: EnrichedRecipe = {
-        ...recipe,
-        nutrition: recipe.nutrition || {
-          calories: recipe.calories || 0,
-          protein: recipe.protein || 0,
-          carbs: recipe.carbs || 0,
-          fat: recipe.fat || 0,
-          fiber: recipe.fiber || 0,
-          sugar: recipe.sugar || 0,
-          cost: recipe.cost || 0
-        }
-      };
-      
-      // Cache the fallback
-      setEnrichedCache(prev => new Map(prev).set(recipe.id, fallbackEnriched));
-      
-      return fallbackEnriched;
-    }
-  };
-
-  const openRecipeDetail = async (recipe: Recipe) => {
-    const enriched = await getEnrichedRecipe(recipe);
-    setSelectedRecipe(enriched);
-    setIsRecipeDetailOpen(true);
-  };
+  const {
+    selectedRecipe,
+    setSelectedRecipe,
+    isRecipeDetailOpen,
+    setIsRecipeDetailOpen,
+    extractedRecipes,
+    getEnrichedRecipe,
+    openRecipeDetail,
+    handleExtractedRecipe
+  } = useRecipeState();
 
   const saveRecipe = (id: string, event?: React.MouseEvent) => {
     if (event) {
@@ -139,8 +103,6 @@ const Recipes = () => {
       return false;
     });
     
-    setSearchResults(results);
-    
     if (results.length === 0) {
       toast.info(`No recipes found matching "${searchQuery}"`);
     } else {
@@ -152,90 +114,6 @@ const Recipes = () => {
     if (!isUploadDrawerOpen) return;
     toast.success("Recipe uploaded successfully!");
     setIsUploadDrawerOpen(false);
-  };
-
-  const handleDietaryFilterChange = (filterName: string) => {
-    setActiveFilters(prev => {
-      const currentFilters = [...prev.dietary];
-      
-      if (currentFilters.includes(filterName)) {
-        return {
-          ...prev,
-          dietary: currentFilters.filter(f => f !== filterName)
-        };
-      } 
-      else {
-        return {
-          ...prev,
-          dietary: [...currentFilters, filterName]
-        };
-      }
-    });
-  };
-
-  const handleFilterChange = (type: keyof RecipeFilters, value: string | number | number[]) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      [type]: value
-    }));
-  };
-
-  const clearFilters = () => {
-    setActiveFilters({
-      dietary: [],
-      mealType: 'All',
-      time: 'All',
-      calorieRange: [0, 800],
-    });
-    toast.info("All filters cleared");
-  };
-
-  const applyFilters = () => {
-    let results = recipeData;
-    
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      results = results.filter(recipe => {
-        return recipe.title.toLowerCase().includes(query) || 
-               recipe.ingredients.some(ingredient => ingredientContains(ingredient, query)) ||
-               recipe.tags.some(tag => tag.toLowerCase().includes(query));
-      });
-    }
-    
-    if (activeFilters.dietary.length > 0) {
-      results = results.filter(recipe => 
-        activeFilters.dietary.every(dietary => 
-          recipe.tags.some(tag => tag.toLowerCase() === dietary.toLowerCase())
-        )
-      );
-    }
-    
-    if (activeFilters.mealType !== 'All') {
-      results = results.filter(recipe => 
-        recipe.category === activeFilters.mealType
-      );
-    }
-    
-    if (activeFilters.time !== 'All') {
-      const timeLimit = parseInt(activeFilters.time.match(/\d+/)?.[0] || '60');
-      results = results.filter(recipe => {
-        const recipeTime = parseInt(recipe.time.match(/\d+/)?.[0] || '0');
-        return recipeTime <= timeLimit;
-      });
-    }
-    
-    results = results.filter(recipe => 
-      recipe.calories >= activeFilters.calorieRange[0] &&
-      recipe.calories <= activeFilters.calorieRange[1]
-    );
-    
-    setFilteredRecipes(results);
-    setSearchResults(results);
-  };
-
-  const handleExtractedRecipe = (recipe: Recipe) => {
-    setExtractedRecipes(prev => [recipe, ...prev]);
-    toast.success(`Recipe "${recipe.title}" added to your collection!`);
   };
 
   const getAllRecipes = () => {
@@ -253,6 +131,11 @@ const Recipes = () => {
       if (recipe.tags.some(tag => tag.toLowerCase().includes(searchQuery))) return true;
       return false;
     });
+  };
+
+  const handleAlternativeClick = async (altRecipe: Recipe) => {
+    const enriched = await getEnrichedRecipe(altRecipe);
+    setSelectedRecipe(enriched);
   };
 
   return (
@@ -279,59 +162,21 @@ const Recipes = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSearch} className="flex items-center gap-2 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search recipes..." 
-            className="pl-10" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button type="submit">Search</Button>
-        <Button variant="outline" size="icon" onClick={() => setIsFilterDrawerOpen(true)}>
-          <Filter className="h-4 w-4" />
-        </Button>
-      </form>
+      <RecipeSearchBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearch}
+        onFilterClick={() => setIsFilterDrawerOpen(true)}
+      />
 
-      <div className="flex flex-wrap overflow-x-auto pb-2 mb-6 gap-2">
-        {activeFilters.dietary.length > 0 && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={clearFilters}
-            className="flex items-center gap-1"
-          >
-            <X className="h-3 w-3" /> Clear filters
-          </Button>
-        )}
-        
-        {activeFilters.dietary.map(filter => (
-          <Badge 
-            key={filter}
-            variant="default" 
-            className="cursor-pointer flex items-center gap-1"
-            onClick={() => handleDietaryFilterChange(filter)}
-          >
-            {filter}
-            <X className="h-3 w-3 ml-1" />
-          </Badge>
-        ))}
-        
-        {dietaryFilters
-          .filter(filter => !activeFilters.dietary.includes(filter))
-          .map(filter => (
-            <Badge 
-              key={filter}
-              variant="outline" 
-              className="cursor-pointer"
-              onClick={() => handleDietaryFilterChange(filter)}
-            >
-              {filter}
-            </Badge>
-          ))}
-      </div>
+      <RecipeFilterTags
+        activeFilters={activeFilters}
+        onDietaryFilterChange={handleDietaryFilterChange}
+        onClearFilters={() => {
+          clearFilters();
+          toast.info("All filters cleared");
+        }}
+      />
 
       <Tabs defaultValue="all" className="mb-8">
         <TabsList className="mb-4">
@@ -343,164 +188,29 @@ const Recipes = () => {
         </TabsList>
         
         <TabsContent value="all" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {getDisplayRecipes().length > 0 ? (
-            getDisplayRecipes().map(recipe => (
-              <Card 
-                key={recipe.id} 
-                className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" 
-                onClick={() => openRecipeDetail(recipe)}
-              >
-                <div 
-                  className="w-full h-48 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${recipe.image})` }}
-                >
-                  <div className="flex justify-between p-3 bg-gradient-to-b from-black/60 to-transparent">
-                    <Badge variant="secondary" className="bg-white/90 text-black">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {recipe.time}
-                    </Badge>
-                    <Badge variant="secondary" className="bg-white/90 text-black">
-                      {recipe.difficulty || 'Medium'}
-                    </Badge>
-                  </div>
-                </div>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{recipe.title}</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={(e) => saveRecipe(recipe.id, e)}
-                    >
-                      {recipe.saved ? 
-                        <Heart className="h-4 w-4 fill-secondary text-secondary" /> :
-                        <Heart className="h-4 w-4" />
-                      }
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-muted-foreground mb-3">
-                    <ChefHat className="h-4 w-4 mr-1" /> 
-                    <span>{recipe.category}</span>
-                    <span className="mx-2">•</span>
-                    <Tag className="h-4 w-4 mr-1" />
-                    <span>{recipe.tags.slice(0, 2).join(", ")}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
-                    <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.calories || 0}</span>
-                      <span className="text-muted-foreground">kcal</span>
-                    </div>
-                    <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.protein || 0}g</span>
-                      <span className="text-muted-foreground">Protein</span>
-                    </div>
-                    <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.carbs || 0}g</span>
-                      <span className="text-muted-foreground">Carbs</span>
-                    </div>
-                    <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                      <span className="font-medium">{recipe.sugar || 0}g</span>
-                      <span className="text-muted-foreground">Sugar</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {recipe.tags.map(tag => (
-                      <Badge key={tag} variant="secondary">{tag}</Badge>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button variant="ghost" size="sm" onClick={(e) => showAlternatives(recipe.id, e)} className="text-muted-foreground">
-                    <TrendingUp className="h-4 w-4 mr-1" /> 
-                    Alternatives
-                  </Button>
-                  <Button variant="outline" size="sm">View Recipe</Button>
-                </CardFooter>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-10">
-              <p className="text-muted-foreground">No recipes found with the current filters.</p>
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                Clear Filters
-              </Button>
-            </div>
-          )}
+          <RecipeGrid
+            recipes={getDisplayRecipes()}
+            onRecipeClick={openRecipeDetail}
+            onSaveRecipe={saveRecipe}
+            onShowAlternatives={showAlternatives}
+            onClearFilters={() => {
+              clearFilters();
+              toast.info("All filters cleared");
+            }}
+          />
         </TabsContent>
         
         <TabsContent value="saved" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipeData.filter(r => r.saved).map(recipe => (
-            <Card 
-              key={recipe.id} 
-              className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" 
-              onClick={() => openRecipeDetail(recipe)}
-            >
-              <div 
-                className="w-full h-48 bg-cover bg-center"
-                style={{ backgroundImage: `url(${recipe.image})` }}
-              >
-                <div className="flex justify-between p-3 bg-gradient-to-b from-black/60 to-transparent">
-                  <Badge variant="secondary" className="bg-white/90 text-black">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {recipe.time}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/90 text-black">
-                    {recipe.difficulty || 'Medium'}
-                  </Badge>
-                </div>
-              </div>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{recipe.title}</CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={(e) => saveRecipe(recipe.id, e)}
-                  >
-                    <Heart className="h-4 w-4 fill-secondary text-secondary" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center text-sm text-muted-foreground mb-3">
-                  <ChefHat className="h-4 w-4 mr-1" /> 
-                  <span>{recipe.category}</span>
-                  <span className="mx-2">•</span>
-                  <Tag className="h-4 w-4 mr-1" />
-                  <span>{recipe.tags.slice(0, 2).join(", ")}</span>
-                </div>
-                <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
-                  <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.calories || 0}</span>
-                    <span className="text-muted-foreground">kcal</span>
-                  </div>
-                  <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.protein || 0}g</span>
-                    <span className="text-muted-foreground">Protein</span>
-                  </div>
-                  <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.carbs || 0}g</span>
-                    <span className="text-muted-foreground">Carbs</span>
-                  </div>
-                  <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-                    <span className="font-medium">{recipe.sugar || 0}g</span>
-                    <span className="text-muted-foreground">Sugar</span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="ghost" size="sm" onClick={(e) => showAlternatives(recipe.id, e)} className="text-muted-foreground">
-                  <TrendingUp className="h-4 w-4 mr-1" /> 
-                  Alternatives
-                </Button>
-                <Button variant="outline" size="sm">View Recipe</Button>
-              </CardFooter>
-            </Card>
-          ))}
+          <RecipeGrid
+            recipes={recipeData.filter(r => r.saved)}
+            onRecipeClick={openRecipeDetail}
+            onSaveRecipe={saveRecipe}
+            onShowAlternatives={showAlternatives}
+            onClearFilters={() => {
+              clearFilters();
+              toast.info("All filters cleared");
+            }}
+          />
         </TabsContent>
         
         <TabsContent value="my-recipes">
@@ -528,7 +238,7 @@ const Recipes = () => {
         
         <TabsContent value="collections">
           <div className="text-center py-16">
-            <Bookmark className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <ChefHat className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-medium mb-2">Organize your recipes into collections</h3>
             <p className="text-muted-foreground mb-4">Create themed collections like "Quick Lunches" or "Favorite Dinners".</p>
             <Button>
@@ -551,7 +261,10 @@ const Recipes = () => {
               </DrawerHeader>
               <div className="p-4 pb-0 overflow-y-auto">
                 <PhotoRecipeExtractor
-                  onRecipeExtracted={handleExtractedRecipe}
+                  onRecipeExtracted={(recipe) => {
+                    handleExtractedRecipe(recipe);
+                    toast.success(`Recipe "${recipe.title}" added to your collection!`);
+                  }}
                   onClose={() => setIsPhotoExtractorOpen(false)}
                 />
               </div>
@@ -584,6 +297,7 @@ const Recipes = () => {
         </Drawer>
       )}
       
+      {/* Filter Drawer */}
       <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-md">
@@ -660,28 +374,6 @@ const Recipes = () => {
                     </div>
                   </div>
                 </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Nutritional Focus</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Flame className="h-4 w-4 mr-2 text-orange-500" />
-                      High Protein
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Leaf className="h-4 w-4 mr-2 text-green-500" />
-                      Low Carb
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Tag className="h-4 w-4 mr-2 text-blue-500" />
-                      Low Fat
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Heart className="h-4 w-4 mr-2 text-red-500" />
-                      Heart Healthy
-                    </Button>
-                  </div>
-                </div>
               </div>
             </div>
             <DrawerFooter>
@@ -691,7 +383,10 @@ const Recipes = () => {
               }}>
                 Apply Filters
               </Button>
-              <Button variant="outline" onClick={clearFilters}>
+              <Button variant="outline" onClick={() => {
+                clearFilters();
+                toast.info("All filters cleared");
+              }}>
                 Clear Filters
               </Button>
             </DrawerFooter>
@@ -699,6 +394,7 @@ const Recipes = () => {
         </DrawerContent>
       </Drawer>
       
+      {/* Upload Drawer */}
       <Drawer open={isUploadDrawerOpen} onOpenChange={setIsUploadDrawerOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-md">
@@ -738,185 +434,14 @@ const Recipes = () => {
         </DrawerContent>
       </Drawer>
       
-      <Drawer open={isRecipeDetailOpen} onOpenChange={setIsRecipeDetailOpen}>
-        <DrawerContent className="max-h-[90vh]">
-          <div className="mx-auto w-full max-w-4xl">
-            <DrawerHeader>
-              <DrawerTitle>{selectedRecipe?.title}</DrawerTitle>
-              <DrawerDescription>
-                {selectedRecipe?.tags.join(" • ")}
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="p-4 pb-0 overflow-y-auto max-h-[calc(90vh-12rem)]">
-              {selectedRecipe && (
-                <div className="space-y-6">
-                  <div 
-                    className="w-full h-64 md:h-80 bg-cover bg-center rounded-lg"
-                    style={{ backgroundImage: `url(${selectedRecipe.image})` }}
-                  />
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium mt-1">{selectedRecipe.time}</span>
-                        <span className="text-xs text-muted-foreground">Prep time</span>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <Flame className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium mt-1">{selectedRecipe.nutrition?.calories || selectedRecipe.calories || 0}</span>
-                        <span className="text-xs text-muted-foreground">Calories</span>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <Tag className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium mt-1">{selectedRecipe.difficulty}</span>
-                        <span className="text-xs text-muted-foreground">Difficulty</span>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      variant={selectedRecipe.saved ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => saveRecipe(selectedRecipe.id)}
-                      className="gap-2"
-                    >
-                      {selectedRecipe.saved ? (
-                        <>
-                          <Bookmark className="h-4 w-4 fill-current" />
-                          Saved
-                        </>
-                      ) : (
-                        <>
-                          <Bookmark className="h-4 w-4" />
-                          Save Recipe
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <h3 className="text-sm font-bold mb-3">Nutrition Facts (per serving)</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>Calories</span>
-                            <span className="font-medium">{selectedRecipe.nutrition?.calories || selectedRecipe.calories || 0} kcal</span>
-                          </div>
-                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                            <div className="bg-primary h-1.5 rounded-full" style={{ width: '70%' }} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>Protein</span>
-                            <span className="font-medium">{selectedRecipe.nutrition?.protein || selectedRecipe.protein || 0}g</span>
-                          </div>
-                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                            <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '60%' }} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>Fiber</span>
-                            <span className="font-medium">{selectedRecipe.nutrition?.fiber || selectedRecipe.fiber || 0}g</span>
-                          </div>
-                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                            <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '30%' }} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>Carbs</span>
-                            <span className="font-medium">{selectedRecipe.nutrition?.carbs || selectedRecipe.carbs || 0}g</span>
-                          </div>
-                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                            <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '75%' }} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>Fat</span>
-                            <span className="font-medium">{selectedRecipe.nutrition?.fat || selectedRecipe.fat || 0}g</span>
-                          </div>
-                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                            <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: '40%' }} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>Sugar</span>
-                            <span className="font-medium">{selectedRecipe.nutrition?.sugar || selectedRecipe.sugar || 0}g</span>
-                          </div>
-                          <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                            <div className="bg-pink-500 h-1.5 rounded-full" style={{ width: '25%' }} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold mb-3">Ingredients</h3>
-                    <ul className="space-y-2">
-                      {selectedRecipe.ingredients?.map((ingredient, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-primary" />
-                          <span>{getIngredientAsString(ingredient)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold mb-3">Alternative Recipes</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Don't like this recipe? Try these alternatives:</p>
-                    
-                    <div className="flex gap-4 overflow-x-auto pb-2">
-                      {selectedRecipe.alternativeIds?.map(id => {
-                        const altRecipe = recipeData.find(r => r.id === id);
-                        if (!altRecipe) return null;
-                        
-                        return (
-                          <motion.div 
-                            key={id}
-                            className="min-w-[220px] rounded-lg overflow-hidden border cursor-pointer"
-                            onClick={async () => {
-                              const enriched = await getEnrichedRecipe(altRecipe);
-                              setSelectedRecipe(enriched);
-                            }}
-                            animate={{ opacity: 1, y: 0 }}
-                          >
-                            <div 
-                              className="h-28 bg-cover bg-center"
-                              style={{ backgroundImage: `url(${altRecipe.image})` }}
-                            />
-                            <div className="p-3">
-                              <h4 className="font-medium text-sm line-clamp-1">{altRecipe.title}</h4>
-                              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {altRecipe.time}
-                              </div>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <DrawerFooter>
-              <div className="flex gap-4">
-                <Button variant="outline" className="flex-1">Add to Meal Plan</Button>
-                <Button className="flex-1">Add to Shopping List</Button>
-              </div>
-            </DrawerFooter>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      {/* Recipe Detail Drawer */}
+      <RecipeDetailDrawer
+        isOpen={isRecipeDetailOpen}
+        onOpenChange={setIsRecipeDetailOpen}
+        selectedRecipe={selectedRecipe}
+        onSaveRecipe={saveRecipe}
+        onAlternativeClick={handleAlternativeClick}
+      />
     </Layout>
   );
 };
