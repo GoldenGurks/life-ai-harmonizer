@@ -24,25 +24,19 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ open, onClose, onSetupChoic
   const { isProfileComplete } = useUserProfile();
   const { t } = useLanguage();
 
-  // Handle dialog state change (when clicking outside or X button)
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      onClose();
-    }
-  };
-
   const handleContinue = () => {
     if (!selectedOption) {
       toast.error(t('welcomeModal.selectMethodError'));
       return;
     }
     
+    // Call onSetupChoice first, then close
     onSetupChoice(selectedOption);
     onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-2xl">{t('welcomeModal.title')}</DialogTitle>
