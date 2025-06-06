@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Camera, Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,7 +16,6 @@ const PhotoImportModal: React.FC<PhotoImportModalProps> = ({
   onRecipeCreated,
   onClose
 }) => {
-  const [apiKey, setApiKey] = useState(() => photoImportService.getApiKey() || '');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -34,13 +32,8 @@ const PhotoImportModal: React.FC<PhotoImportModalProps> = ({
     }
   };
 
-  // Upload image to SmartPlate GPT and analyze
+  // Upload image to SmartPlate via Supabase Edge Function and analyze
   const handleAnalyzePhoto = async () => {
-    if (!apiKey.trim()) {
-      setError('Please enter your OpenAI API key');
-      return;
-    }
-
     if (!selectedFile) {
       setError('Please select an image first');
       return;
@@ -50,10 +43,7 @@ const PhotoImportModal: React.FC<PhotoImportModalProps> = ({
     setError(null);
     
     try {
-      // Set API key for the service
-      photoImportService.setApiKey(apiKey);
-      
-      // Call SmartPlate GPT to analyze the photo
+      // Call our Supabase Edge Function to analyze the photo
       const smartPlateData = await photoImportService.analyzeRecipePhoto(selectedFile);
       
       // Parse JSON into RecipeIngredient[] format
@@ -114,23 +104,6 @@ const PhotoImportModal: React.FC<PhotoImportModalProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* API Key input if not stored */}
-          {!photoImportService.getApiKey() && (
-            <div>
-              <label className="text-sm font-medium">OpenAI API Key</label>
-              <Input
-                type="password"
-                placeholder="Enter your OpenAI API key for SmartPlate"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Used to power SmartPlate recipe extraction. Stored locally.
-              </p>
-            </div>
-          )}
-
           {/* File upload input */}
           <div>
             <label className="text-sm font-medium">Food Photo</label>
