@@ -112,12 +112,14 @@ export interface FoodItem {
   servingSize: number;
   servingUnit: string;
   costPer100g?: number;
+  averageWeightPerPiece?: number; // Added for piece-to-gram conversion
   nutrients: {
     calories: number;
     protein_g: number;
     fat_g: number;
     carbs_g: number;
     fiber_g: number;
+    sugar_g?: number; // Added sugar field
     vitaminB1_mg?: number;
     vitaminB3_mg?: number;
     vitaminB6_mg?: number;
