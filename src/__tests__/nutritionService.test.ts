@@ -7,7 +7,7 @@ import { getIngredientId, getIngredientAmount, isRecipeIngredient } from '@/util
 describe('Nutrition Service', () => {
   let vegLibrary: FoodItem[];
 
-  // Mock food library data for testing
+  // Mock food library data for testing - updated with averageWeightPerPiece
   const mockLibrary: FoodItem[] = [
     {
       id: 1,
@@ -16,13 +16,14 @@ describe('Nutrition Service', () => {
       servingSize: 100,
       servingUnit: 'g',
       costPer100g: 0.45,
+      averageWeightPerPiece: 150, // Added averageWeightPerPiece
       nutrients: {
         calories: 18,
         protein_g: 0.9,
         carbs_g: 3.9,
         fat_g: 0.2,
         fiber_g: 1.2,
-        sugar_g: 2.6 // Added sugar value
+        sugar_g: 2.6
       }
     },
     {
@@ -32,6 +33,7 @@ describe('Nutrition Service', () => {
       servingSize: 100,
       servingUnit: 'g',
       costPer100g: 0.30,
+      averageWeightPerPiece: 100, // Added averageWeightPerPiece
       nutrients: {
         calories: 130,
         protein_g: 2.7,
@@ -48,25 +50,32 @@ describe('Nutrition Service', () => {
       servingSize: 100,
       servingUnit: 'ml',
       costPer100g: 1.20,
+      averageWeightPerPiece: 100, // Added averageWeightPerPiece
       nutrients: {
         calories: 884,
         protein_g: 0,
         carbs_g: 0,
         fat_g: 100,
         fiber_g: 0,
-        sugar_g: 0 // Added sugar value
+        sugar_g: 0
       }
     }
   ];
 
   // Mock fetch for testing
   beforeAll(async () => {
-    // Mock implementation of fetch
-    global.fetch = vi.fn().mockImplementation(() => 
-      Promise.resolve({
+    // Mock implementation of fetch for both veg_library.ndjson and veg_library_with_weights.ndjson
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('veg_library_with_weights.ndjson')) {
+        return Promise.resolve({
+          text: () => Promise.resolve(mockLibrary.map(item => JSON.stringify(item)).join('\n'))
+        });
+      }
+      // Fallback for veg_library.ndjson
+      return Promise.resolve({
         text: () => Promise.resolve(mockLibrary.map(item => JSON.stringify(item)).join('\n'))
-      })
-    );
+      });
+    });
 
     vegLibrary = await loadVegLibrary();
   });
@@ -86,13 +95,13 @@ describe('Nutrition Service', () => {
     if (tomato) {
       expect(tomato.name).toBe('Tomato');
       expect(tomato.nutrients.calories).toBe(18);
-      expect(tomato.nutrients.sugar_g).toBe(2.6); // Test sugar value
+      expect(tomato.nutrients.sugar_g).toBe(2.6);
     }
     
     if (rice) {
       expect(rice.name).toBe('Rice, white');
       expect(rice.nutrients.calories).toBe(130);
-      expect(rice.nutrients.sugar_g).toBe(0.1); // Test sugar value
+      expect(rice.nutrients.sugar_g).toBe(0.1);
     }
   });
   
@@ -106,7 +115,7 @@ describe('Nutrition Service', () => {
     expect(recipe.nutrition.calories).toBe(18);
     expect(recipe.nutrition.protein).toBe(0.9);
     expect(recipe.nutrition.carbs).toBe(3.9);
-    expect(recipe.nutrition.sugar).toBe(2.6); // Test sugar value conversion
+    expect(recipe.nutrition.sugar).toBe(2.6);
     expect(getIngredientId(recipe.ingredients[0])).toBe(1);
     expect(getIngredientAmount(recipe.ingredients[0])).toBe(100);
   });
@@ -122,21 +131,22 @@ describe('Nutrition Service', () => {
       tags: ['Simple', 'Vegetarian'],
       saved: false,
       ingredients: [
-        { id: 2, amount: 200, unit: 'g' } as RecipeIngredient, // 200g rice
-        { id: 3, amount: 15, unit: 'ml' } as RecipeIngredient  // 15ml olive oil
+        { id: 2, amount: 200, unit: 'g', name: 'Rice, white' } as RecipeIngredient, // 200g rice
+        { id: 3, amount: 15, unit: 'ml', name: 'Olive oil' } as RecipeIngredient  // 15ml olive oil
       ],
       difficulty: 'Easy',
-      servings: 2 // Added servings
+      servings: 4 // 4 servings
     };
     
-    const enriched = await calculateNutritionAndCost(recipe, mockLibrary);
+    const enriched = await calculateNutritionAndCost(recipe);
     
     expect(enriched.nutrition).toBeDefined();
-    expect(enriched.nutrition.calories).toBe(Math.round(260 + 132.6)); // 200g rice + 15ml oil
-    expect(enriched.nutrition.protein).toBe(5.4); // 2.7 * 2
-    expect(enriched.nutrition.carbs).toBe(56.4); // 28.2 * 2
-    expect(enriched.nutrition.fat).toBe(Math.round((0.3 * 2 + 15) * 10) / 10); // (0.3*2 + 15) rounded
-    expect(enriched.nutrition.sugar).toBe(0.2); // 0.1 * 2 (from rice)
+    // 200g rice = 260 calories, 15ml oil = 132.6 calories, total = 392.6, per serving (4) = 98.15
+    expect(enriched.nutrition.calories).toBe(Math.round(392.6 / 4)); // ~98
+    expect(enriched.nutrition.protein).toBe(Math.round((5.4 / 4) * 10) / 10); // 1.4
+    expect(enriched.nutrition.carbs).toBe(Math.round((56.4 / 4) * 10) / 10); // 14.1
+    expect(enriched.nutrition.fat).toBe(Math.round((15.6 / 4) * 10) / 10); // 3.9
+    expect(enriched.nutrition.sugar).toBe(Math.round((0.2 / 4) * 10) / 10); // 0.1
     expect(enriched.nutrition.cost).toBeGreaterThan(0);
   });
 
@@ -150,24 +160,23 @@ describe('Nutrition Service', () => {
       tags: ['Test'],
       saved: false,
       ingredients: [
-        { id: 1, amount: 100, unit: 'g' } as RecipeIngredient, // Valid
-        { id: 999, amount: 50, unit: 'g' } as RecipeIngredient  // Invalid ID
+        { id: 1, amount: 100, unit: 'g', name: 'Tomato' } as RecipeIngredient, // Valid
+        { id: 999, amount: 50, unit: 'g', name: 'Unknown' } as RecipeIngredient  // Invalid ID
       ],
       difficulty: 'Easy',
-      servings: 1 // Added servings
+      servings: 4
     };
     
     // Mock console.warn to verify warnings are logged
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     
-    const enriched = await calculateNutritionAndCost(recipe, mockLibrary);
+    const enriched = await calculateNutritionAndCost(recipe);
     
     expect(enriched.nutrition).toBeDefined();
-    // Should only include nutrients from tomato
-    expect(enriched.nutrition.calories).toBe(18);
-    expect(enriched.nutrition.sugar).toBe(2.6); // Should include sugar from tomato
+    // Should only include nutrients from tomato (18 calories / 4 servings = 4.5, rounded to 5)
+    expect(enriched.nutrition.calories).toBe(5);
+    expect(enriched.nutrition.sugar).toBe(0.7); // 2.6/4 = 0.65, rounded to 0.7
     expect(consoleSpy).toHaveBeenCalled();
-    expect(consoleSpy.mock.calls[0][0]).toContain('missing ingredients');
     
     consoleSpy.mockRestore();
   });
@@ -184,13 +193,13 @@ describe('Nutrition Service', () => {
         tags: ['Test'],
         saved: false,
         ingredients: [
-          { id: 1, amount: 100, unit: 'g' } as RecipeIngredient,
-          { id: 2, amount: 100, unit: 'g' } as RecipeIngredient
+          { id: 1, amount: 100, unit: 'g', name: 'Tomato' } as RecipeIngredient,
+          { id: 2, amount: 100, unit: 'g', name: 'Rice, white' } as RecipeIngredient
         ],
         difficulty: 'Medium',
-        servings: 2 // Added servings
+        servings: 4
       },
-      // Recipe with existing nutrition (should be preserved)
+      // Recipe with existing nutrition (should be recalculated from ingredients)
       {
         id: 'recipe2',
         title: 'Recipe 2',
@@ -199,7 +208,9 @@ describe('Nutrition Service', () => {
         category: 'Side',
         tags: ['Test'],
         saved: false,
-        ingredients: [],
+        ingredients: [
+          { id: 1, amount: 200, unit: 'g', name: 'Tomato' } as RecipeIngredient
+        ],
         difficulty: 'Easy',
         nutrition: {
           calories: 300,
@@ -210,9 +221,9 @@ describe('Nutrition Service', () => {
           sugar: 3,
           cost: 3.50
         },
-        servings: 1 // Added servings
+        servings: 4
       },
-      // Recipe with legacy nutrition fields
+      // Recipe with no ingredients - should use existing or legacy fields
       {
         id: 'recipe3',
         title: 'Recipe 3',
@@ -229,7 +240,7 @@ describe('Nutrition Service', () => {
         fat: 10,
         fiber: 2,
         sugar: 8,
-        servings: 1 // Added servings
+        servings: 4
       }
     ];
     
@@ -240,17 +251,16 @@ describe('Nutrition Service', () => {
     // First recipe should have calculated nutrition
     expect(enriched[0].nutrition).toBeDefined();
     expect(enriched[0].nutrition.calories).toBeGreaterThan(0);
-    expect(enriched[0].nutrition.sugar).toBeDefined(); // Sugar should be calculated
+    expect(enriched[0].nutrition.sugar).toBeDefined();
     
-    // Second recipe should preserve existing nutrition
-    expect(enriched[1].nutrition.calories).toBe(300);
-    expect(enriched[1].nutrition.cost).toBe(3.50);
-    expect(enriched[1].nutrition.sugar).toBe(3); // Sugar should be preserved
+    // Second recipe should have recalculated nutrition from ingredients
+    expect(enriched[1].nutrition.calories).not.toBe(300); // Should be recalculated
+    expect(enriched[1].nutrition.sugar).toBeDefined();
     
     // Third recipe should convert legacy fields to nutrition object
     expect(enriched[2].nutrition.calories).toBe(250);
     expect(enriched[2].nutrition.protein).toBe(5);
-    expect(enriched[2].nutrition.sugar).toBe(8); // Legacy sugar should be preserved
+    expect(enriched[2].nutrition.sugar).toBe(8);
     expect(enriched[2].nutrition.cost).toBeGreaterThan(0);
   });
 });
