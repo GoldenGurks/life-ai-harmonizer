@@ -30,17 +30,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Global header/navigation */}
       <Header />
       <div className="flex flex-1">
-        {/* Desktop sidebar (hidden on mobile) */}
+        {/* Desktop sidebar (hidden on mobile and tablet) */}
         <Sidebar />
-        {/* Main content area with proper scrolling */}
+        {/* Main content area with proper responsive padding and scrolling */}
         <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto py-6 px-4 md:px-6">
+          <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6 md:px-8 lg:px-12">
             {children}
           </div>
         </main>
       </div>
-      {/* Mobile navigation bar - only shown on mobile devices */}
-      <div className="md:hidden">
+      {/* Mobile navigation bar - only shown on mobile and tablet devices */}
+      <div className="lg:hidden">
         <MobileNav />
       </div>
     </div>

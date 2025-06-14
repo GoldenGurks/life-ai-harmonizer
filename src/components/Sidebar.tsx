@@ -5,11 +5,11 @@ import { Home, ChefHat, Settings, PieChart, Calendar } from 'lucide-react';
 
 /**
  * Sidebar component that provides navigation throughout the application
- * Renders different depending on screen size (hidden on mobile)
+ * Responsive - hidden on mobile/tablet, visible on desktop
  */
 const Sidebar: React.FC = () => {
   return (
-    <aside className="hidden md:block w-64 border-r h-[calc(100vh-4rem)] sticky top-16">
+    <aside className="hidden lg:block w-56 xl:w-64 border-r h-[calc(100vh-4rem)] sticky top-16">
       <div className="p-4 flex flex-col h-full">
         <nav className="space-y-1">
           {/* Home/Dashboard navigation link */}
@@ -17,7 +17,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           } end>
             <Home size={18} />
-            <span>Dashboard</span>
+            <span className="text-sm">Dashboard</span>
           </NavLink>
           
           {/* Nutrition section header */}
@@ -32,7 +32,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <ChefHat size={18} />
-            <span>Recipes</span>
+            <span className="text-sm">Recipes</span>
           </NavLink>
           
           {/* Meal planning navigation */}
@@ -40,7 +40,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <Calendar size={18} />
-            <span>Meal Planning</span>
+            <span className="text-sm">Meal Planning</span>
           </NavLink>
           
           {/* Nutrition analytics navigation */}
@@ -48,7 +48,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <PieChart size={18} />
-            <span>Nutrition Analytics</span>
+            <span className="text-sm">Nutrition Analytics</span>
           </NavLink>
         </nav>
         
@@ -58,7 +58,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <Settings size={18} />
-            <span>Settings</span>
+            <span className="text-sm">Settings</span>
           </NavLink>
         </div>
       </div>

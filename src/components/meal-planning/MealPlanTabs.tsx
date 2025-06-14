@@ -11,7 +11,7 @@ interface MealPlanTabsProps {
 }
 
 /**
- * Tab navigation component for the meal planning page
+ * Tab navigation component for the meal planning page - fully responsive
  */
 const MealPlanTabs: React.FC<MealPlanTabsProps> = ({
   activeTab,
@@ -23,16 +23,21 @@ const MealPlanTabs: React.FC<MealPlanTabsProps> = ({
   return (
     <Tabs defaultValue="weekly" value={activeTab} onValueChange={onValueChange} className="w-full">
       <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-        <TabsList className="h-auto flex-wrap">
-          <TabsTrigger value="weekly" className="uppercase flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {t('mealPlanning.weeklyPlan')}
+        <TabsList className="h-auto flex-wrap w-full sm:w-auto">
+          <TabsTrigger value="weekly" className="uppercase flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{t('mealPlanning.weeklyPlan')}</span>
+            <span className="sm:hidden">Weekly</span>
           </TabsTrigger>
-          <TabsTrigger value="tinder-dish" className="uppercase flex items-center gap-2">
-            <List className="h-4 w-4" />
-            {t('mealPlanning.mealDiscovery')}
+          <TabsTrigger value="tinder-dish" className="uppercase flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <List className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{t('mealPlanning.mealDiscovery')}</span>
+            <span className="sm:hidden">Discover</span>
           </TabsTrigger>
-          <TabsTrigger value="saved" className="uppercase">{t('mealPlanning.savedPlans')}</TabsTrigger>
+          <TabsTrigger value="saved" className="uppercase text-xs sm:text-sm px-2 sm:px-4">
+            <span className="hidden sm:inline">{t('mealPlanning.savedPlans')}</span>
+            <span className="sm:hidden">Saved</span>
+          </TabsTrigger>
         </TabsList>
       </div>
       {children}
