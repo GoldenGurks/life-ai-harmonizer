@@ -32,8 +32,6 @@ const queryClient = new QueryClient();
 const App = () => {
   // State to track if the app is ready to render (after localStorage check)
   const [ready, setReady] = useState(false);
-  // State to track if onboarding modal should be shown
-  const [showOnboard, setShowOnboard] = React.useState(false);
   // State to track if user is new (should see landing page)
   const [isNewUser, setIsNewUser] = React.useState(false);
 
@@ -45,12 +43,10 @@ const App = () => {
       const stored = localStorage.getItem("userProfile");
       if (!stored) {
         setIsNewUser(true);
-        setShowOnboard(true);
       } else {
         const profile = JSON.parse(stored);
         if (profile.profileComplete !== true) {
           setIsNewUser(true);
-          setShowOnboard(true);
         } else {
           setIsNewUser(false);
         }
@@ -71,8 +67,8 @@ const App = () => {
               {/* Toast notifications for user feedback */}
               <Toaster />
               <Sonner />
-              {/* Onboarding modal for first-time users */}
-              <OnboardingModal open={showOnboard} />
+              {/* Onboarding modal is no longer automatically shown - users go through landing page instead */}
+              <OnboardingModal open={false} />
               <BrowserRouter>
                 <Routes>
                   {/* Root route - shows landing page for new users, dashboard for returning users */}
