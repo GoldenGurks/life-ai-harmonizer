@@ -26,6 +26,7 @@ export const useMealPlanningState = () => {
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   const [showDetailedPlanningModal, setShowDetailedPlanningModal] = useState(false);
   const [showWeeklySetupModal, setShowWeeklySetupModal] = useState(false);
+  const [showClearPlanConfirmation, setShowClearPlanConfirmation] = useState(false);
   
   // New state for the weekly planner workflow
   const [showMealCountSelector, setShowMealCountSelector] = useState(false);
@@ -124,6 +125,27 @@ export const useMealPlanningState = () => {
     setActiveTab('weekly');
   };
 
+  /**
+   * Handle clear plan request
+   */
+  const handleClearPlanRequest = () => {
+    setShowClearPlanConfirmation(true);
+  };
+
+  /**
+   * Handle confirmed clear plan
+   */
+  const handleClearPlanConfirm = () => {
+    if (profile) {
+      updateProfile({
+        ...profile,
+        currentWeekPlan: undefined
+      });
+    }
+    setShowClearPlanConfirmation(false);
+    toast.success('Weekly plan cleared');
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -138,6 +160,8 @@ export const useMealPlanningState = () => {
     setShowDetailedPlanningModal,
     showWeeklySetupModal,
     setShowWeeklySetupModal,
+    showClearPlanConfirmation,
+    setShowClearPlanConfirmation,
     // New weekly planner states
     showMealCountSelector,
     setShowMealCountSelector,
@@ -153,6 +177,8 @@ export const useMealPlanningState = () => {
     startWeeklyPlanning,
     handleMealCountConfirm,
     handleRecipeSelectionConfirm,
-    handleViewGeneratedPlan
+    handleViewGeneratedPlan,
+    handleClearPlanRequest,
+    handleClearPlanConfirm
   };
 };

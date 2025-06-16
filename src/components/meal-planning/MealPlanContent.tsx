@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import WeeklyPlanTab from '@/components/meal-planning/WeeklyPlanTab';
 import TinderDishTab from '@/components/meal-planning/TinderDishTab';
 import SavedPlansTab from '@/components/meal-planning/SavedPlansTab';
+import ClearPlanConfirmation from '@/components/meal-planning/ClearPlanConfirmation';
 import { useMealManager } from './useMealManager';
 import { MealItem } from '@/types/meal-planning';
 import { convertRecipeToMealItem } from './WeeklyPlanTab';
@@ -22,6 +23,10 @@ interface MealPlanContentProps {
   days: string[];
   showWeeklySetupModal: boolean;
   setShowWeeklySetupModal: (show: boolean) => void;
+  showClearPlanConfirmation: boolean;
+  setShowClearPlanConfirmation: (show: boolean) => void;
+  handleClearPlanRequest: () => void;
+  handleClearPlanConfirm: () => void;
 }
 
 /**
@@ -32,7 +37,11 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
   currentDay,
   days,
   showWeeklySetupModal,
-  setShowWeeklySetupModal
+  setShowWeeklySetupModal,
+  showClearPlanConfirmation,
+  setShowClearPlanConfirmation,
+  handleClearPlanRequest,
+  handleClearPlanConfirm
 }) => {
   const { t } = useLanguage();
   const { isSetupComplete } = useMealPreferences();
@@ -64,6 +73,7 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
               onDayChange={() => {}}  // This will be handled in the parent component
               handleMealChange={handleMealChange}
               mealPlans={mealPlans}
+              onClearPlan={handleClearPlanRequest}
             />
           </div>
         </div>
@@ -88,6 +98,13 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
       <TabsContent value="saved" className="space-y-4">
         <SavedPlansTab />
       </TabsContent>
+
+      {/* Clear Plan Confirmation Dialog */}
+      <ClearPlanConfirmation
+        isOpen={showClearPlanConfirmation}
+        onClose={() => setShowClearPlanConfirmation(false)}
+        onConfirm={handleClearPlanConfirm}
+      />
     </>
   );
 };

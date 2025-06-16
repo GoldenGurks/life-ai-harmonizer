@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Check, ShoppingCart } from 'lucide-react';
+import { Check, ShoppingCart, CheckCircle } from 'lucide-react';
 import { MealItem } from '@/types/meal-planning';
 import { usePantry } from '@/hooks/usePantry';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,6 +22,8 @@ interface ShoppingItem {
 
 const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, selectedMeals }) => {
   const { pantryItems } = usePantry();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   
   // Extract all ingredients from selected meals
   const allIngredients = selectedMeals.flatMap(meal => meal.ingredients);
@@ -65,6 +67,23 @@ const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, 
   
   // Count items that need to be purchased (not in pantry)
   const itemsToShop = shoppingList.filter(item => !item.inPantry).length;
+
+  const handleSaveList = async () => {
+    setIsSaving(true);
+    
+    // Simulate saving process
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    setIsSaving(false);
+    setIsSaved(true);
+    
+    // Auto-close after 1.5 seconds
+    setTimeout(() => {
+      onClose();
+      // Reset state for next time
+      setTimeout(() => setIsSaved(false), 300);
+    }, 1500);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -114,11 +133,27 @@ const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, 
         </ScrollArea>
         
         <div className="flex justify-between mt-4">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Close
           </Button>
-          <Button onClick={() => alert("Shopping list saved!")}>
-            Save List
+          <Button 
+            onClick={handleSaveList}
+            disabled={isSaving || isSaved}
+            className="min-w-[100px]"
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            ) : isSaved ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Saved!
+              </div>
+            ) : (
+              'Save List'
+            )}
           </Button>
         </div>
       </DialogContent>

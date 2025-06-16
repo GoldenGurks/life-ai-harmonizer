@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChefHat, Calendar, Target, TrendingUp, Plus, ShoppingCart } from 'lucide-react';
+import { ChefHat, Calendar, Target, TrendingUp, Plus, ShoppingCart, ImageOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
@@ -11,7 +11,7 @@ import { convertRecipeToMealItem } from '@/components/meal-planning/WeeklyPlanTa
 import { toast } from 'sonner';
 import { MealItem } from '@/types/meal-planning';
 import NutrientProgressBar from './NutrientProgressBar';
-import AddMealModal from './AddMealModal';
+import EnhancedAddMealModal from './EnhancedAddMealModal';
 
 /**
  * Enhanced dashboard for returning users showing their weekly plan,
@@ -88,6 +88,29 @@ const ReturningUserDashboard: React.FC = () => {
     toast.success(`${meal.name} added to ${day}'s ${mealType}`);
   };
 
+  const handleAddToWeeklyPlan = (recipe: MealItem) => {
+    if (!currentPlan || !profile) {
+      // Create a new plan with this recipe
+      const newPlan = {
+        selectedRecipes: [recipe],
+        assignedDays: {
+          Monday: { lunch: recipe }
+        },
+        createdAt: new Date().toISOString()
+      };
+
+      updateProfile({
+        ...profile,
+        currentWeekPlan: newPlan
+      });
+
+      toast.success(`${recipe.name} added to your weekly plan`);
+    } else {
+      // Add to existing plan
+      handleMealSelect(recipe, 'Monday', 'lunch');
+    }
+  };
+
   const getMealForDayAndType = (day: string, mealType: string) => {
     return assignedDays[day]?.[mealType];
   };
@@ -142,12 +165,27 @@ const ReturningUserDashboard: React.FC = () => {
                         </div>
                         <CardContent className="p-2 space-y-2">
                           {/* Breakfast */}
-                          <div className="h-16 bg-muted/30 rounded p-2 flex items-center justify-center">
+                          <div className="h-16 bg-muted/30 rounded p-1 flex items-center justify-center relative overflow-hidden group">
                             {breakfastMeal ? (
-                              <div className="text-center">
-                                <p className="text-xs font-medium truncate">{breakfastMeal.name}</p>
-                                <p className="text-xs text-muted-foreground">{breakfastMeal.calories} kcal</p>
-                              </div>
+                              <>
+                                {breakfastMeal.image ? (
+                                  <img
+                                    src={breakfastMeal.image}
+                                    alt={breakfastMeal.name}
+                                    className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <ChefHat className="h-6 w-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                  <div className="text-center text-white px-1">
+                                    <p className="text-xs font-medium">{breakfastMeal.name}</p>
+                                    <p className="text-xs">{breakfastMeal.calories} kcal</p>
+                                  </div>
+                                </div>
+                              </>
                             ) : (
                               <div className="text-center text-muted-foreground">
                                 <ChefHat className="h-4 w-4 mx-auto mb-1" />
@@ -157,12 +195,27 @@ const ReturningUserDashboard: React.FC = () => {
                           </div>
                           
                           {/* Lunch */}
-                          <div className="h-16 bg-muted/30 rounded p-2 flex items-center justify-center">
+                          <div className="h-16 bg-muted/30 rounded p-1 flex items-center justify-center relative overflow-hidden group">
                             {lunchMeal ? (
-                              <div className="text-center">
-                                <p className="text-xs font-medium truncate">{lunchMeal.name}</p>
-                                <p className="text-xs text-muted-foreground">{lunchMeal.calories} kcal</p>
-                              </div>
+                              <>
+                                {lunchMeal.image ? (
+                                  <img
+                                    src={lunchMeal.image}
+                                    alt={lunchMeal.name}
+                                    className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <ChefHat className="h-6 w-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                  <div className="text-center text-white px-1">
+                                    <p className="text-xs font-medium">{lunchMeal.name}</p>
+                                    <p className="text-xs">{lunchMeal.calories} kcal</p>
+                                  </div>
+                                </div>
+                              </>
                             ) : (
                               <div className="text-center text-muted-foreground">
                                 <ChefHat className="h-4 w-4 mx-auto mb-1" />
@@ -172,12 +225,27 @@ const ReturningUserDashboard: React.FC = () => {
                           </div>
                           
                           {/* Dinner */}
-                          <div className="h-16 bg-muted/30 rounded p-2 flex items-center justify-center">
+                          <div className="h-16 bg-muted/30 rounded p-1 flex items-center justify-center relative overflow-hidden group">
                             {dinnerMeal ? (
-                              <div className="text-center">
-                                <p className="text-xs font-medium truncate">{dinnerMeal.name}</p>
-                                <p className="text-xs text-muted-foreground">{dinnerMeal.calories} kcal</p>
-                              </div>
+                              <>
+                                {dinnerMeal.image ? (
+                                  <img
+                                    src={dinnerMeal.image}
+                                    alt={dinnerMeal.name}
+                                    className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <ChefHat className="h-6 w-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                  <div className="text-center text-white px-1">
+                                    <p className="text-xs font-medium">{dinnerMeal.name}</p>
+                                    <p className="text-xs">{dinnerMeal.calories} kcal</p>
+                                  </div>
+                                </div>
+                              </>
                             ) : (
                               <div className="text-center text-muted-foreground">
                                 <ChefHat className="h-4 w-4 mx-auto mb-1" />
@@ -214,8 +282,8 @@ const ReturningUserDashboard: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {popularRecipes.map((recipe) => (
-                  <div key={recipe.id} className="group cursor-pointer">
-                    <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden">
+                  <div key={recipe.id} className="group cursor-pointer relative">
+                    <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden relative">
                       {recipe.image ? (
                         <img 
                           src={recipe.image} 
@@ -227,6 +295,23 @@ const ReturningUserDashboard: React.FC = () => {
                           <ChefHat className="h-8 w-8 text-muted-foreground" />
                         </div>
                       )}
+                      
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4">
+                        <h4 className="font-medium text-sm mb-2 text-center">{recipe.name}</h4>
+                        <p className="text-xs mb-3">{recipe.calories} kcal</p>
+                        <Button
+                          size="sm"
+                          className="bg-white text-black hover:bg-gray-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToWeeklyPlan(recipe);
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add to Plan
+                        </Button>
+                      </div>
                     </div>
                     <h4 className="font-medium text-sm mb-1 line-clamp-2">{recipe.name}</h4>
                     <p className="text-xs text-muted-foreground mb-2">{recipe.calories} kcal</p>
@@ -353,7 +438,7 @@ const ReturningUserDashboard: React.FC = () => {
         </div>
       </div>
 
-      <AddMealModal
+      <EnhancedAddMealModal
         isOpen={isAddMealModalOpen}
         onClose={() => setIsAddMealModalOpen(false)}
         onMealSelect={handleMealSelect}
