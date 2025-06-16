@@ -1,25 +1,32 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChefHat, Calendar, Target, TrendingUp, Plus, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { convertRecipeToMealItem } from '@/components/meal-planning/WeeklyPlanTab';
+import { toast } from 'sonner';
+import { MealItem } from '@/types/meal-planning';
 import NutrientProgressBar from './NutrientProgressBar';
+import AddMealModal from './AddMealModal';
 
 /**
  * Enhanced dashboard for returning users showing their weekly plan,
  * nutrition progress, and popular recipes to add to favorites
  */
 const ReturningUserDashboard: React.FC = () => {
-  const { profile } = useUserProfile();
+  const navigate = useNavigate();
+  const { profile, updateProfile } = useUserProfile();
   const { recommendations } = useRecipeRecommendations({ count: 6 });
+  const [isAddMealModalOpen, setIsAddMealModalOpen] = useState(false);
 
   // Get current week's plan
   const currentPlan = profile?.currentWeekPlan;
   const plannedMeals = currentPlan?.selectedRecipes || [];
+  const assignedDays = currentPlan?.assignedDays || {};
 
   // Calculate this week's nutrition progress (mock data for now)
   const weeklyProgress = {
@@ -31,6 +38,59 @@ const ReturningUserDashboard: React.FC = () => {
 
   // Popular recipes (trending among users)
   const popularRecipes = recommendations.slice(0, 3).map(convertRecipeToMealItem);
+
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  const handleStartPlanning = () => {
+    navigate('/meal-planning');
+  };
+
+  const handleAddMeal = () => {
+    if (!currentPlan) {
+      // No plan exists, navigate to meal planning
+      navigate('/meal-planning');
+    } else {
+      // Plan exists, open modal
+      setIsAddMealModalOpen(true);
+    }
+  };
+
+  const handleMealSelect = (meal: MealItem, day: string, mealType: string) => {
+    if (!currentPlan || !profile) return;
+
+    // Create a deep copy of the current plan
+    const updatedPlan = { 
+      ...currentPlan,
+      assignedDays: { ...currentPlan.assignedDays }
+    };
+
+    // Initialize the day if it doesn't exist
+    if (!updatedPlan.assignedDays[day]) {
+      updatedPlan.assignedDays[day] = {};
+    }
+
+    // Create a deep copy of the day's meals
+    updatedPlan.assignedDays[day] = {
+      ...updatedPlan.assignedDays[day],
+      [mealType]: meal
+    };
+
+    // Add to selected recipes if not already there
+    if (!updatedPlan.selectedRecipes.some(r => r.id === meal.id)) {
+      updatedPlan.selectedRecipes = [...updatedPlan.selectedRecipes, meal];
+    }
+
+    updateProfile({
+      ...profile,
+      currentWeekPlan: updatedPlan
+    });
+
+    toast.success(`${meal.name} added to ${day}'s ${mealType}`);
+  };
+
+  const getMealForDayAndType = (day: string, mealType: string) => {
+    return assignedDays[day]?.[mealType];
+  };
 
   return (
     <div className="space-y-6">
@@ -50,48 +110,91 @@ const ReturningUserDashboard: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* Current Week Plan */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  This Week's Plan
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {plannedMeals.length} meals planned
-                </p>
+            <CardHeader>
+              <div className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    This Week's Plan
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {plannedMeals.length} meals planned
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleAddMeal}>
+                  <Plus className="h-4 w-4" />
+                  Add Meal
+                </Button>
               </div>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Meal
-              </Button>
             </CardHeader>
             <CardContent>
-              {plannedMeals.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {plannedMeals.slice(0, 4).map((meal, index) => (
-                    <div key={meal.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <ChefHat className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{meal.name}</p>
-                        <p className="text-xs text-muted-foreground">{meal.calories} kcal</p>
-                      </div>
-                    </div>
-                  ))}
-                  {plannedMeals.length > 4 && (
-                    <div className="flex items-center justify-center p-3 bg-muted/20 rounded-lg border-2 border-dashed">
-                      <p className="text-sm text-muted-foreground">
-                        +{plannedMeals.length - 4} more meals
-                      </p>
-                    </div>
-                  )}
+              {currentPlan ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                  {days.map((day) => {
+                    const breakfastMeal = getMealForDayAndType(day, 'breakfast');
+                    const lunchMeal = getMealForDayAndType(day, 'lunch');
+                    const dinnerMeal = getMealForDayAndType(day, 'dinner');
+                    
+                    return (
+                      <Card key={day} className="overflow-hidden">
+                        <div className="p-3 pb-2 text-center border-b">
+                          <h3 className="text-sm font-medium">{day.slice(0, 3)}</h3>
+                        </div>
+                        <CardContent className="p-2 space-y-2">
+                          {/* Breakfast */}
+                          <div className="h-16 bg-muted/30 rounded p-2 flex items-center justify-center">
+                            {breakfastMeal ? (
+                              <div className="text-center">
+                                <p className="text-xs font-medium truncate">{breakfastMeal.name}</p>
+                                <p className="text-xs text-muted-foreground">{breakfastMeal.calories} kcal</p>
+                              </div>
+                            ) : (
+                              <div className="text-center text-muted-foreground">
+                                <ChefHat className="h-4 w-4 mx-auto mb-1" />
+                                <p className="text-xs">Breakfast</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Lunch */}
+                          <div className="h-16 bg-muted/30 rounded p-2 flex items-center justify-center">
+                            {lunchMeal ? (
+                              <div className="text-center">
+                                <p className="text-xs font-medium truncate">{lunchMeal.name}</p>
+                                <p className="text-xs text-muted-foreground">{lunchMeal.calories} kcal</p>
+                              </div>
+                            ) : (
+                              <div className="text-center text-muted-foreground">
+                                <ChefHat className="h-4 w-4 mx-auto mb-1" />
+                                <p className="text-xs">Lunch</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Dinner */}
+                          <div className="h-16 bg-muted/30 rounded p-2 flex items-center justify-center">
+                            {dinnerMeal ? (
+                              <div className="text-center">
+                                <p className="text-xs font-medium truncate">{dinnerMeal.name}</p>
+                                <p className="text-xs text-muted-foreground">{dinnerMeal.calories} kcal</p>
+                              </div>
+                            ) : (
+                              <div className="text-center text-muted-foreground">
+                                <ChefHat className="h-4 w-4 mx-auto mb-1" />
+                                <p className="text-xs">Dinner</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                   <p className="text-muted-foreground mb-3">No meals planned yet</p>
-                  <Button>Start Planning</Button>
+                  <Button onClick={handleStartPlanning}>Start Planning</Button>
                 </div>
               )}
             </CardContent>
@@ -233,15 +336,15 @@ const ReturningUserDashboard: React.FC = () => {
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start gap-2" variant="outline">
+              <Button className="w-full justify-start gap-2" variant="outline" onClick={() => navigate('/meal-planning')}>
                 <Calendar className="h-4 w-4" />
                 Plan Next Week
               </Button>
-              <Button className="w-full justify-start gap-2" variant="outline">
+              <Button className="w-full justify-start gap-2" variant="outline" onClick={() => navigate('/shopping')}>
                 <ShoppingCart className="h-4 w-4" />
                 View Shopping List
               </Button>
-              <Button className="w-full justify-start gap-2" variant="outline">
+              <Button className="w-full justify-start gap-2" variant="outline" onClick={() => navigate('/recipes')}>
                 <ChefHat className="h-4 w-4" />
                 Find New Recipes
               </Button>
@@ -249,6 +352,12 @@ const ReturningUserDashboard: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      <AddMealModal
+        isOpen={isAddMealModalOpen}
+        onClose={() => setIsAddMealModalOpen(false)}
+        onMealSelect={handleMealSelect}
+      />
     </div>
   );
 };
