@@ -3,6 +3,30 @@
 
 A comprehensive React-based meal planning application that helps users organize meals, track nutrition, manage shopping lists, and receive personalized recipe recommendations.
 
+## Landing Page
+
+The application features a dedicated landing page for new users that showcases key features and benefits:
+
+### Key Sections
+- **Hero Section**: Eye-catching headline with gradient background and clear value proposition
+- **Feature Highlights**: Three-column layout (responsive) highlighting:
+  - Personalized meal tailoring in minutes
+  - AI-powered variety and recommendations
+  - Photo-to-recipe conversion technology
+- **Shopping & Nutrition**: Two-column section explaining smart grocery lists, nutrition clarity, and budget-friendly planning
+- **Social Proof**: Community features including social sharing and chef connections
+- **Testimonials**: User feedback carousel showcasing real benefits and time savings
+- **Call to Action**: Prominent conversion section with clear next steps
+
+### Design Features
+- Fully responsive mobile-first design
+- Uses existing shadcn/ui components (Card, Button, etc.)
+- Consistent color scheme with primary, secondary, and accent colors
+- Accessible typography with proper contrast ratios
+- Smooth hover effects and transitions
+
+The landing page is located at `src/pages/LandingPage.tsx` and can be integrated into the routing system for new user onboarding.
+
 ## Features
 
 ### 🍽️ Personalized Meal Planning
