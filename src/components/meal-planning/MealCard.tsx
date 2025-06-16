@@ -169,7 +169,6 @@ const MealCard: React.FC<MealCardProps> = ({
               max={10} 
               unit="€"
               color="bg-primary"
-              isCost={true}
             />
           </CollapsibleContent>
         </Collapsible>
