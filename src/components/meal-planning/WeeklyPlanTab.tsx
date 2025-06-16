@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ interface WeeklyPlanTabProps {
   onDayChange: (day: string) => void;
   handleMealChange: (mealId: string) => void;
   mealPlans: WeeklyPlanDisplay[];
+  onClearPlan?: () => void;
 }
 
 /**

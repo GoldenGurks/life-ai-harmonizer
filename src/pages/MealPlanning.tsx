@@ -35,6 +35,7 @@ const MealPlanning = () => {
     showQuickSetupModal, setShowQuickSetupModal,
     showDetailedPlanningModal, setShowDetailedPlanningModal,
     showWeeklySetupModal, setShowWeeklySetupModal,
+    showClearPlanConfirmation, setShowClearPlanConfirmation,
     // New weekly planner states
     showMealCountSelector, setShowMealCountSelector,
     showRecipeSelectionModal, setShowRecipeSelectionModal,
@@ -42,7 +43,8 @@ const MealPlanning = () => {
     mealCount, setMealCount,
     weeklySettings, handleWeeklySetup, handleSetupChoice,
     startWeeklyPlanning, handleMealCountConfirm,
-    handleRecipeSelectionConfirm, handleViewGeneratedPlan
+    handleRecipeSelectionConfirm, handleViewGeneratedPlan,
+    handleClearPlanRequest, handleClearPlanConfirm
   } = useMealPlanningState();
   
   // Get user preferences
@@ -107,6 +109,10 @@ const MealPlanning = () => {
           days={days}
           showWeeklySetupModal={showWeeklySetupModal}
           setShowWeeklySetupModal={setShowWeeklySetupModal}
+          showClearPlanConfirmation={showClearPlanConfirmation}
+          setShowClearPlanConfirmation={setShowClearPlanConfirmation}
+          handleClearPlanRequest={handleClearPlanRequest}
+          handleClearPlanConfirm={handleClearPlanConfirm}
         />
       </MealPlanTabs>
       
