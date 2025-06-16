@@ -12,12 +12,11 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 
 // Import all the page components
 import Index from "@/pages/Index";
+import LandingPage from "@/pages/LandingPage";
 import Recipes from "@/pages/Recipes";
 import MealPlanning from "@/pages/MealPlanning";
 import Nutrition from "@/pages/Nutrition";
 import NotFound from "@/pages/NotFound";
-
-// We need to create the Shopping page
 import Shopping from "@/pages/Shopping";
 
 /**
@@ -28,13 +27,15 @@ const queryClient = new QueryClient();
 
 /**
  * Main App component that sets up providers and routing
- * Handles onboarding modal display based on user profile state
+ * Handles onboarding modal display and routing based on user profile state
  */
 const App = () => {
   // State to track if the app is ready to render (after localStorage check)
   const [ready, setReady] = useState(false);
   // State to track if onboarding modal should be shown
   const [showOnboard, setShowOnboard] = React.useState(false);
+  // State to track if user is new (should see landing page)
+  const [isNewUser, setIsNewUser] = React.useState(false);
 
   React.useEffect(() => {
     // Delay 1 render until localStorage can be checked
@@ -42,9 +43,18 @@ const App = () => {
     setTimeout(() => {
       // Check if user profile exists in localStorage
       const stored = localStorage.getItem("userProfile");
-      // Show onboarding if profile doesn't exist or is not complete
-      if (!stored) setShowOnboard(true);
-      else if (JSON.parse(stored).profileComplete !== true) setShowOnboard(true);
+      if (!stored) {
+        setIsNewUser(true);
+        setShowOnboard(true);
+      } else {
+        const profile = JSON.parse(stored);
+        if (profile.profileComplete !== true) {
+          setIsNewUser(true);
+          setShowOnboard(true);
+        } else {
+          setIsNewUser(false);
+        }
+      }
     }, 0);
     setReady(true);
   }, []);
@@ -65,8 +75,12 @@ const App = () => {
               <OnboardingModal open={showOnboard} />
               <BrowserRouter>
                 <Routes>
+                  {/* Root route - shows landing page for new users, dashboard for returning users */}
+                  <Route path="/" element={isNewUser ? <LandingPage /> : <Index />} />
+                  {/* Explicit landing page route */}
+                  <Route path="/landing" element={<LandingPage />} />
                   {/* Main application routes */}
-                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Index />} />
                   <Route path="/recipes" element={<Recipes />} />
                   <Route path="/meal-planning" element={<MealPlanning />} />
                   <Route path="/nutrition" element={<Nutrition />} />

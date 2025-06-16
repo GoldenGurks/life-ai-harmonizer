@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
 
 interface NutrientProgressBarProps {
   label: string;
@@ -9,47 +7,39 @@ interface NutrientProgressBarProps {
   max: number;
   unit: string;
   color?: string;
-  isCost?: boolean;
+  showLabel?: boolean;
 }
 
-const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
-  label,
-  value,
-  max,
-  unit,
+/**
+ * Progress bar component for displaying nutrient values
+ * Supports custom colors and optional label display
+ */
+const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({ 
+  label, 
+  value, 
+  max, 
+  unit, 
   color = "bg-primary",
-  isCost = false
+  showLabel = true 
 }) => {
   const percentage = Math.min((value / max) * 100, 100);
   
-  // Format cost values to show currency symbol
-  const formattedValue = isCost ? 
-    new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value) : 
-    `${value} ${unit}`;
-  
-  const formattedMax = isCost ? 
-    new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(max) : 
-    `${max} ${unit}`;
-  
   return (
-    <div className="mb-3">
-      <div className="flex justify-between text-sm mb-1">
-        <span>{label}</span>
-        <span className="text-muted-foreground">
-          {isCost ? formattedValue : `${value} / ${max} ${unit}`}
-        </span>
+    <div className="space-y-1">
+      {showLabel && (
+        <div className="flex justify-between text-sm">
+          <span className="font-medium">{label}</span>
+          <span className="text-muted-foreground">
+            {value} / {max} {unit}
+          </span>
+        </div>
+      )}
+      <div className="w-full bg-muted rounded-full h-2">
+        <div 
+          className={`${color} h-2 rounded-full transition-all duration-300`} 
+          style={{ width: `${percentage}%` }}
+        />
       </div>
-      <Progress 
-        value={percentage} 
-        className={cn("h-2", {
-          "[&>div]:bg-primary": color === "bg-primary",
-          "[&>div]:bg-secondary": color === "bg-secondary",
-          "[&>div]:bg-accent": color === "bg-accent",
-          "[&>div]:bg-green-500": color === "bg-green-500",
-          "[&>div]:bg-amber-500": color === "bg-amber-500",
-          "[&>div]:bg-blue-500": color === "bg-blue-500",
-        })}
-      />
     </div>
   );
 };
