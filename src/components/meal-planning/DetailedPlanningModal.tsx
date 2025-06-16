@@ -1,12 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronRight, ChevronLeft, MessageCircle, Sparkles, Send } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import FoodPreferenceSlider from './FoodPreferenceSlider';
 import { UserPreferences } from '@/types/meal-planning';
 import { useMealPreferences } from '@/hooks/useMealPreferences';
@@ -26,9 +26,7 @@ interface DetailedPlanningModalProps {
 const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onClose }) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const { preferences, completeSetup } = useMealPreferences();
-  const [aiMessage, setAiMessage] = useState('');
   
   // Form state
   const [formData, setFormData] = useState<Partial<UserPreferences>>({
@@ -110,52 +108,6 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
       : (formData.allergies || []).filter(item => item !== allergy);
     
     setFormData(prev => ({ ...prev, allergies: updatedAllergies }));
-  };
-  
-  const handleSendAiMessage = () => {
-    if (!aiMessage.trim()) return;
-    
-    // Show AI response (in a real app, this would call an API)
-    const mockResponses = [
-      "Based on your goals, I recommend focusing on protein-rich meals with balanced carbs.",
-      "For your fitness goals, I suggest meal prepping on weekends to save time during the week.",
-      "With your dietary restrictions, you might enjoy exploring Mediterranean cuisine options.",
-      "Given your cooking experience, I can suggest some intermediate recipes that take about 30 minutes.",
-    ];
-    
-    const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-    
-    // Add user message and AI response to the conversation
-    const aiConversation = document.getElementById('ai-conversation');
-    if (aiConversation) {
-      const userMessageEl = document.createElement('div');
-      userMessageEl.className = 'bg-muted/30 rounded-lg p-3 mb-3 ml-auto max-w-[80%] text-sm';
-      userMessageEl.textContent = aiMessage;
-      
-      const aiResponseEl = document.createElement('div');
-      aiResponseEl.className = 'bg-muted/50 rounded-lg p-3 mb-3 max-w-[80%] text-sm';
-      
-      // Simulate AI thinking with a typing effect
-      let i = 0;
-      const typingEffect = setInterval(() => {
-        if (i === 0) {
-          aiResponseEl.textContent = "Thinking";
-        } else if (i < 4) {
-          aiResponseEl.textContent += ".";
-        } else {
-          clearInterval(typingEffect);
-          aiResponseEl.textContent = randomResponse;
-        }
-        i++;
-      }, 300);
-      
-      aiConversation.appendChild(userMessageEl);
-      aiConversation.appendChild(aiResponseEl);
-      aiConversation.scrollTop = aiConversation.scrollHeight;
-    }
-    
-    // Clear the input
-    setAiMessage('');
   };
   
   const renderStep = () => {
@@ -302,111 +254,38 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
   };
   
   return (
-    <>
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Detailed Meal Planning</DialogTitle>
-            <DialogDescription>
-              Let's create a personalized plan just for you. Step {step} of {totalSteps}
-            </DialogDescription>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Detailed Meal Planning</DialogTitle>
+          <DialogDescription>
+            Let's create a personalized plan just for you. Step {step} of {totalSteps}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="py-4">
+          {renderStep()}
+        </div>
+        
+        <div className="flex justify-between items-center pt-2">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            disabled={step === 1}
+            className="gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </Button>
           
-          <div className="py-4">
-            {renderStep()}
-          </div>
-          
-          <div className="flex justify-between items-center pt-2">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              disabled={step === 1}
-              className="gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back
-            </Button>
-            
-            <Button 
-              variant="secondary" 
-              onClick={() => setIsAiDrawerOpen(true)}
-              className="gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Ask AI
-            </Button>
-            
-            <Button onClick={handleNext} className="gap-2">
-              {step < totalSteps ? 'Next' : 'Complete'} 
-              {step < totalSteps && <ChevronRight className="h-4 w-4" />}
-              {step === totalSteps && <Sparkles className="h-4 w-4" />}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      <Drawer open={isAiDrawerOpen} onOpenChange={setIsAiDrawerOpen}>
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-md">
-            <DrawerHeader>
-              <DrawerTitle className="flex items-center">
-                <Sparkles className="h-4 w-4 mr-2 text-primary" />
-                AI Assistant
-              </DrawerTitle>
-              <DrawerDescription>
-                Ask me any questions about your meal planning process.
-              </DrawerDescription>
-            </DrawerHeader>
-            
-            <div className="p-4 pb-0">
-              <div id="ai-conversation" className="bg-background rounded-lg p-4 mb-4 h-[200px] overflow-y-auto space-y-2">
-                <div className="bg-muted/50 rounded-lg p-3 max-w-[80%] text-sm">
-                  <p className="font-medium mb-1">AI Assistant</p>
-                  <p>
-                    Hi there! I can help you with your meal planning questions. For example:
-                  </p>
-                  <ul className="list-disc ml-5 mt-2 space-y-1">
-                    <li>What kinds of meals work best for my fitness goals?</li>
-                    <li>How can I accommodate my food allergies?</li>
-                    <li>What substitutions would you suggest for ingredients I dislike?</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="relative mb-4">
-                <Input
-                  value={aiMessage}
-                  onChange={(e) => setAiMessage(e.target.value)}
-                  placeholder="Type your question here..."
-                  className="pr-20"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSendAiMessage();
-                  }}
-                />
-                <Button 
-                  size="sm" 
-                  className="absolute right-1 top-1 h-7 px-3"
-                  onClick={handleSendAiMessage}
-                  disabled={!aiMessage.trim()}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            <div className="p-4 text-center">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsAiDrawerOpen(false)}
-                className="w-full sm:w-auto"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </>
+          <Button onClick={handleNext} className="gap-2">
+            {step < totalSteps ? 'Next' : 'Complete'} 
+            {step < totalSteps && <ChevronRight className="h-4 w-4" />}
+            {step === totalSteps && <Sparkles className="h-4 w-4" />}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
