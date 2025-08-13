@@ -3,6 +3,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Star, Camera, ShoppingCart, Users, Zap, Target, Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import heroKitchen from '@/assets/hero-kitchen.jpg';
+import tailoredMealsBg from '@/assets/tailored-meals-bg.jpg';
+import aiVarietyBg from '@/assets/ai-variety-bg.jpg';
+import photoCaptureB from '@/assets/photo-capture-bg.jpg';
+import groceryStocksBg from '@/assets/grocery-stocks-bg.jpg';
 
 /**
  * Landing page component for new users
@@ -10,11 +16,24 @@ import { ArrowRight, Star, Camera, ShoppingCart, Users, Zap, Target, Heart } fro
  * social proof, testimonials, and call-to-action
  */
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate('/meal-planning');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-4 py-16 sm:py-24 lg:py-32">
-        <div className="container mx-auto text-center max-w-4xl">
+      <section className="relative px-4 py-16 sm:py-24 lg:py-32 overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroKitchen})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/70 to-background/90"></div>
+        </div>
+        <div className="container mx-auto text-center max-w-4xl relative z-10">
           <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6">
             Your Weekly Meal Plan—
             <span className="gradient-text block mt-2">Effortlessly Intelligent</span>
@@ -23,7 +42,7 @@ const LandingPage: React.FC = () => {
             From first click to fully stocked fridge—AI-crafted menus customized just for you. 
             Effortless, nutritious, delicious.
           </p>
-          <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4">
+          <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4" onClick={handleGetStarted}>
             Build My Perfect Week
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
@@ -35,78 +54,103 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {/* Feature 1: Tailored Meals */}
-            <Card className="text-center border-2 hover:border-primary/20 transition-colors">
-              <CardHeader className="pb-4">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-primary/10 p-3 rounded-full">
-                    <Star className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <Card className="text-center border-2 hover:border-primary/20 transition-colors relative overflow-hidden">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+                style={{ backgroundImage: `url(${tailoredMealsBg})` }}
+              />
+              <div className="relative z-10 bg-background/90">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-primary/10 p-3 rounded-full">
+                      <Star className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                    </div>
                   </div>
-                </div>
-                <CardTitle className="text-lg sm:text-xl mb-2">
-                  🌟 Your Meals, Tailored in Minutes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4">
-                <div>
-                  <h4 className="font-semibold text-sm sm:text-base mb-2">Instant Start</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Select a goal—Weight Loss, Healthy Eating, Muscle Gain—or customize deeply in just 2 minutes.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm sm:text-base mb-2">Swipe, Select, Savor</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Quickly browse meals, thumbs-up your favorites; dislikes refresh your choices immediately.
-                  </p>
-                </div>
-              </CardContent>
+                  <CardTitle className="text-lg sm:text-xl mb-2">
+                    🌟 Your Meals, Tailored in Minutes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 sm:space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-sm sm:text-base mb-2">Instant Start</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Select a goal—Weight Loss, Healthy Eating, Muscle Gain—or customize deeply in just 2 minutes.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm sm:text-base mb-2">Swipe, Select, Savor</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Quickly browse meals, thumbs-up your favorites; dislikes refresh your choices immediately.
+                    </p>
+                  </div>
+                </CardContent>
+              </div>
             </Card>
 
             {/* Feature 2: AI-Powered Variety */}
-            <Card className="text-center border-2 hover:border-secondary/20 transition-colors">
-              <CardHeader className="pb-4">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-secondary/10 p-3 rounded-full">
-                    <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-secondary" />
+            <Card className="text-center border-2 hover:border-secondary/20 transition-colors relative overflow-hidden">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+                style={{ backgroundImage: `url(${aiVarietyBg})` }}
+              />
+              <div className="relative z-10 bg-background/90">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-secondary/10 p-3 rounded-full">
+                      <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-secondary" />
+                    </div>
                   </div>
-                </div>
-                <CardTitle className="text-lg sm:text-xl mb-2">
-                  AI-Powered Variety
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Recommendations balance nutrition, pantry stock, budget, and personal tastes—no repeats, 
-                  just delicious surprises.
-                </p>
-              </CardContent>
+                  <CardTitle className="text-lg sm:text-xl mb-2">
+                    AI-Powered Variety
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Recommendations balance nutrition, pantry stock, budget, and personal tastes—no repeats, 
+                    just delicious surprises.
+                  </p>
+                </CardContent>
+              </div>
             </Card>
 
             {/* Feature 3: Photo to Recipe */}
-            <Card className="text-center border-2 hover:border-accent/20 transition-colors">
-              <CardHeader className="pb-4">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-accent/10 p-3 rounded-full">
-                    <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
+            <Card className="text-center border-2 hover:border-accent/20 transition-colors relative overflow-hidden">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+                style={{ backgroundImage: `url(${photoCaptureB})` }}
+              />
+              <div className="relative z-10 bg-background/90">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-accent/10 p-3 rounded-full">
+                      <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
+                    </div>
                   </div>
-                </div>
-                <CardTitle className="text-lg sm:text-xl mb-2">
-                  One Photo, Endless Recipes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Snap a dish, and our AI instantly creates your personalized recipe, complete with nutrition data.
-                </p>
-              </CardContent>
+                  <CardTitle className="text-lg sm:text-xl mb-2">
+                    Capture nutrients by photo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Can't cook yourself today? Simply capture your nutrition by taking a foto.
+                  </p>
+                </CardContent>
+              </div>
             </Card>
           </div>
         </div>
       </section>
 
       {/* Shopping & Nutrition - Two Columns */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 relative overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${groceryStocksBg})` }}
+        >
+          <div className="absolute inset-0 bg-background/90"></div>
+        </div>
+        <div className="container mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Column - Content */}
             <div className="space-y-6 sm:space-y-8">
@@ -130,18 +174,6 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 <div className="flex gap-3 sm:gap-4">
-                  <div className="bg-secondary/10 p-2 rounded-lg flex-shrink-0">
-                    <Target className="h-5 w-5 sm:h-6 sm:w-6 text-secondary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-base sm:text-lg mb-2">Nutrition Clarity</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      Macros at a glance, expand for full vitamin & mineral breakdowns.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 sm:gap-4">
                   <div className="bg-accent/10 p-2 rounded-lg flex-shrink-0">
                     <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
                   </div>
@@ -155,8 +187,20 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column - Visual Element */}
-            <div className="relative">
+            {/* Right Column - Nutrition Clarity & Visual Element */}
+            <div className="space-y-6">
+              <div className="flex gap-3 sm:gap-4">
+                <div className="bg-secondary/10 p-2 rounded-lg flex-shrink-0">
+                  <Target className="h-5 w-5 sm:h-6 sm:w-6 text-secondary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base sm:text-lg mb-2">Nutrition Clarity</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Macros at a glance, expand for full vitamin & mineral breakdowns.
+                  </p>
+                </div>
+              </div>
+              
               <Card className="p-6 sm:p-8 border-2 shadow-lg">
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg">This Week's Plan</h3>
@@ -267,7 +311,7 @@ const LandingPage: React.FC = () => {
             Join 50,000+ home cooks who've ditched meal-planning stress
           </p>
           
-          <Button size="lg" className="text-lg px-8 py-4 mb-4">
+          <Button size="lg" className="text-lg px-8 py-4 mb-4" onClick={handleGetStarted}>
             Build My Perfect Week
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
