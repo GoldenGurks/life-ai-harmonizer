@@ -34,16 +34,33 @@ serve(async (req) => {
     
     console.log(`Scan type: ${scanType}`);
 
-    // Collect all image files
+    // Collect all image files with validation
     const imageFiles: File[] = [];
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('image_') && value instanceof File) {
+        // Validate file size
+        if (value.size > maxFileSize) {
+          throw new Error(`File ${value.name} is too large. Maximum 10MB allowed.`);
+        }
+        
+        // Validate file type
+        if (!allowedTypes.includes(value.type)) {
+          throw new Error(`File ${value.name} has invalid type. Only JPEG, PNG, and WebP are allowed.`);
+        }
+        
         imageFiles.push(value);
       }
     }
 
     if (imageFiles.length === 0) {
-      throw new Error('No images provided');
+      throw new Error('No valid images provided');
+    }
+
+    if (imageFiles.length > 5) {
+      throw new Error('Too many images. Maximum 5 images allowed per request.');
     }
 
     console.log(`Processing ${imageFiles.length} images`);

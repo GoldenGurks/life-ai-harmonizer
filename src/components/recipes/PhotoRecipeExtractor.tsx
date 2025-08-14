@@ -17,7 +17,6 @@ const PhotoRecipeExtractor: React.FC<PhotoRecipeExtractorProps> = ({
   onRecipeExtracted,
   onClose
 }) => {
-  const [apiKey, setApiKey] = useState(() => openaiService.getApiKey() || '');
   const [isExtracting, setIsExtracting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -25,6 +24,18 @@ const PhotoRecipeExtractor: React.FC<PhotoRecipeExtractorProps> = ({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file size and type
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File size too large. Maximum 10MB allowed.');
+        return;
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.');
+        return;
+      }
+
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -32,11 +43,6 @@ const PhotoRecipeExtractor: React.FC<PhotoRecipeExtractorProps> = ({
   };
 
   const handleExtractRecipe = async () => {
-    if (!apiKey.trim()) {
-      toast.error('Please enter your OpenAI API key');
-      return;
-    }
-
     if (!selectedFile) {
       toast.error('Please select an image');
       return;
@@ -45,7 +51,6 @@ const PhotoRecipeExtractor: React.FC<PhotoRecipeExtractorProps> = ({
     setIsExtracting(true);
     
     try {
-      openaiService.setApiKey(apiKey);
       const extractedData = await openaiService.extractRecipeFromImage(selectedFile);
       
       // Convert to Recipe format
@@ -90,21 +95,6 @@ const PhotoRecipeExtractor: React.FC<PhotoRecipeExtractorProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!openaiService.getApiKey() && (
-            <div>
-              <label className="text-sm font-medium">OpenAI API Key</label>
-              <Input
-                type="password"
-                placeholder="Enter your OpenAI API key"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Your API key is stored locally and used only for recipe extraction
-              </p>
-            </div>
-          )}
 
           <div>
             <label className="text-sm font-medium">Recipe Photo</label>

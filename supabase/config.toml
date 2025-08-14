@@ -2,3 +2,6 @@ project_id = "nlfhvlnmuhkxzgherccj"
 
 [functions.parse-pantry]
 verify_jwt = false
+
+[functions.analyze-recipe-photo]
+verify_jwt = false

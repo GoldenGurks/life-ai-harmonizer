@@ -36,13 +36,33 @@ const PantryScanModal: React.FC<PantryScanModalProps> = ({
   const [parsedItems, setParsedItems] = useState<ParsedPantryItem[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<ParsedPantryItem>({ name: '', quantity: 0, unit: '' });
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    if (files.length > 0) {
-      setSelectedFiles(files);
+    if (files.length === 0) return;
+
+    // Validate file types and sizes
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    
+    const invalidFiles = files.filter(file => 
+      !allowedTypes.includes(file.type) || file.size > maxFileSize
+    );
+
+    if (invalidFiles.length > 0) {
+      setError('Please select only JPEG, PNG, or WebP images under 10MB each.');
+      return;
     }
+
+    if (files.length > 5) {
+      setError('Maximum 5 images allowed per scan.');
+      return;
+    }
+
+    setSelectedFiles(files);
+    setError(null);
   };
 
   const handleAnalyze = async () => {
@@ -125,6 +145,11 @@ const PantryScanModal: React.FC<PantryScanModalProps> = ({
 
   const renderUploadStep = () => (
     <div className="space-y-4">
+      {error && (
+        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+          {error}
+        </div>
+      )}
       <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
         <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
           {scanType === 'receipt' ? <Upload className="h-6 w-6" /> : <Camera className="h-6 w-6" />}
