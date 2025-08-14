@@ -83,21 +83,48 @@ const WeeklySetupModal: React.FC<WeeklySetupModalProps> = ({
           <div className="space-y-4">
             <div>
               <Label htmlFor="dish-count" className="text-base font-medium">
-                {t('weeklySetup.dishesCount', { count: dishCount })}
+                {t('mealPlanning.dishCount', { count: dishCount })}
               </Label>
-              <div className="flex items-center pt-2">
-                <span className="text-sm text-muted-foreground mr-2">3</span>
-                <Slider
-                  id="dish-count"
-                  min={3}
-                  max={14}
-                  step={1}
-                  value={[dishCount]}
-                  onValueChange={(value) => setDishCount(value[0])}
-                  className="flex-1"
-                />
-                <span className="text-sm text-muted-foreground ml-2">14</span>
+              
+              {/* Preset buttons */}
+              <div className="flex gap-2 pt-3 pb-4">
+                {[3, 5, 7].map((preset) => (
+                  <Button
+                    key={preset}
+                    type="button"
+                    variant={dishCount === preset ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setDishCount(preset)}
+                  >
+                    {preset}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  variant={![3, 5, 7].includes(dishCount) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDishCount(10)}
+                >
+                  {t('mealPlanning.customCount')}
+                </Button>
               </div>
+              
+              {/* Custom input when not using presets */}
+              {![3, 5, 7].includes(dishCount) && (
+                <div className="flex items-center pt-2">
+                  <span className="text-sm text-muted-foreground mr-2">1</span>
+                  <Slider
+                    id="dish-count"
+                    min={1}
+                    max={21}
+                    step={1}
+                    value={[dishCount]}
+                    onValueChange={(value) => setDishCount(value[0])}
+                    className="flex-1"
+                  />
+                  <span className="text-sm text-muted-foreground ml-2">21</span>
+                </div>
+              )}
             </div>
             
             <div className="flex items-center justify-between pt-2">

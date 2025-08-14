@@ -7,6 +7,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { Recipe } from '@/types/recipes';
 import { useToast } from '@/hooks/use-toast';
+import LanguageSelector from '@/components/meal-planning/LanguageSelector';
 
 /**
  * Application header component that appears on all pages
@@ -95,6 +96,11 @@ const Header: React.FC = () => {
         
         {/* User actions - responsive sizing and layout */}
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* Language selector */}
+          <div className="hidden sm:block">
+            <LanguageSelector />
+          </div>
+          
           {/* Mobile search toggle */}
           <Button 
             size="icon" 

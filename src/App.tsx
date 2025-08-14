@@ -17,7 +17,7 @@ import Recipes from "@/pages/Recipes";
 import MealPlanning from "@/pages/MealPlanning";
 import Nutrition from "@/pages/Nutrition";
 import NotFound from "@/pages/NotFound";
-import Shopping from "@/pages/Shopping";
+import PantryShopping from "@/pages/PantryShopping";
 
 /**
  * Create a QueryClient instance for React Query
@@ -80,7 +80,7 @@ const App = () => {
                   <Route path="/recipes" element={<Recipes />} />
                   <Route path="/meal-planning" element={<MealPlanning />} />
                   <Route path="/nutrition" element={<Nutrition />} />
-                  <Route path="/shopping" element={<Shopping />} />
+                  <Route path="/shopping" element={<PantryShopping />} />
                   {/* Fallback for non-existent routes */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
