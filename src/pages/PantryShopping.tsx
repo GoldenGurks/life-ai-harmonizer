@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { usePantry } from '@/hooks/usePantry';
 import { useLanguage } from '@/hooks/useLanguage';
-import PantryScanModal from '@/components/meal-planning/PantryScanModal';
+import PantryScanModal from '@/components/meal-planning/PantryScanModal'; // Fixed import
 import { toast } from 'sonner';
 import { 
   Camera, 
@@ -28,6 +28,7 @@ import {
  * Provides pantry management, AI scanning, and shopping list functionality
  */
 const PantryShopping = () => {
+  console.log('PantryScanModal imported:', typeof PantryScanModal); // Debug log
   const { t } = useLanguage();
   const pantry = usePantry();
   const [showScanModal, setShowScanModal] = useState(false);
