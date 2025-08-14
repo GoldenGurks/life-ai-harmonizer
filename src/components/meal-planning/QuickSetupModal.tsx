@@ -30,7 +30,8 @@ const QuickSetupModal: React.FC<QuickSetupModalProps> = ({ open, onClose }) => {
           fitnessGoal: 'general',
           mealSizePreference: 'medium',
           mealFrequency: 3,
-          preferLeftovers: false
+          preferLeftovers: false,
+          recommendationPreset: 'Healthy'
         };
         break;
         
@@ -40,7 +41,8 @@ const QuickSetupModal: React.FC<QuickSetupModalProps> = ({ open, onClose }) => {
           fitnessGoal: 'maintenance',
           mealSizePreference: 'large',
           mealFrequency: 3,
-          preferLeftovers: true
+          preferLeftovers: true,
+          recommendationPreset: 'Healthy'
         };
         break;
         
@@ -51,7 +53,8 @@ const QuickSetupModal: React.FC<QuickSetupModalProps> = ({ open, onClose }) => {
           mealSizePreference: 'large',
           mealFrequency: 5,
           preferLeftovers: false,
-          proteinTarget: 180
+          proteinTarget: 180,
+          recommendationPreset: 'MuscleGain'
         };
         break;
     }

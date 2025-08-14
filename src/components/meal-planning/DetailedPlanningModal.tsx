@@ -62,8 +62,19 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
       description: "Our AI is analyzing your preferences to create a personalized meal plan.",
     });
     
-    // Save the collected preferences
-    completeSetup(formData);
+    // Map fitness goal to recommendation preset
+    let recommendationPreset: 'Healthy' | 'WeightLoss' | 'MuscleGain' = 'Healthy';
+    if (formData.fitnessGoal === 'weight-loss') {
+      recommendationPreset = 'WeightLoss';
+    } else if (formData.fitnessGoal === 'muscle-gain') {
+      recommendationPreset = 'MuscleGain';
+    }
+    
+    // Save the collected preferences with recommendation preset
+    completeSetup({
+      ...formData,
+      recommendationPreset
+    });
     
     setTimeout(() => {
       toast({

@@ -12,6 +12,8 @@ import RecipeSelectionGrid from './RecipeSelectionGrid';
 import WeekOverview from './WeekOverview';
 import ShoppingListModal from './ShoppingListModal';
 import MiniPickerModal from './MiniPickerModal';
+import PantryQuickCheckModal from './PantryQuickCheckModal';
+import PantryScanModal from './PantryScanModal';
 import { MealType } from './DaySlot';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
@@ -92,6 +94,13 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [dislikedRecipeIds, setDislikedRecipeIds] = useState<string[]>([]);
   
+  // State for new modals
+  const [isPantryQuickCheckOpen, setIsPantryQuickCheckOpen] = useState(false);
+  const [isPantryScanOpen, setIsPantryScanOpen] = useState(false);
+  const [scanType, setScanType] = useState<'receipt' | 'fridge'>('receipt');
+  const [showSuccessStep, setShowSuccessStep] = useState(false);
+  const [pantryCheckedItems, setPantryCheckedItems] = useState<string[]>([]);
+  
   // Get mealCount from weekly settings
   const mealCount = weeklySettings.dishCount;
   
@@ -100,10 +109,10 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
   const [currentMealType, setCurrentMealType] = useState<MealType>('lunch');
   const [currentPickerDay, setCurrentPickerDay] = useState<string>('');
   
-  // Initialize available recipes from recommendations
+  // Initialize available recipes from recommendations (show 9 instead of 10)
   useEffect(() => {
     if (recommendations.length > 0 && availableRecipes.length === 0) {
-      const initialRecipes = getTopN(10)
+      const initialRecipes = getTopN(9)
         .filter(recipe => !dislikedRecipeIds.includes(recipe.id))
         .map(convertRecipeToMealItem);
       setAvailableRecipes(initialRecipes);
@@ -390,14 +399,17 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       };
     });
 
-    // Get the days we need based on the number of recipes selected
-    const daysNeeded = days.slice(0, mealCount);
+    // Randomly assign recipes to days
+    const shuffledDays = [...days].sort(() => Math.random() - 0.5);
     
-    // Assign recipes to lunch slots by default
     selectedRecipes.forEach((recipe, index) => {
-      if (index < daysNeeded.length) {
-        const day = daysNeeded[index];
-        assignedDays[day].lunch = recipe;
+      if (index < shuffledDays.length) {
+        const day = shuffledDays[index];
+        
+        // Assign based on recipe type or default to lunch
+        const mealType = recipe.type === 'breakfast' ? 'breakfast' : 
+                        recipe.type === 'dinner' ? 'dinner' : 'lunch';
+        assignedDays[day][mealType] = recipe;
       }
     });
 
@@ -412,10 +424,9 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
       currentWeekPlan: newPlan
     });
 
-    toast.success("Weekly meal plan saved!");
-    
-    // Show shopping list after saving the plan
-    setIsShoppingListOpen(true);
+    // Show success step instead of immediately opening shopping list
+    setShowSuccessStep(true);
+    toast.success("Great! Your plan is ready.");
   }, [selectedRecipes, mealCount, days, profile, updateProfile]);
 
   /**
@@ -477,6 +488,111 @@ const WeeklyPlanTab: React.FC<WeeklyPlanTabProps> = ({
     
     toast.success("Meal moved successfully");
   }, [profile, updateProfile]);
+
+  // Handle pantry quick check application
+  const handleApplyPantryCheck = useCallback((checkedIngredients: string[]) => {
+    setPantryCheckedItems(checkedIngredients);
+    toast.success(`${checkedIngredients.length} items marked as available in pantry`);
+  }, []);
+
+  // Handle pantry scan confirmation
+  const handleConfirmScanItems = useCallback((items: any[]) => {
+    // Add scanned items to user's pantry (this would normally update the backend)
+    toast.success(`${items.length} items added to your pantry from scan`);
+    
+    // Update pantry checked items to include scanned items
+    const scannedItemNames = items.map(item => item.name);
+    setPantryCheckedItems(prev => [...prev, ...scannedItemNames]);
+  }, []);
+
+  // Show success step after plan creation
+  if (showSuccessStep) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>🎉 Your Plan is Ready!</CardTitle>
+          <CardDescription>
+            Your weekly plan has been created and recipes have been randomly distributed across the week. 
+            You can reorder them in the week overview.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              onClick={() => setIsShoppingListOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Open Shopping List
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setIsPantryQuickCheckOpen(true)}
+              className="flex items-center gap-2"
+            >
+              Quick Pantry Check
+            </Button>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2 text-sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                setScanType('receipt');
+                setIsPantryScanOpen(true);
+              }}
+            >
+              Scan Receipt
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                setScanType('fridge');
+                setIsPantryScanOpen(true);
+              }}
+            >
+              Scan Fridge
+            </Button>
+          </div>
+          
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              setShowSuccessStep(false);
+              // User will now see the plan overview
+            }}
+            className="w-full"
+          >
+            View Weekly Plan
+          </Button>
+        </CardContent>
+        
+        {/* Modals for success step */}
+        <ShoppingListModal 
+          isOpen={isShoppingListOpen}
+          onClose={() => setIsShoppingListOpen(false)}
+          selectedMeals={selectedRecipes}
+          pantryCheckedItems={pantryCheckedItems}
+        />
+        
+        <PantryQuickCheckModal
+          isOpen={isPantryQuickCheckOpen}
+          onClose={() => setIsPantryQuickCheckOpen(false)}
+          selectedMeals={selectedRecipes}
+          onApplyPantryCheck={handleApplyPantryCheck}
+        />
+        
+        <PantryScanModal
+          isOpen={isPantryScanOpen}
+          onClose={() => setIsPantryScanOpen(false)}
+          onConfirmItems={handleConfirmScanItems}
+          scanType={scanType}
+        />
+      </Card>
+    );
+  }
 
   // If no plan exists, show the recipe selection grid
   if (!profile?.currentWeekPlan) {

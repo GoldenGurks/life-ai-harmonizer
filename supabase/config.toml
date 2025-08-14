@@ -1,1 +1,4 @@
 project_id = "nlfhvlnmuhkxzgherccj"
+
+[functions.parse-pantry]
+verify_jwt = false

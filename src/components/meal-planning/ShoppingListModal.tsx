@@ -11,6 +11,7 @@ interface ShoppingListModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedMeals: MealItem[];
+  pantryCheckedItems?: string[];
 }
 
 interface ShoppingItem {
@@ -20,7 +21,7 @@ interface ShoppingItem {
   inPantry: boolean;
 }
 
-const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, selectedMeals }) => {
+const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, selectedMeals, pantryCheckedItems = [] }) => {
   const { pantryItems } = usePantry();
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -42,9 +43,11 @@ const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, 
         existing.amount = (existingAmount + newAmount).toString();
       }
     } else {
-      // Check if the ingredient is in the pantry
+      // Check if the ingredient is in the pantry or marked as checked
       const inPantry = pantryItems.some(
         item => item.name.toLowerCase() === key
+      ) || pantryCheckedItems.some(
+        item => item.toLowerCase() === key
       );
       
       ingredientMap.set(key, {
