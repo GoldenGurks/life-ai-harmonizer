@@ -62,21 +62,22 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           <Tag className="h-4 w-4 mr-1" />
           <span>{recipe.tags.slice(0, 2).join(", ")}</span>
         </div>
+        {/* Compact nutrition display using new or legacy nutrition data */}
         <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
           <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-            <span className="font-medium">{recipe.calories || 0}</span>
+            <span className="font-medium">{recipe.nutrition?.calories || recipe.calories || 0}</span>
             <span className="text-muted-foreground">kcal</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-            <span className="font-medium">{recipe.protein || 0}g</span>
+            <span className="font-medium">{recipe.nutrition?.protein || recipe.protein || 0}g</span>
             <span className="text-muted-foreground">Protein</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-            <span className="font-medium">{recipe.carbs || 0}g</span>
+            <span className="font-medium">{recipe.nutrition?.carbs || recipe.carbs || 0}g</span>
             <span className="text-muted-foreground">Carbs</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-muted rounded-md">
-            <span className="font-medium">{recipe.sugar || 0}g</span>
+            <span className="font-medium">{recipe.nutrition?.sugar || recipe.sugar || 0}g</span>
             <span className="text-muted-foreground">Sugar</span>
           </div>
         </div>

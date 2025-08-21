@@ -17,10 +17,16 @@ export function calculateNutritionalFitScore(recipe: Recipe, userPreferences: Sc
     let score = 0;
     let factors = 0;
     
+    // Get nutrition values from recipe (new or legacy structure)
+    const calories = recipe.nutrition?.calories || recipe.calories || 0;
+    const protein = recipe.nutrition?.protein || recipe.protein || 0;
+    const carbs = recipe.nutrition?.carbs || recipe.carbs || 0;
+    const fat = recipe.nutrition?.fat || recipe.fat || 0;
+    
     // Score calories match (if target exists)
     if (calorieTarget) {
       // Allow within 20% of target
-      const calorieDeviation = Math.abs(recipe.calories - calorieTarget) / calorieTarget;
+      const calorieDeviation = Math.abs(calories - calorieTarget) / calorieTarget;
       const calorieScore = Math.max(0, 1 - calorieDeviation * 2); // Scale deviation to 0-1
       score += calorieScore;
       factors++;
@@ -28,7 +34,7 @@ export function calculateNutritionalFitScore(recipe: Recipe, userPreferences: Sc
     
     // Score protein match
     if (proteinTarget) {
-      const proteinDeviation = Math.abs(recipe.protein - proteinTarget) / proteinTarget;
+      const proteinDeviation = Math.abs(protein - proteinTarget) / proteinTarget;
       const proteinScore = Math.max(0, 1 - proteinDeviation * 2);
       score += proteinScore;
       factors++;
@@ -36,7 +42,7 @@ export function calculateNutritionalFitScore(recipe: Recipe, userPreferences: Sc
     
     // Score carb match
     if (carbTarget) {
-      const carbDeviation = Math.abs(recipe.carbs - carbTarget) / carbTarget;
+      const carbDeviation = Math.abs(carbs - carbTarget) / carbTarget;
       const carbScore = Math.max(0, 1 - carbDeviation * 2);
       score += carbScore;
       factors++;
@@ -44,7 +50,7 @@ export function calculateNutritionalFitScore(recipe: Recipe, userPreferences: Sc
     
     // Score fat match
     if (fatTarget) {
-      const fatDeviation = Math.abs(recipe.fat - fatTarget) / fatTarget;
+      const fatDeviation = Math.abs(fat - fatTarget) / fatTarget;
       const fatScore = Math.max(0, 1 - fatDeviation * 2);
       score += fatScore;
       factors++;
@@ -87,9 +93,13 @@ export function calculateNutritionalFitScore(recipe: Recipe, userPreferences: Sc
  */
 export function calculateWeightLossScore(recipe: Recipe): number {
   // For weight loss: prefer lower calories, moderate protein, lower fat
-  const calorieScore = 1 - (recipe.calories / 1000); // Lower calories = higher score
-  const proteinScore = recipe.protein / recipe.calories; // Higher protein:calorie ratio = better
-  const fiberScore = (recipe.fiber || 0) / 30; // Higher fiber = better
+  const calories = recipe.nutrition?.calories || recipe.calories || 0;
+  const protein = recipe.nutrition?.protein || recipe.protein || 0;
+  const fiber = recipe.nutrition?.fiber || recipe.fiber || 0;
+  
+  const calorieScore = calories > 0 ? 1 - (calories / 1000) : 0; // Lower calories = higher score
+  const proteinScore = calories > 0 ? protein / calories : 0; // Higher protein:calorie ratio = better
+  const fiberScore = fiber / 30; // Higher fiber = better
   
   return (calorieScore * 0.5) + (proteinScore * 0.3) + (fiberScore * 0.2);
 }
@@ -103,8 +113,11 @@ export function calculateWeightLossScore(recipe: Recipe): number {
  */
 export function calculateMuscleGainScore(recipe: Recipe): number {
   // For muscle gain: prefer high protein, adequate calories
-  const proteinScore = recipe.protein / 50; // Higher protein = better
-  const calorieScore = Math.min(1, recipe.calories / 800); // Higher calories within reason = better
+  const calories = recipe.nutrition?.calories || recipe.calories || 0;
+  const protein = recipe.nutrition?.protein || recipe.protein || 0;
+  
+  const proteinScore = protein / 50; // Higher protein = better
+  const calorieScore = Math.min(1, calories / 800); // Higher calories within reason = better
   
   return (proteinScore * 0.7) + (calorieScore * 0.3);
 }
@@ -119,14 +132,20 @@ export function calculateMuscleGainScore(recipe: Recipe): number {
 export function calculateMaintenanceScore(recipe: Recipe): number {
   // For maintenance: prefer balanced macros
   // Ideal: ~30% protein, ~40% carbs, ~30% fat
-  const proteinCals = recipe.protein * 4;
-  const carbCals = recipe.carbs * 4;
-  const fatCals = recipe.fat * 9;
-  const totalCals = recipe.calories;
+  const calories = recipe.nutrition?.calories || recipe.calories || 0;
+  const protein = recipe.nutrition?.protein || recipe.protein || 0;
+  const carbs = recipe.nutrition?.carbs || recipe.carbs || 0;
+  const fat = recipe.nutrition?.fat || recipe.fat || 0;
   
-  const proteinPct = proteinCals / totalCals;
-  const carbPct = carbCals / totalCals;
-  const fatPct = fatCals / totalCals;
+  if (calories === 0) return 0; // Avoid division by zero
+  
+  const proteinCals = protein * 4;
+  const carbCals = carbs * 4;
+  const fatCals = fat * 9;
+  
+  const proteinPct = proteinCals / calories;
+  const carbPct = carbCals / calories;
+  const fatPct = fatCals / calories;
   
   // Calculate how close to ideal each macro is (closer = better)
   const proteinScore = 1 - Math.abs(0.3 - proteinPct);
@@ -145,8 +164,11 @@ export function calculateMaintenanceScore(recipe: Recipe): number {
  */
 export function calculatePerformanceScore(recipe: Recipe): number {
   // For athletic performance: prefer higher carbs, moderate protein
-  const carbScore = Math.min(1, recipe.carbs / 100); // Higher carbs = better
-  const proteinScore = Math.min(1, recipe.protein / 40); // Good protein = better
+  const carbs = recipe.nutrition?.carbs || recipe.carbs || 0;
+  const protein = recipe.nutrition?.protein || recipe.protein || 0;
+  
+  const carbScore = Math.min(1, carbs / 100); // Higher carbs = better
+  const proteinScore = Math.min(1, protein / 40); // Good protein = better
   
   return (carbScore * 0.6) + (proteinScore * 0.4);
 }

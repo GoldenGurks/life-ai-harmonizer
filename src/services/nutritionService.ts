@@ -1,5 +1,5 @@
 import { FoodItem, Recipe, EnrichedRecipe, RecipeIngredient } from "@/types/recipes";
-import { calculateIngredientNutrition, loadVegLibraryWeights, isRecipeIngredient } from "@/utils/ingredientUtils";
+import { calculateIngredientNutrition, calculateIngredientNutritionDetailed, loadVegLibraryWeights, isRecipeIngredient } from "@/utils/ingredientUtils";
 
 // Cache for the library data to avoid multiple network requests
 let vegLibraryCache: FoodItem[] = [];
@@ -73,13 +73,13 @@ export function convertFoodItemToRecipe(item: FoodItem): EnrichedRecipe {
 }
 
 /**
- * Calculate nutrition and cost for a recipe
+ * Calculate comprehensive nutrition and cost for a recipe including micronutrients
  * Pull ingredient data from veg_library_with_weights.ndjson
  * Calculate per-ingredient macros using averageWeightPerPiece when unit==="piece"
- * Sum and divide by recipe.servings (4) to get per-serving nutrition + cost
+ * Sum totals for basePortions = 4, then scale to current servings
  */
 export async function calculateNutritionAndCost(recipe: Recipe): Promise<EnrichedRecipe> {
-  // Initialize nutrition totals for the entire recipe
+  // Initialize nutrition totals for the entire recipe (base 4 portions)
   let totalCalories = 0;
   let totalProtein = 0;
   let totalCarbs = 0;
@@ -87,6 +87,17 @@ export async function calculateNutritionAndCost(recipe: Recipe): Promise<Enriche
   let totalFiber = 0;
   let totalSugar = 0;
   let totalCost = 0;
+  // Extended nutrition totals
+  let totalSodium = 0;
+  let totalPotassium = 0;
+  let totalCalcium = 0;
+  let totalIron = 0;
+  let totalMagnesium = 0;
+  let totalVitaminC = 0;
+  let totalVitaminA = 0;
+  let totalVitaminK = 0;
+  let totalVitaminE = 0;
+  let totalFolate = 0;
   let missingIngredients = false;
   
   // Step A & B: For each ingredient, lookup nutrition data and calculate totals
@@ -98,8 +109,8 @@ export async function calculateNutritionAndCost(recipe: Recipe): Promise<Enriche
       continue;
     }
     
-    // Calculate nutrition for this ingredient using the new helper
-    const nutrition = await calculateIngredientNutrition(ingredient);
+    // Calculate nutrition for this ingredient using the enhanced helper
+    const nutrition = await calculateIngredientNutritionDetailed(ingredient);
     
     if (nutrition) {
       // Step C: Sum across all ingredients
@@ -110,47 +121,108 @@ export async function calculateNutritionAndCost(recipe: Recipe): Promise<Enriche
       totalFiber += nutrition.totalFiber;
       totalSugar += nutrition.totalSugar;
       totalCost += nutrition.totalCost;
+      // Sum extended nutrients
+      totalSodium += nutrition.totalSodium || 0;
+      totalPotassium += nutrition.totalPotassium || 0;
+      totalCalcium += nutrition.totalCalcium || 0;
+      totalIron += nutrition.totalIron || 0;
+      totalMagnesium += nutrition.totalMagnesium || 0;
+      totalVitaminC += nutrition.totalVitaminC || 0;
+      totalVitaminA += nutrition.totalVitaminA || 0;
+      totalVitaminK += nutrition.totalVitaminK || 0;
+      totalVitaminE += nutrition.totalVitaminE || 0;
+      totalFolate += nutrition.totalFolate || 0;
     } else {
       missingIngredients = true;
     }
   }
   
-  // Step D: Divide by recipe.servings (default 4) to get per-serving values
-  const servings = recipe.servings || 4;
-  const caloriesPerServing = totalCalories / servings;
-  const proteinPerServing = totalProtein / servings;
-  const carbsPerServing = totalCarbs / servings;
-  const fatPerServing = totalFat / servings;
-  const fiberPerServing = totalFiber / servings;
-  const sugarPerServing = totalSugar / servings;
-  const costPerServing = totalCost / servings;
+  // Step D: Store base nutrition for 4 portions and calculate per-serving values
+  const basePortions = 4;
+  const currentServings = recipe.servings || 4;
+  
+  // Calculate derived values for base portions
+  const netCarbsBase = Math.max(0, totalCarbs - totalFiber);
+  const sodiumToPotassiumRatio = totalPotassium > 0 ? totalSodium / totalPotassium : undefined;
+  
+  // Calculate scores (simple v1 implementations)
+  const satietyScore = totalCalories > 0 ? (totalProtein + totalFiber) / Math.max(totalCalories, 1) : 0;
+  const muscleScore = totalCalories > 0 ? (totalProtein / Math.max(totalCalories, 1)) + (totalProtein >= 30 * basePortions ? 0.1 : 0) : 0;
+  const cardioScore = (totalPotassium / 1000) - (totalSodium / 1000);
+  
+  // Store base nutrition (for 4 portions)
+  const nutritionBase = {
+    calories: totalCalories,
+    protein: totalProtein,
+    carbs: totalCarbs,
+    fat: totalFat,
+    fiber: totalFiber,
+    sugar: totalSugar,
+    cost: totalCost,
+    // Extended details
+    sodium_mg: totalSodium,
+    potassium_mg: totalPotassium,
+    calcium_mg: totalCalcium,
+    iron_mg: totalIron,
+    magnesium_mg: totalMagnesium,
+    vitaminC_mg: totalVitaminC,
+    vitaminA_ug: totalVitaminA,
+    vitaminK_ug: totalVitaminK,
+    vitaminE_mg: totalVitaminE,
+    folate_ug: totalFolate,
+    netCarbs_g: netCarbsBase,
+    sodiumToPotassiumRatio,
+    satietyScore,
+    muscleScore,
+    cardioScore,
+    source: 'veg_library_with_weights' as const,
+    lastCalculatedAt: new Date().toISOString(),
+    basePortions,
+    gramsPerPortion: totalCalories > 0 ? (totalCalories * 4) / totalCalories : 0 // rough estimate
+  };
+  
+  // Scale to current servings
+  const scaledNutrition = scaleNutrition(nutritionBase, currentServings, basePortions);
   
   // Log warning if ingredients are missing
   if (missingIngredients) {
     console.warn(`Recipe ${recipe.id} has missing or invalid ingredients. Nutrition values may be incomplete.`);
   }
   
-  // Round values for better display
-  const roundedCalories = Math.round(caloriesPerServing);
-  const roundedProtein = Math.round(proteinPerServing * 10) / 10;
-  const roundedCarbs = Math.round(carbsPerServing * 10) / 10;
-  const roundedFat = Math.round(fatPerServing * 10) / 10;
-  const roundedFiber = Math.round(fiberPerServing * 10) / 10;
-  const roundedSugar = Math.round(sugarPerServing * 10) / 10;
-  const roundedCost = Math.round(costPerServing * 100) / 100;
-  
-  // Step E: Attach the final object under recipe.nutrition
+  // Step E: Return enriched recipe with both base and scaled nutrition
   return {
     ...recipe,
     nutrition: {
-      calories: roundedCalories,
-      protein: roundedProtein,
-      carbs: roundedCarbs,
-      fat: roundedFat,
-      fiber: roundedFiber,
-      sugar: roundedSugar,
-      cost: roundedCost
-    }
+      calories: Math.round(scaledNutrition.calories),
+      protein: Math.round(scaledNutrition.protein * 10) / 10,
+      carbs: Math.round(scaledNutrition.carbs * 10) / 10,
+      fat: Math.round(scaledNutrition.fat * 10) / 10,
+      fiber: Math.round(scaledNutrition.fiber * 10) / 10,
+      sugar: Math.round(scaledNutrition.sugar * 10) / 10,
+      cost: Math.round(scaledNutrition.cost * 100) / 100
+    },
+    nutritionDetails: {
+      sodium_mg: scaledNutrition.sodium_mg ? Math.round(scaledNutrition.sodium_mg * 10) / 10 : undefined,
+      potassium_mg: scaledNutrition.potassium_mg ? Math.round(scaledNutrition.potassium_mg * 10) / 10 : undefined,
+      calcium_mg: scaledNutrition.calcium_mg ? Math.round(scaledNutrition.calcium_mg * 10) / 10 : undefined,
+      iron_mg: scaledNutrition.iron_mg ? Math.round(scaledNutrition.iron_mg * 10) / 10 : undefined,
+      magnesium_mg: scaledNutrition.magnesium_mg ? Math.round(scaledNutrition.magnesium_mg * 10) / 10 : undefined,
+      vitaminC_mg: scaledNutrition.vitaminC_mg ? Math.round(scaledNutrition.vitaminC_mg * 10) / 10 : undefined,
+      vitaminA_ug: scaledNutrition.vitaminA_ug ? Math.round(scaledNutrition.vitaminA_ug * 10) / 10 : undefined,
+      vitaminK_ug: scaledNutrition.vitaminK_ug ? Math.round(scaledNutrition.vitaminK_ug * 10) / 10 : undefined,
+      vitaminE_mg: scaledNutrition.vitaminE_mg ? Math.round(scaledNutrition.vitaminE_mg * 10) / 10 : undefined,
+      folate_ug: scaledNutrition.folate_ug ? Math.round(scaledNutrition.folate_ug * 10) / 10 : undefined,
+      netCarbs_g: scaledNutrition.netCarbs_g ? Math.round(scaledNutrition.netCarbs_g * 10) / 10 : undefined,
+      sodiumToPotassiumRatio: scaledNutrition.sodiumToPotassiumRatio ? Math.round(scaledNutrition.sodiumToPotassiumRatio * 100) / 100 : undefined,
+      satietyScore: scaledNutrition.satietyScore ? Math.round(scaledNutrition.satietyScore * 100) / 100 : undefined,
+      muscleScore: scaledNutrition.muscleScore ? Math.round(scaledNutrition.muscleScore * 100) / 100 : undefined,
+      cardioScore: scaledNutrition.cardioScore ? Math.round(scaledNutrition.cardioScore * 100) / 100 : undefined,
+      source: scaledNutrition.source,
+      lastCalculatedAt: scaledNutrition.lastCalculatedAt,
+      basePortions: scaledNutrition.basePortions,
+      gramsPerPortion: scaledNutrition.gramsPerPortion
+    },
+    nutritionBase
   };
 }
 
@@ -200,6 +272,36 @@ export async function ensureNutritionAndCost(recipes: Recipe[]): Promise<Enriche
   }
   
   return enrichedRecipes;
+}
+
+/**
+ * Helper function to scale nutrition values from base portions to target servings
+ * Used for client-side scaling when user changes serving size
+ * 
+ * @param baseNutrition - Nutrition data for base portions (usually 4)
+ * @param targetServings - Target number of servings
+ * @param basePortions - Base number of portions (default 4)
+ * @returns Scaled nutrition values
+ */
+export function scaleNutrition(
+  baseNutrition: any, 
+  targetServings: number, 
+  basePortions: number = 4
+): any {
+  const scaleFactor = targetServings / basePortions;
+  
+  const scaled: any = {};
+  
+  // Scale all numeric values
+  for (const [key, value] of Object.entries(baseNutrition)) {
+    if (typeof value === 'number') {
+      scaled[key] = value * scaleFactor;
+    } else {
+      scaled[key] = value; // Keep non-numeric values as-is
+    }
+  }
+  
+  return scaled;
 }
 
 /**

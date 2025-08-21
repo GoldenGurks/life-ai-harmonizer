@@ -8,6 +8,7 @@ import { motion } from '@/lib/motion';
 import { EnrichedRecipe } from '@/types/recipes';
 import { getIngredientAsString } from '@/utils/ingredientUtils';
 import { recipeData } from '@/data/recipeDatabase';
+import { NutritionDetailsCollapsible } from '@/components/nutrition/NutritionDetailsCollapsible';
 
 interface RecipeDetailDrawerProps {
   isOpen: boolean;
@@ -82,69 +83,8 @@ const RecipeDetailDrawer: React.FC<RecipeDetailDrawerProps> = ({
                 </Button>
               </div>
               
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <h3 className="text-sm font-bold mb-3">Nutrition Facts (per serving)</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Calories</span>
-                        <span className="font-medium">{selectedRecipe.nutrition?.calories || selectedRecipe.calories || 0} kcal</span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                        <div className="bg-primary h-1.5 rounded-full" style={{ width: '70%' }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Protein</span>
-                        <span className="font-medium">{selectedRecipe.nutrition?.protein || selectedRecipe.protein || 0}g</span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                        <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '60%' }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Fiber</span>
-                        <span className="font-medium">{selectedRecipe.nutrition?.fiber || selectedRecipe.fiber || 0}g</span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                        <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '30%' }} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Carbs</span>
-                        <span className="font-medium">{selectedRecipe.nutrition?.carbs || selectedRecipe.carbs || 0}g</span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                        <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '75%' }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Fat</span>
-                        <span className="font-medium">{selectedRecipe.nutrition?.fat || selectedRecipe.fat || 0}g</span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                        <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: '40%' }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Sugar</span>
-                        <span className="font-medium">{selectedRecipe.nutrition?.sugar || selectedRecipe.sugar || 0}g</span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-1.5 mt-1">
-                        <div className="bg-pink-500 h-1.5 rounded-full" style={{ width: '25%' }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Enhanced nutrition section with collapsible details */}
+              <NutritionDetailsCollapsible recipe={selectedRecipe} />
               
               <div>
                 <h3 className="text-lg font-bold mb-3">Ingredients</h3>

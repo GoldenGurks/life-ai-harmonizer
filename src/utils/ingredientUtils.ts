@@ -167,6 +167,120 @@ export interface IngredientNutrition {
 }
 
 /**
+ * Extended interface for detailed nutrition calculation results
+ */
+export interface IngredientNutritionDetailed extends IngredientNutrition {
+  // Extended nutrients (all optional since not all foods have complete data)
+  totalSodium?: number;
+  totalPotassium?: number;
+  totalCalcium?: number;
+  totalIron?: number;
+  totalMagnesium?: number;
+  totalVitaminC?: number;
+  totalVitaminA?: number;
+  totalVitaminK?: number;
+  totalVitaminE?: number;
+  totalFolate?: number;
+}
+
+/**
+ * Enhanced function that calculates detailed nutrition including micronutrients
+ * Fetches FoodItem by ID from veg_library_with_weights.ndjson,
+ * then calculates weightInGrams using averageWeightPerPiece for unit conversion
+ * Returns comprehensive nutrition data including vitamins and minerals
+ */
+export async function calculateIngredientNutritionDetailed(ingredient: RecipeIngredient): Promise<IngredientNutritionDetailed | null> {
+  const library = await loadVegLibraryWeights();
+  
+  // Find the food item in the library
+  const foodItem = library.find(item => item.id === ingredient.id);
+  if (!foodItem) {
+    console.warn(`Food item with ID ${ingredient.id} not found in library`);
+    return null;
+  }
+  
+  // Calculate weight in grams based on unit
+  let weightInGrams: number;
+  
+  if (ingredient.unit === 'piece') {
+    // Convert pieces to grams using averageWeightPerPiece
+    const averageWeightPerPiece = (foodItem as any).averageWeightPerPiece || 100; // Default to 100g if missing
+    weightInGrams = ingredient.amount * averageWeightPerPiece;
+    console.log(`Unit conversion: ${ingredient.amount} pieces × ${averageWeightPerPiece}g/piece = ${weightInGrams}g`);
+  } else if (ingredient.unit === 'g') {
+    // Already in grams
+    weightInGrams = ingredient.amount;
+  } else if (ingredient.unit === 'ml') {
+    // Assume 1 ml ≈ 1 g for water-like items (density = 1)
+    weightInGrams = ingredient.amount;
+    console.log(`Unit conversion: ${ingredient.amount}ml ≈ ${weightInGrams}g (assuming density = 1)`);
+  } else {
+    console.warn(`Unknown unit ${ingredient.unit} for ingredient ${ingredient.id}`);
+    weightInGrams = ingredient.amount; // Fallback
+  }
+  
+  // Calculate per-gram nutrition values (nutrients are per 100g in the library)
+  const caloriesPerGram = foodItem.nutrients.calories / 100;
+  const proteinPerGram = foodItem.nutrients.protein_g / 100;
+  const carbsPerGram = foodItem.nutrients.carbs_g / 100;
+  const fatPerGram = foodItem.nutrients.fat_g / 100;
+  const fiberPerGram = (foodItem.nutrients.fiber_g || 0) / 100;
+  const sugarPerGram = (foodItem.nutrients.sugar_g || 0) / 100;
+  const costPerGram = (foodItem.costPer100g || 0) / 100;
+  
+  // Calculate total nutrition for this ingredient
+  const totalCalories = weightInGrams * caloriesPerGram;
+  const totalProtein = weightInGrams * proteinPerGram;
+  const totalCarbs = weightInGrams * carbsPerGram;
+  const totalFat = weightInGrams * fatPerGram;
+  const totalFiber = weightInGrams * fiberPerGram;
+  const totalSugar = weightInGrams * sugarPerGram;
+  const totalCost = weightInGrams * costPerGram;
+  
+  // Calculate extended nutrients (only if available in the food item)
+  const totalSodium = foodItem.nutrients.sodium_mg ? weightInGrams * (foodItem.nutrients.sodium_mg / 100) : undefined;
+  const totalPotassium = foodItem.nutrients.potassium_mg ? weightInGrams * (foodItem.nutrients.potassium_mg / 100) : undefined;
+  const totalCalcium = foodItem.nutrients.calcium_mg ? weightInGrams * (foodItem.nutrients.calcium_mg / 100) : undefined;
+  const totalIron = foodItem.nutrients.iron_mg ? weightInGrams * (foodItem.nutrients.iron_mg / 100) : undefined;
+  const totalMagnesium = foodItem.nutrients.magnesium_mg ? weightInGrams * (foodItem.nutrients.magnesium_mg / 100) : undefined;
+  const totalVitaminC = foodItem.nutrients.vitaminC_mg ? weightInGrams * (foodItem.nutrients.vitaminC_mg / 100) : undefined;
+  const totalVitaminA = foodItem.nutrients.vitaminA_ug ? weightInGrams * (foodItem.nutrients.vitaminA_ug / 100) : undefined;
+  const totalVitaminK = foodItem.nutrients.vitaminK_ug ? weightInGrams * (foodItem.nutrients.vitaminK_ug / 100) : undefined;
+  const totalVitaminE = foodItem.nutrients.vitaminE_mg ? weightInGrams * (foodItem.nutrients.vitaminE_mg / 100) : undefined;
+  const totalFolate = foodItem.nutrients.vitaminB9_folate_ug ? weightInGrams * (foodItem.nutrients.vitaminB9_folate_ug / 100) : undefined;
+  
+  return {
+    weightInGrams,
+    caloriesPerGram,
+    proteinPerGram,
+    carbsPerGram,
+    fatPerGram,
+    fiberPerGram,
+    sugarPerGram,
+    costPerGram,
+    totalCalories,
+    totalProtein,
+    totalCarbs,
+    totalFat,
+    totalFiber,
+    totalSugar,
+    totalCost,
+    // Extended nutrients
+    totalSodium,
+    totalPotassium,
+    totalCalcium,
+    totalIron,
+    totalMagnesium,
+    totalVitaminC,
+    totalVitaminA,
+    totalVitaminK,
+    totalVitaminE,
+    totalFolate
+  };
+}
+
+/**
+ * Legacy function for backward compatibility
  * Fetches FoodItem by ID from veg_library_with_weights.ndjson,
  * then calculates weightInGrams using averageWeightPerPiece
  * Returns { caloriesPerGram, proteinPerGram, ..., costPerGram }

@@ -1,4 +1,40 @@
 
+// Extended nutrition details interface with micronutrients and derived values
+export interface NutritionDetails {
+  sodium_mg?: number;
+  saturatedFat_g?: number;
+  monounsaturatedFat_g?: number; // if available
+  polyunsaturatedFat_g?: number; // if available
+  transFat_g?: number;           // if available
+  addedSugar_g?: number;         // separate from total sugar
+  omega3_g?: number;
+  omega6_g?: number;
+  cholesterol_mg?: number;
+  potassium_mg?: number;
+  calcium_mg?: number;
+  iron_mg?: number;
+  magnesium_mg?: number;
+  vitaminD_IU?: number;
+  vitaminB12_ug?: number;
+  folate_ug?: number;            // vitamin B9
+  vitaminC_mg?: number;
+  vitaminA_ug?: number;
+  vitaminK_ug?: number;
+  vitaminE_mg?: number;
+  netCarbs_g?: number;           // carbs - fiber
+  sodiumToPotassiumRatio?: number;
+  // flags/scores (optional, for future use)
+  completeProtein?: boolean;
+  satietyScore?: number;
+  muscleScore?: number;
+  cardioScore?: number;
+  // meta
+  source?: 'veg_library_with_weights';
+  lastCalculatedAt?: string;
+  basePortions?: number;         // should be 4
+  gramsPerPortion?: number;      // derived
+}
+
 export interface Recipe {
   id: string;
   title: string;
@@ -20,7 +56,7 @@ export interface Recipe {
   cuisine?: string;   // For cuisine-based filtering
   cookTimeMinutes?: number; // Numerical cooking time for filtering
   authorStyle?: string; // For LLM-based recipe generation
-  // Added nutrition and cost will be calculated at runtime
+  // Current serving nutrition (scaled to current servings)
   nutrition?: {
     calories: number;
     protein: number;
@@ -30,6 +66,18 @@ export interface Recipe {
     sugar: number;
     cost: number;
   };
+  // Extended nutrition details (scaled to current servings) 
+  nutritionDetails?: NutritionDetails;
+  // Base nutrition data for 4 portions (scaling anchor)
+  nutritionBase?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+    sugar: number;
+    cost: number;
+  } & NutritionDetails;
   // Legacy fields that will be removed after migration
   calories?: number;
   protein?: number;
