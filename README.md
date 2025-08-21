@@ -74,6 +74,143 @@ Currently uses local state via `usePantry` hook. Items include:
 - **User Confirmation**: Parsed items can be edited before adding to pantry
 - **Error Handling**: Graceful fallbacks and user feedback for scan failures
 
+## Extended Nutrition Model
+
+### Overview
+The app now includes a comprehensive nutrition calculation system that computes both macronutrients and micronutrients from the `veg_library_with_weights.ndjson` food database.
+
+### Data Model Architecture
+**Base Portions System**: All nutrition is calculated for 4 base portions, then scaled client-side when users change serving sizes. This approach enables:
+- Consistent baseline calculations regardless of recipe variations
+- Efficient client-side scaling without re-querying the database
+- Preserved calculation accuracy across different serving sizes
+
+**Recipe Nutrition Structure**:
+```typescript
+// Core macros (scaled to current servings)
+nutrition: {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+  cost: number;
+}
+
+// Extended micronutrients (scaled to current servings)
+nutritionDetails: {
+  sodium_mg?: number;
+  potassium_mg?: number;
+  calcium_mg?: number;
+  iron_mg?: number;
+  magnesium_mg?: number;
+  vitaminC_mg?: number;
+  vitaminA_ug?: number;
+  vitaminK_ug?: number;
+  vitaminE_mg?: number;
+  folate_ug?: number;
+  netCarbs_g?: number;
+  sodiumToPotassiumRatio?: number;
+  // Health scores
+  satietyScore?: number;
+  muscleScore?: number;
+  cardioScore?: number;
+}
+
+// Base nutrition for 4 portions (scaling anchor)
+nutritionBase: nutrition + nutritionDetails
+```
+
+### Unit Handling & Conversions
+The system handles three unit types with intelligent conversion:
+
+- **Grams (g)**: Used directly as weight measurement
+- **Milliliters (ml)**: Treated as grams assuming density = 1 (appropriate for water-like items)
+- **Pieces**: Converted using `averageWeightPerPiece` from food library
+  - Example: 2 pieces × 150g/piece = 300g total weight
+  - Defaults to 100g if `averageWeightPerPiece` is missing
+
+**Code Comments**: Key conversion points are documented with assumptions made (e.g., ml≈g density assumption).
+
+### Scaling System
+The nutrition scaling system uses a base portions approach:
+
+```typescript
+// Calculate for base portions (4)
+const nutritionBase = calculateNutritionForBase(recipe.ingredients);
+
+// Scale to target servings
+const scaledNutrition = scaleNutrition(nutritionBase, targetServings, 4);
+```
+
+**Scaling Function**:
+```typescript
+function scaleNutrition(baseNutrition, targetServings, basePortions = 4) {
+  const scaleFactor = targetServings / basePortions;
+  return scaleAllNumericValues(baseNutrition, scaleFactor);
+}
+```
+
+### Derived Values & Health Scores
+The system calculates several derived nutrition metrics:
+
+**Net Carbs**: `carbs - fiber` (floored at 0)
+**Sodium:Potassium Ratio**: `sodium_mg / potassium_mg` (guards against division by zero)
+
+**Health Scores (v1 implementations)**:
+- **Satiety Score**: `(protein + fiber) / calories` - indicates filling potential
+- **Muscle Score**: `protein / calories` with bonus for ≥30g protein per portion
+- **Cardio Score**: `(potassium/1000) - (sodium/1000)` - cardiovascular health indicator
+
+### UI Components
+
+**Compact Macro Row (Always Visible)**:
+Shows: Calories • Protein • Carbs • Fat • Fiber • Sugar per current serving
+
+**Collapsible Nutrition Details**:
+- **Minerals**: Sodium, potassium, calcium, iron, magnesium
+- **Vitamins**: A, C, E, K, folate (B9)
+- **Derived Values**: Net carbs, sodium:potassium ratio
+- **Health Scores**: Satiety, muscle, cardio scores
+
+**Nutrient Badges**:
+Automatic badges for recipes meeting nutritional thresholds:
+- "High Protein" (≥30g per serving)
+- "High Fiber" (≥8g per serving)  
+- "High Vitamin C" (≥60mg per serving)
+- "High Iron" (≥10mg per serving)
+
+**Meta Information**:
+- Data source: "Calculated from food library (per serving)"
+- Base portions reference: "base portions = 4"
+- Last calculation timestamp
+
+### Implementation Files
+
+**Core System**:
+- `types/recipes.ts`: Extended Recipe and NutritionDetails interfaces
+- `services/nutritionService.ts`: Main calculation engine with scaling functions
+- `utils/ingredientUtils.ts`: Unit conversion and detailed nutrient extraction
+
+**UI Components**:
+- `components/nutrition/NutritionDetailsCollapsible.tsx`: Primary nutrition display component
+- Updated `RecipeCard.tsx` and `RecipeDetailDrawer.tsx` to use new nutrition structure
+
+**Calculation Flow**:
+1. Load ingredient data from `veg_library_with_weights.ndjson`
+2. Convert units to grams using `averageWeightPerPiece` when needed
+3. Calculate per-gram nutrition values (library data is per 100g)
+4. Sum totals across all ingredients for 4 base portions
+5. Derive net carbs, ratios, and health scores
+6. Store as `nutritionBase` and scale to current servings for display
+
+### Resilience & Error Handling
+- Missing nutrient data: Fields left undefined rather than defaulting to 0
+- Invalid ingredients: Logged warnings with graceful fallbacks
+- Unit conversion failures: Default assumptions documented with console warnings
+- Missing food items: Continues calculation with available ingredients
+
 ## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
