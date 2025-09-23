@@ -80,7 +80,7 @@ export const useMealPlanningState = () => {
    * @param selectedRecipes Array of selected recipes
    */
   const handleRecipeSelectionConfirm = (selectedRecipes: MealItem[]) => {
-    // Randomly assign recipes to days
+    // Randomly assign recipes to days with proper meal type distribution
     const shuffledDays = [...days].sort(() => Math.random() - 0.5);
     const assignedDays: { [day: string]: { [key: string]: MealItem | undefined } } = {};
     
@@ -93,10 +93,41 @@ export const useMealPlanningState = () => {
       };
     });
 
-    // Assign recipes to random days (lunch slot by default)
-    selectedRecipes.forEach((recipe, index) => {
+    // Separate recipes by type
+    const breakfastRecipes = selectedRecipes.filter(r => r.type === 'breakfast');
+    const lunchRecipes = selectedRecipes.filter(r => r.type === 'lunch');
+    const dinnerRecipes = selectedRecipes.filter(r => r.type === 'dinner');
+    const otherRecipes = selectedRecipes.filter(r => !['breakfast', 'lunch', 'dinner'].includes(r.type));
+
+    // Assign breakfast recipes
+    breakfastRecipes.forEach((recipe, index) => {
       if (index < shuffledDays.length) {
         const day = shuffledDays[index];
+        assignedDays[day].breakfast = recipe;
+      }
+    });
+
+    // Assign lunch recipes
+    lunchRecipes.forEach((recipe, index) => {
+      if (index < shuffledDays.length) {
+        const day = shuffledDays[index];
+        assignedDays[day].lunch = recipe;
+      }
+    });
+
+    // Assign dinner recipes
+    dinnerRecipes.forEach((recipe, index) => {
+      if (index < shuffledDays.length) {
+        const day = shuffledDays[index];
+        assignedDays[day].dinner = recipe;
+      }
+    });
+
+    // Assign other recipes to lunch by default
+    otherRecipes.forEach((recipe, index) => {
+      const availableDays = shuffledDays.filter(day => !assignedDays[day].lunch);
+      if (availableDays.length > 0 && index < availableDays.length) {
+        const day = availableDays[index];
         assignedDays[day].lunch = recipe;
       }
     });

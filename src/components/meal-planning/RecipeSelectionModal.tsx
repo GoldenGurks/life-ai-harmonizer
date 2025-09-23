@@ -41,7 +41,7 @@ const RecipeSelectionModal: React.FC<RecipeSelectionModalProps> = ({
     if (activeFilter === 'breakfast') {
       return recipe.type === 'breakfast';
     }
-    return recipe.type !== 'breakfast';
+    return recipe.type === 'lunch' || recipe.type === 'dinner';
   });
 
   const handleRecipeToggle = (recipe: MealItem) => {

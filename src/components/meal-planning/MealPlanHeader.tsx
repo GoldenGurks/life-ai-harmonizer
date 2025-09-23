@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Settings, Wand2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface MealPlanHeaderProps {
   onGeneratePlan: () => void;
@@ -19,6 +20,10 @@ const MealPlanHeader: React.FC<MealPlanHeaderProps> = ({
   onStartWeeklyPlanning
 }) => {
   const { t } = useLanguage();
+  const { profile } = useUserProfile();
+  
+  // Check if user has an existing weekly plan
+  const hasExistingPlan = profile?.currentWeekPlan?.selectedRecipes?.length > 0;
 
   return (
     <div className="flex flex-col space-y-4 mb-4 sm:mb-6">
@@ -40,8 +45,12 @@ const MealPlanHeader: React.FC<MealPlanHeaderProps> = ({
             variant="default"
           >
             <Wand2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Wochenplan erstellen</span>
-            <span className="sm:hidden">Wochenplan</span>
+            <span className="hidden sm:inline">
+              {hasExistingPlan ? 'Neuen Wochenplan erstellen' : 'Wochenplan erstellen'}
+            </span>
+            <span className="sm:hidden">
+              {hasExistingPlan ? 'Neuer Plan' : 'Wochenplan'}
+            </span>
           </Button>
           
           <Button 

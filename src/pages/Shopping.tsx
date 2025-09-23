@@ -1,20 +1,79 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Check, Plus } from 'lucide-react';
+import { ShoppingCart, Check, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { toast } from 'sonner';
 
 const Shopping = () => {
+  const { profile } = useUserProfile();
+  const [shoppingList, setShoppingList] = useState<string[]>([]);
+  const [isAutoSyncing, setIsAutoSyncing] = useState(false);
+
+  // Auto-sync shopping list with weekly plan
+  useEffect(() => {
+    if (profile?.currentWeekPlan?.selectedRecipes) {
+      syncShoppingList();
+    }
+  }, [profile?.currentWeekPlan]);
+
+  const syncShoppingList = () => {
+    setIsAutoSyncing(true);
+    
+    // Extract ingredients from selected recipes
+    const allIngredients: string[] = [];
+    profile?.currentWeekPlan?.selectedRecipes?.forEach(recipe => {
+      if (recipe.ingredients) {
+        recipe.ingredients.forEach(ingredient => {
+          if (typeof ingredient === 'string') {
+            allIngredients.push(ingredient);
+          }
+        });
+      }
+    });
+    
+    // Remove duplicates and sort
+    const uniqueIngredients = [...new Set(allIngredients)].sort();
+    setShoppingList(uniqueIngredients);
+    
+    setTimeout(() => {
+      setIsAutoSyncing(false);
+      toast.success('Einkaufsliste wurde basierend auf deinem Wochenplan aktualisiert!');
+    }, 1000);
+  };
+
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Shopping List</h1>
-        <p className="text-muted-foreground">
-          Manage your grocery list based on your meal plans.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Einkaufsliste</h1>
+            <p className="text-muted-foreground">
+              Verwalte deine Einkaufsliste basierend auf deinen Mahlzeitenplänen.
+            </p>
+          </div>
+          {profile?.currentWeekPlan && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                Auto-Sync: {profile.currentWeekPlan.selectedRecipes?.length || 0} Rezepte
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={syncShoppingList}
+                disabled={isAutoSyncing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isAutoSyncing ? 'animate-spin' : ''}`} />
+                Aktualisieren
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue="current" className="w-full">

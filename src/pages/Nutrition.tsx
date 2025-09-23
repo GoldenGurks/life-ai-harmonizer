@@ -4,8 +4,10 @@ import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Activity, Target } from 'lucide-react';
 import NutrientProgressBar from '@/components/dashboard/NutrientProgressBar';
-import NutritionOverview from '@/components/nutrition/NutritionOverview';
+import EnhancedNutritionOverview from '@/components/nutrition/EnhancedNutritionOverview';
 import NutritionChart from '@/components/nutrition/NutritionChart';
 import MacroDistribution from '@/components/nutrition/MacroDistribution';
 import RecommendationCard from '@/components/nutrition/RecommendationCard';
@@ -20,6 +22,18 @@ const Nutrition = () => {
     { day: 'Friday', calories: 2050, protein: 115, carbs: 190, fat: 75 },
     { day: 'Saturday', calories: 2200, protein: 100, carbs: 220, fat: 80 },
     { day: 'Sunday', calories: 1900, protein: 95, carbs: 175, fat: 68 },
+  ];
+
+  const enhancedNutrientData = [
+    { name: 'Kalorien', current: 1950, target: 2000, unit: 'kcal', category: 'macros' as const, trend: 'stable' as const },
+    { name: 'Protein', current: 100, target: 120, unit: 'g', category: 'macros' as const, trend: 'up' as const },
+    { name: 'Kohlenhydrate', current: 185, target: 200, unit: 'g', category: 'macros' as const, trend: 'down' as const },
+    { name: 'Fett', current: 68, target: 65, unit: 'g', category: 'macros' as const, trend: 'up' as const },
+    { name: 'Ballaststoffe', current: 22, target: 30, unit: 'g', category: 'macros' as const, trend: 'down' as const },
+    { name: 'Vitamin C', current: 85, target: 90, unit: 'mg', category: 'vitamins' as const, trend: 'stable' as const },
+    { name: 'Vitamin D', current: 15, target: 20, unit: 'μg', category: 'vitamins' as const, trend: 'down' as const },
+    { name: 'Eisen', current: 12, target: 15, unit: 'mg', category: 'minerals' as const, trend: 'up' as const },
+    { name: 'Kalzium', current: 950, target: 1000, unit: 'mg', category: 'minerals' as const, trend: 'stable' as const },
   ];
 
   const nutrientGoals = [
@@ -55,10 +69,27 @@ const Nutrition = () => {
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Nutrition Analytics</h1>
-        <p className="text-muted-foreground">
-          Track, analyze, and optimize your nutrition habits with AI-powered insights.
-        </p>
+        <div className="flex items-center gap-3 mb-4">
+          <Activity className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Ernährungs-Analytics</h1>
+            <p className="text-muted-foreground">
+              Verfolge, analysiere und optimiere deine Ernährungsgewohnheiten mit KI-gestützten Insights.
+            </p>
+          </div>
+        </div>
+        
+        {/* Quick Status Bar */}
+        <div className="flex gap-4 mb-6">
+          <Badge variant="outline" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Wochenziel: 85%
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            Heute: 1.950 / 2.000 kcal
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
@@ -71,18 +102,17 @@ const Nutrition = () => {
         </div>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <NutritionOverview nutrientGoals={nutrientGoals.slice(0, 4)} />
-            <div className="md:col-span-2">
-              <NutritionChart data={dailyNutrients} />
-            </div>
-          </div>
+          <EnhancedNutritionOverview 
+            nutrientData={enhancedNutrientData}
+            weeklyAverage={85}
+            goalCompliance={78}
+          />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MacroDistribution />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <NutritionChart data={dailyNutrients} />
             <Card>
               <CardHeader>
-                <CardTitle>Recommendations</CardTitle>
+                <CardTitle>KI-Empfehlungen</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {recommendations.map((rec) => (

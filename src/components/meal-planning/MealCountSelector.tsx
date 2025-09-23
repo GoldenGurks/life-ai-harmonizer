@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 interface MealCountSelectorProps {
@@ -20,6 +21,7 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
   onConfirm
 }) => {
   const mealOptions = [3, 4, 5, 6, 7];
+  const [customInput, setCustomInput] = React.useState('');
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -57,6 +59,35 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
                 {count}
               </Button>
             ))}
+          </div>
+          
+          {/* Free input field */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Oder gib eine eigene Anzahl ein:</label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min="1"
+                max="21"
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                placeholder="z.B. 10"
+                className="flex-1"
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const count = parseInt(customInput);
+                  if (count && count >= 1 && count <= 21) {
+                    onMealCountChange(count);
+                    setCustomInput('');
+                  }
+                }}
+                disabled={!customInput || parseInt(customInput) < 1 || parseInt(customInput) > 21}
+              >
+                OK
+              </Button>
+            </div>
           </div>
         </div>
         

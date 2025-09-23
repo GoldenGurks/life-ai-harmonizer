@@ -2,7 +2,8 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface PlanSuccessModalProps {
   isOpen: boolean;
@@ -18,8 +19,15 @@ const PlanSuccessModal: React.FC<PlanSuccessModalProps> = ({
   onClose,
   onViewPlan
 }) => {
+  const navigate = useNavigate();
+  
   const handleViewPlan = () => {
     onViewPlan();
+    onClose();
+  };
+  
+  const handleGoToShopping = () => {
+    navigate('/shopping');
     onClose();
   };
 
@@ -39,11 +47,15 @@ const PlanSuccessModal: React.FC<PlanSuccessModalProps> = ({
         
         <div className="flex flex-col gap-2 mt-4">
           <Button onClick={handleViewPlan} className="w-full">
-            Plan anzeigen
+            ✅ Plan anzeigen
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
-          <Button variant="outline" onClick={onClose} className="w-full">
-            OK
+          <Button variant="outline" onClick={handleGoToShopping} className="w-full">
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Zur Einkaufsliste
+          </Button>
+          <Button variant="ghost" onClick={onClose} className="w-full">
+            Später
           </Button>
         </div>
       </DialogContent>

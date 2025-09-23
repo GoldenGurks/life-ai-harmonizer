@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Star, Camera, ShoppingCart, Users, Zap, Target, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LanguageSelector from '@/components/LanguageSelector';
+import { useLanguage } from '@/hooks/useLanguage';
 import heroKitchen from '@/assets/hero-kitchen.jpg';
 import tailoredMealsBg from '@/assets/tailored-meals-bg.jpg';
 import aiVarietyBg from '@/assets/ai-variety-bg.jpg';
@@ -17,6 +19,7 @@ import groceryStocksBg from '@/assets/grocery-stocks-bg.jpg';
  */
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleGetStarted = () => {
     navigate('/meal-planning');
@@ -24,6 +27,11 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Language Selector */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSelector />
+      </div>
+      
       {/* Hero Section */}
       <section className="relative px-4 py-16 sm:py-24 lg:py-32 overflow-hidden">
         {/* Background Image */}
@@ -148,7 +156,7 @@ const LandingPage: React.FC = () => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${groceryStocksBg})` }}
         >
-          <div className="absolute inset-0 bg-background/90"></div>
+          <div className="absolute inset-0 bg-background/70"></div>
         </div>
         <div className="container mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -301,8 +309,51 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Additional Features Section */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="text-center">
+              <CardHeader>
+                <Target className="h-8 w-8 text-primary mx-auto mb-2" />
+                <CardTitle className="text-lg">Personalized Goals</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Whether you're cutting, bulking, or maintaining - our AI adapts to your fitness goals.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center">
+              <CardHeader>
+                <Zap className="h-8 w-8 text-secondary mx-auto mb-2" />
+                <CardTitle className="text-lg">Instant Adaptations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Don't like a recipe? Our algorithm learns and suggests better alternatives immediately.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center">
+              <CardHeader>
+                <Heart className="h-8 w-8 text-accent mx-auto mb-2" />
+                <CardTitle className="text-lg">Family Friendly</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Create meal plans that work for the whole family, with options for different dietary needs.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action */}
-      <section className="py-16 sm:py-20 lg:py-24 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <section className="py-16 sm:py-20 lg:py-24 px-4 bg-gradient-to-br from-accent/10 to-primary/10">
         <div className="container mx-auto text-center max-w-3xl">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">
             Ready to Transform Your Meal Planning?
@@ -311,7 +362,7 @@ const LandingPage: React.FC = () => {
             Join 50,000+ home cooks who've ditched meal-planning stress
           </p>
           
-          <Button size="lg" className="text-lg px-8 py-4 mb-4" onClick={handleGetStarted}>
+          <Button size="lg" className="text-lg px-8 py-4 mb-6" onClick={handleGetStarted}>
             Build My Perfect Week
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
