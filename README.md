@@ -10,14 +10,14 @@ An AI-powered meal planning application built with React, TypeScript, and Tailwi
 - **Nutrition Tracking**: Monitor daily nutrition goals and macronutrient distribution
 - **Smart Shopping Lists**: Auto-generated shopping lists that account for pantry inventory
 
-### Recent Updates
+### Recent Updates (Latest Release)
 
-## Multilingual & Pantry Updates
+## Comprehensive App Enhancement
 
-### A) Multilingual Support (German, English, Spanish)
-- **Language Switching**: Users can switch between DE/EN/ES languages via header selector
-- **Persistent Preferences**: Language choice is saved in localStorage
-- **Complete Translation Coverage**: All UI strings in meal planning flows are localized
+### A) Global Language Support (German, English, Spanish)
+- **Universal Language Toggle**: DE/EN/ES language selection available on landing page and throughout app
+- **Persistent Preferences**: Language choice saved in localStorage and applied globally
+- **Complete Translation Coverage**: All UI strings, menus, tooltips, and messages localized
 - **Translation Structure**: Uses nested key structure (e.g., `mealPlanning.title`)
 
 #### How to Add Translations
@@ -26,40 +26,35 @@ An AI-powered meal planning application built with React, TypeScript, and Tailwi
 3. Use the `t()` function in components: `t('section.key', { param: value })`
 4. Parameter interpolation supported: `{{paramName}}` in translation strings
 
-### B) Weekly Dish Count - Presets + Custom
-- **Preset Buttons**: Quick selection for 3, 5, or 7 dishes
-- **Custom Input**: Slider for any count between 1-21 dishes
-- **Selection Enforcement**: Recipe grid prevents over-selection with clear messaging
-- **Unified State**: Single source of truth via `weeklySettings.dishCount`
+### B) Enhanced Landing Page
+- **Language Selection**: Prominent DE/EN selector at top of landing page
+- **Visual Improvements**: Updated photos, improved color contrast, reduced white space
+- **Better Call-to-Actions**: Added feature highlights and clearer navigation
 
-### C) Simplified Recommendation Settings
-- **Simple/Advanced Toggle**: Default simple mode shows only preset selection
-- **Clear Preset Descriptions**: Each preset (Healthy/Weight Loss/Muscle Gain) explains its focus
-- **Advanced Mode**: Reveals sliders with tooltips and reset functionality
-- **Tooltip Help**: Each slider has explanatory tooltips for user guidance
+### C) Tinder Dish - Recipe Preference Training
+- **Early Preference Learning**: Swipe-based recipe training available before meal planning
+- **Smart Algorithm**: User preferences (likes/dislikes) inform recommendation engine
+- **Integrated Flow**: Accessible from meal planning tabs for continuous preference refinement
 
-### D) Breakfast Preservation
-- **Meal Type Tagging**: Breakfast selections are marked with `mealType="breakfast"`
-- **Plan Placement**: Weekly plan respects meal types and displays breakfast in appropriate slots
-- **Selection Context**: Breakfast recipes maintain their identity throughout the planning flow
+### D) Advanced Meal Planning Features
+- **Free Recipe Count Input**: No longer limited to 3-7 dishes, users can input any number
+- **Smart Meal Type Assignment**: Recipes correctly assigned to breakfast, lunch, dinner (fixed bug)
+- **Goal Inheritance**: Recommendation presets maintain user's previously selected fitness goals
+- **Enhanced Success Flow**: Clear success messages with direct shopping list navigation
+- **Descriptive Controls**: Replaced "Fine Tune Weights" with clear labels and tooltips
+- **Context-Aware Buttons**: "Create New Weekly Plan" button text reflects existing plan state
 
-### E) Dashboard Routing
-- **Fixed Navigation**: "Dashboard" menu item now correctly routes to `/dashboard`
-- **Consistent Behavior**: All navigation paths properly direct to intended pages
+### E) Redesigned Nutrition Analytics
+- **Enhanced Overview**: Comprehensive nutrition dashboard with improved visual hierarchy
+- **Micronutrient Tracking**: Complete vitamin and mineral monitoring
+- **Health Scores**: Satiety, muscle-building, and cardiovascular health indicators
+- **Smart Visualization**: Interactive charts and progress indicators
 
-### F) Shopping List Functionality
-- **Remove Items**: "X" button removes items from shopping list with immediate feedback
-- **Session Persistence**: Removed items stay removed during current planning session
-- **Pantry Integration**: Shopping list automatically subtracts items available in pantry
-
-### G) Pantry & Shopping Page
-- **Renamed Section**: "Shopping" → "Pantry & Shopping" throughout navigation
-- **Two-Tab Interface**: 
-  - **Pantry Tab**: AI scanning, manual item addition, inventory management
-  - **Shopping Tab**: Auto-generated list minus pantry items with check-off functionality
-- **AI Scanning**: Photo upload for fridge/receipt analysis with parsed item preview
-- **Manual Entry**: Form-based item addition with categories and units
-- **Smart Sync**: Pantry changes automatically update shopping list calculations
+### F) Intelligent Shopping & Pantry System
+- **Auto-Sync Shopping Lists**: Shopping lists automatically update based on weekly plan recipes
+- **Smart Pantry Integration**: Available pantry items excluded from shopping lists
+- **AI-Powered Scanning**: Photo analysis for fridge contents and receipts
+- **Comprehensive Management**: Full pantry inventory with expiration tracking
 
 #### Pantry Storage
 Currently uses local state via `usePantry` hook. Items include:
