@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, ChefHat, Settings, PieChart, Calendar, ShoppingCart } from 'lucide-react';
+import { Home, ChefHat, Settings, PieChart, Calendar, ShoppingCart, Package } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 /**
@@ -16,11 +16,11 @@ const Sidebar: React.FC = () => {
       <div className="p-4 flex flex-col h-full">
         <nav className="space-y-1">
           {/* Home/Dashboard navigation link */}
-          <NavLink to="/dashboard" className={({ isActive }) => 
+          <NavLink to="/" className={({ isActive }) => 
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <Home size={18} />
-            <span className="text-sm">Dashboard</span>
+            <span className="text-sm">{t('sidebar.dashboard')}</span>
           </NavLink>
           
           {/* Nutrition section header */}
@@ -35,7 +35,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <ChefHat size={18} />
-            <span className="text-sm">Recipes</span>
+            <span className="text-sm">{t('sidebar.recipes')}</span>
           </NavLink>
           
           {/* Meal planning navigation */}
@@ -43,7 +43,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <Calendar size={18} />
-            <span className="text-sm">Meal Planning</span>
+            <span className="text-sm">{t('sidebar.mealPlanning')}</span>
           </NavLink>
           
           {/* Nutrition analytics navigation */}
@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <PieChart size={18} />
-            <span className="text-sm">Nutrition Analytics</span>
+            <span className="text-sm">{t('sidebar.nutrition')}</span>
           </NavLink>
           
           {/* Shopping & Pantry navigation */}
@@ -59,7 +59,14 @@ const Sidebar: React.FC = () => {
             `nav-item ${isActive ? 'active' : ''}`
           }>
             <ShoppingCart size={18} />
-            <span className="text-sm">{t('shopping.title')}</span>
+            <span className="text-sm">{t('sidebar.shopping')}</span>
+          </NavLink>
+          
+          <NavLink to="/pantry-shopping" className={({ isActive }) => 
+            `nav-item ${isActive ? 'active' : ''}`
+          }>
+            <Package size={18} />
+            <span className="text-sm">{t('sidebar.pantry')}</span>
           </NavLink>
         </nav>
         

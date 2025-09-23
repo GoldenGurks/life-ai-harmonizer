@@ -6,6 +6,7 @@ import TinderDishTab from './TinderDishTab';
 import TemplatesTab from './TemplatesTab';
 import SavedPlansTab from './SavedPlansTab';
 import ClearPlanConfirmation from './ClearPlanConfirmation';
+import { convertRecipeToMealItem } from './WeeklyPlanTab';
 import { recipeData } from '@/data/recipeDatabase';
 import { MealItem } from '@/types/meal-planning';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -38,22 +39,8 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
 }) => {
   const { addLikedMeal, addDislikedMeal } = useUserProfile();
   
-  // Convert recipes to meal items for Tinder Dish
-  const tinderSuggestions: MealItem[] = recipeData.slice(0, 20).map(recipe => ({
-    id: recipe.id,
-    name: recipe.title,
-    description: '',
-    image: recipe.image,
-    calories: recipe.nutrition?.calories || 0,
-    protein: recipe.nutrition?.protein || 0,
-    carbs: recipe.nutrition?.carbs || 0,
-    fat: recipe.nutrition?.fat || 0,
-    ingredients: recipe.ingredients?.map(ing => typeof ing === 'string' ? ing : ing.name) || [],
-    preparationTime: 15,
-    cookingTime: 25,
-    type: 'lunch',
-    tags: recipe.tags || []
-  }));
+  // Convert recipes to meal items for Tinder Dish using the existing converter
+  const tinderSuggestions: MealItem[] = recipeData.slice(0, 20).map(convertRecipeToMealItem);
   
   const handleAcceptMeal = (meal: MealItem) => {
     addLikedMeal(meal.id);
@@ -62,11 +49,29 @@ const MealPlanContent: React.FC<MealPlanContentProps> = ({
   const handleRejectMeal = (meal: MealItem) => {
     addDislikedMeal(meal.id);
   };
+  
+  // Dummy functions for WeeklyPlanTab props (can be enhanced later)
+  const handleDayChange = (day: string) => {
+    console.log('Day changed to:', day);
+  };
+  
+  const handleMealChange = (mealId: string) => {
+    console.log('Meal changed:', mealId);
+  };
+  
+  // Empty meal plans for now (can be enhanced with actual data)
+  const mealPlans = [];
 
   return (
     <>
       <TabsContent value="weekly">
-        <WeeklyPlanTab currentDay={currentDay} days={days} />
+        <WeeklyPlanTab 
+          currentDay={currentDay} 
+          days={days}
+          onDayChange={handleDayChange}
+          handleMealChange={handleMealChange}
+          mealPlans={mealPlans}
+        />
       </TabsContent>
       
       <TabsContent value="tinder">

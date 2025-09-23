@@ -29,10 +29,10 @@ const MealPlanTabs: React.FC<MealPlanTabsProps> = ({
             <span className="hidden sm:inline">{t('mealPlanning.weeklyPlan')}</span>
             <span className="sm:hidden">Weekly</span>
           </TabsTrigger>
-          <TabsTrigger value="tinder-dish" className="uppercase flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-4">
+          <TabsTrigger value="tinder" className="uppercase flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-4">
             <List className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">{t('mealPlanning.mealDiscovery')}</span>
-            <span className="sm:hidden">Discover</span>
+            <span className="hidden sm:inline">{t('mealPlanning.tinderDish')}</span>
+            <span className="sm:hidden">Training</span>
           </TabsTrigger>
           <TabsTrigger value="saved" className="uppercase text-xs sm:text-sm px-2 sm:px-4">
             <span className="hidden sm:inline">{t('mealPlanning.savedPlans')}</span>

@@ -7,7 +7,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRecipeRecommendations } from '@/hooks/useRecipeRecommendations';
 import { Recipe } from '@/types/recipes';
 import { useToast } from '@/hooks/use-toast';
-import LanguageSelector from '@/components/meal-planning/LanguageSelector';
+import LanguageSelector from '@/components/LanguageSelector';
 
 /**
  * Application header component that appears on all pages
