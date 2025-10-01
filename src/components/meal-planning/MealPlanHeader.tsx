@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Settings, Wand2 } from 'lucide-react';
+import { Settings, Wand2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
@@ -53,15 +53,7 @@ const MealPlanHeader: React.FC<MealPlanHeaderProps> = ({
             </span>
           </Button>
           
-          <Button 
-            onClick={onGeneratePlan}
-            variant="outline"
-            className="flex items-center justify-center gap-2 text-sm"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('mealPlanning.generatePlan')}</span>
-            <span className="sm:hidden">Plan</span>
-          </Button>
+          {/* Removed duplicate "+ Plan generieren" button to avoid redundancy */}
           
           <Button 
             onClick={onOpenPreferences}

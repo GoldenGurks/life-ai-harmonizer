@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Check, Plus, RefreshCw, Trash2 } from 'lucide-react';
@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { usePantry } from '@/hooks/usePantry';
+import { useShoppingList as useComputedShoppingList } from '@/hooks/useShoppingList';
+import type { MealItem } from '@/types/meal-planning';
 import { toast } from 'sonner';
 
 interface ShoppingListItem {
@@ -26,15 +29,58 @@ interface SavedShoppingList {
 
 const Shopping = () => {
   const { profile } = useUserProfile();
+  const { pantryItems } = usePantry();
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [isAutoSyncing, setIsAutoSyncing] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [sourceMeals, setSourceMeals] = useState<string[]>([]);
 
-  // Load shopping list from localStorage on mount
+  // Derive weekly meals from the saved weekly plan
+  const weeklyMeals = useMemo<MealItem[]>(() => {
+    const plan = profile?.currentWeekPlan;
+    if (!plan?.assignedDays) return [];
+    const meals: MealItem[] = [];
+    Object.values(plan.assignedDays).forEach((byType) => {
+      Object.values(byType).forEach((mi) => {
+        if (mi) meals.push(mi as MealItem);
+      });
+    });
+    return meals;
+  }, [profile?.currentWeekPlan]);
+
+  // Compute shopping list from weekly meals + pantry
+  const { shoppingList: computedList } = useComputedShoppingList(weeklyMeals, pantryItems);
+
+  // Load shopping list from localStorage on mount (fallback)
   useEffect(() => {
     loadShoppingList();
   }, []);
+
+  // Auto-sync from current weekly plan whenever it changes
+  useEffect(() => {
+    if (weeklyMeals.length > 0) {
+      const items: ShoppingListItem[] = computedList.map((it) => ({
+        name: it.name,
+        amount: it.amount.toString(),
+        unit: it.unit,
+        inPantry: false,
+        checked: false,
+      }));
+
+      setShoppingList(items);
+      const generatedAt = profile?.currentWeekPlan?.createdAt ?? new Date().toISOString();
+      setLastGenerated(generatedAt);
+      const meals = Array.from(new Set(weeklyMeals.map((m) => m.name)));
+      setSourceMeals(meals);
+
+      // Persist so Shopping page stays in sync even after refresh
+      localStorage.setItem('weeklyShoppingList', JSON.stringify({
+        items,
+        generatedAt,
+        meals,
+      }));
+    }
+  }, [computedList, weeklyMeals, profile?.currentWeekPlan]);
 
   const loadShoppingList = () => {
     const savedData = localStorage.getItem('weeklyShoppingList');
@@ -52,7 +98,19 @@ const Shopping = () => {
 
   const syncShoppingList = () => {
     setIsAutoSyncing(true);
-    loadShoppingList();
+    // Prefer recompute; fallback to saved
+    if (weeklyMeals.length > 0) {
+      const items: ShoppingListItem[] = computedList.map((it) => ({
+        name: it.name,
+        amount: it.amount.toString(),
+        unit: it.unit,
+        inPantry: false,
+        checked: false,
+      }));
+      setShoppingList(items);
+    } else {
+      loadShoppingList();
+    }
     
     setTimeout(() => {
       setIsAutoSyncing(false);
