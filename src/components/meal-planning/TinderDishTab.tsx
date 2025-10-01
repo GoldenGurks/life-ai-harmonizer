@@ -28,18 +28,22 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
   const [showingAlternatives, setShowingAlternatives] = useState(false);
   const [alternativeIndex, setAlternativeIndex] = useState(0);
   const [allSuggestions, setAllSuggestions] = useState<MealItem[]>([]);
+  const [shownRecipeIds, setShownRecipeIds] = useState<Set<string>>(new Set());
   const { addLikedFood, addDislikedFood } = useMealPreferences();
 
   // Initialize suggestions from props or recipe database
   useEffect(() => {
     if (suggestions && suggestions.length > 0) {
-      setAllSuggestions(suggestions);
+      // Filter out already shown recipes
+      const unshownSuggestions = suggestions.filter(s => !shownRecipeIds.has(s.id));
+      setAllSuggestions(unshownSuggestions);
     } else {
-      // Use recipe database as fallback
-      const fallbackSuggestions = recipeData.slice(0, 20).map(convertRecipeToMealItem);
-      setAllSuggestions(fallbackSuggestions);
+      // Use entire recipe database (not just slice)
+      const allRecipes = recipeData.map(convertRecipeToMealItem);
+      const unshownRecipes = allRecipes.filter(r => !shownRecipeIds.has(r.id));
+      setAllSuggestions(unshownRecipes);
     }
-  }, [suggestions]);
+  }, [suggestions, shownRecipeIds]);
 
   const currentMeal = showingAlternatives 
     ? alternatives[alternativeIndex]
@@ -56,6 +60,8 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
         onAccept(alternative);
         // Store preference in permanent storage
         addLikedFood(alternative.id);
+        // Mark as shown
+        setShownRecipeIds(prev => new Set(prev).add(alternative.id));
         
         setShowingAlternatives(false);
         setAlternatives([]);
@@ -69,6 +75,8 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
         onAccept(meal);
         // Store preference in permanent storage
         addLikedFood(meal.id);
+        // Mark as shown
+        setShownRecipeIds(prev => new Set(prev).add(meal.id));
         
         setAnimation(null);
         nextMeal();
@@ -83,6 +91,8 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
     if (showingAlternatives) {
       // Also track dislike for the alternative
       addDislikedFood(alternatives[alternativeIndex].id);
+      // Mark as shown
+      setShownRecipeIds(prev => new Set(prev).add(alternatives[alternativeIndex].id));
       
       // Move to next alternative or back to suggestions
       if (alternativeIndex < alternatives.length - 1) {
@@ -97,12 +107,15 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
       setAnimation('left');
       
       // Track dislike for original suggestion
-      addDislikedFood(allSuggestions[currentIndex].id);
-      onReject(allSuggestions[currentIndex]);
+      const currentRecipe = allSuggestions[currentIndex];
+      addDislikedFood(currentRecipe.id);
+      onReject(currentRecipe);
+      // Mark as shown
+      setShownRecipeIds(prev => new Set(prev).add(currentRecipe.id));
       
       setTimeout(() => {
         // Generate alternatives (normally would come from API)
-        const newAlternatives = generateAlternatives(allSuggestions[currentIndex]);
+        const newAlternatives = generateAlternatives(currentRecipe);
         setAlternatives(newAlternatives);
         setShowingAlternatives(true);
         setAlternativeIndex(0);
@@ -117,17 +130,16 @@ const TinderDishTab: React.FC<TinderDishTabProps> = ({
     if (currentIndex < allSuggestions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      toast.info("You've gone through all suggestions!");
-      // Could reset or fetch more
-      setCurrentIndex(0);
+      toast.info("You've gone through all available recipes!");
     }
   };
 
   // This would normally come from an API or service
   const generateAlternatives = (meal: MealItem): MealItem[] => {
-    // Find similar recipes from the database
+    // Find similar recipes from the database that haven't been shown
     const similarRecipes = recipeData.filter(recipe => 
       recipe.id !== meal.id && 
+      !shownRecipeIds.has(recipe.id) &&
       (recipe.tags.some(tag => meal.tags.includes(tag)) ||
        recipe.category === meal.description)
     ).slice(0, 2);
