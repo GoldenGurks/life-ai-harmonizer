@@ -40,7 +40,7 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
     dislikedFoods: preferences.dislikedFoods || [],
   });
   
-  const totalSteps = 5;
+  const totalSteps = 4;
   
   const handleNext = () => {
     if (step < totalSteps) {
@@ -242,20 +242,6 @@ const DetailedPlanningModal: React.FC<DetailedPlanningModalProps> = ({ open, onC
                 />
               </div>
             </div>
-          </div>
-        );
-        
-      case 5:
-        return (
-          <div className="space-y-4">
-            <h2 className="text-lg font-medium">Recipe Recommendation Preferences</h2>
-            <PresetWeightsSection
-              onWeightsChange={(weights, preset) => {
-                handleFormChange('recommendationWeights', weights);
-                handleFormChange('recommendationPreset', preset);
-              }}
-              initialPreset={formData.recommendationPreset || 'Healthy'}
-            />
           </div>
         );
         
