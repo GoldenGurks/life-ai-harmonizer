@@ -74,6 +74,14 @@ const ShoppingListModal: React.FC<ShoppingListModalProps> = ({ isOpen, onClose, 
   const handleSaveList = async () => {
     setIsSaving(true);
     
+    // Save shopping list to localStorage for syncing with Shopping page
+    const shoppingListData = {
+      items: shoppingList,
+      generatedAt: new Date().toISOString(),
+      meals: selectedMeals.map(m => m.name)
+    };
+    localStorage.setItem('weeklyShoppingList', JSON.stringify(shoppingListData));
+    
     // Simulate saving process
     await new Promise(resolve => setTimeout(resolve, 800));
     
