@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface MealCountSelectorProps {
   mealCount: number;
   onMealCountChange: (count: number) => void;
   onConfirm: () => void;
 }
+
+const MAX_DISHES = 15;
 
 /**
  * Component to select the number of meals for the weekly plan
@@ -22,6 +25,15 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
 }) => {
   const mealOptions = [3, 4, 5, 6, 7];
   const [customInput, setCustomInput] = React.useState('');
+
+  const handleMealCountChange = (count: number) => {
+    if (count > MAX_DISHES) {
+      toast.warning(`Maximum ${MAX_DISHES} dishes allowed for optimal performance`);
+      onMealCountChange(MAX_DISHES);
+    } else {
+      onMealCountChange(count);
+    }
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -39,13 +51,17 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
           <div className="px-4">
             <Slider
               value={[mealCount]}
-              onValueChange={(value) => onMealCountChange(value[0])}
+              onValueChange={(value) => handleMealCountChange(value[0])}
               min={3}
-              max={7}
+              max={MAX_DISHES}
               step={1}
               className="w-full"
             />
           </div>
+          
+          <p className="text-sm text-muted-foreground text-center">
+            Select up to {MAX_DISHES} dishes for your weekly plan
+          </p>
           
           <div className="flex justify-center gap-2 flex-wrap">
             {mealOptions.map((count) => (
@@ -53,7 +69,7 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
                 key={count}
                 variant={mealCount === count ? "default" : "outline"}
                 size="sm"
-                onClick={() => onMealCountChange(count)}
+                onClick={() => handleMealCountChange(count)}
                 className="w-12 h-12"
               >
                 {count}
@@ -68,7 +84,7 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
               <Input
                 type="number"
                 min="1"
-                max="21"
+                max={MAX_DISHES}
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
                 placeholder="z.B. 10"
@@ -78,12 +94,12 @@ const MealCountSelector: React.FC<MealCountSelectorProps> = ({
                 variant="outline"
                 onClick={() => {
                   const count = parseInt(customInput);
-                  if (count && count >= 1 && count <= 21) {
-                    onMealCountChange(count);
+                  if (count && count >= 1 && count <= MAX_DISHES) {
+                    handleMealCountChange(count);
                     setCustomInput('');
                   }
                 }}
-                disabled={!customInput || parseInt(customInput) < 1 || parseInt(customInput) > 21}
+                disabled={!customInput || parseInt(customInput) < 1 || parseInt(customInput) > MAX_DISHES}
               >
                 OK
               </Button>
