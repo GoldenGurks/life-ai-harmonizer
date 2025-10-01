@@ -194,8 +194,8 @@ const RecipeSelectionModal: React.FC<RecipeSelectionModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
-        <DialogHeader className="flex flex-row items-center gap-3 pb-4">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex flex-row items-center gap-3 pb-4 shrink-0">
           <Button variant="ghost" size="icon" onClick={onClose}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -205,7 +205,7 @@ const RecipeSelectionModal: React.FC<RecipeSelectionModalProps> = ({
           </Badge>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           {/* Filter Tabs */}
           <div className="flex gap-2">
             <Button
@@ -257,7 +257,7 @@ const RecipeSelectionModal: React.FC<RecipeSelectionModalProps> = ({
           </div>
 
           {/* Confirm Button */}
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t shrink-0">
             <Button
               onClick={handleConfirm}
               disabled={selectedRecipes.length !== mealCount}
